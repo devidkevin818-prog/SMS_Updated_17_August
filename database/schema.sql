@@ -270,4 +270,8 @@ GO
 ALTER TABLE employee_requests
 ALTER COLUMN signature_valid_until DATE NOT NULL;
 GO
+
+ALTER TABLE employees
+    ADD signature_valid_from DATE NOT NULL,
+    signature_valid_until DATE NOT NULL;
 /* =====================================*/
