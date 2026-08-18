@@ -274,4 +274,7 @@ GO
 ALTER TABLE employees
     ADD signature_valid_from DATE NOT NULL,
     signature_valid_until DATE NOT NULL;
+
+  ALTER TABLE users
+ALTER COLUMN branch_id BIGINT;
 /* =====================================*/
