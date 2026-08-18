@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Create Employee')}"></head>
+
+<body>
+<header th:replace="~{fragments/navbar :: navbar('PD')}"></header>
+<aside th:replace="~{fragments/sidebar :: sidebar('PD','create')}"></aside>
+<main class="app-main">
+    <div class="content-wrap">
+        <div class="page-header">
+            <div><span class="page-eyebrow">New Request</span>
+                <h1 class="page-title">Create employee request</h1>
+                <p class="page-subtitle">Complete every field and upload clear employee images.</p></div>
+            <a class="btn btn-soft" th:href="@{/pd/dashboard}"><i class="bi bi-x-lg me-2"></i>Cancel</a></div>
+        <form th:action="@{/pd/employees}" th:object="${employeeRequestForm}" method="post"
+              enctype="multipart/form-data">
+            <div class="alert alert-danger app-alert" th:if="${#fields.hasAnyErrors()}"><i
+                    class="bi bi-exclamation-triangle-fill"></i>
+                <div><strong>Please correct the form</strong>
+                    <div th:each="error:${#fields.allErrors()}" th:text="${error}"></div>
+                </div>
+            </div>
+            <div class="row g-4">
+                <section class="col-xl-8">
+                    <div class="surface-card">
+                        <div class="card-header"><h2 class="h5 mb-1"><i
+                                class="bi bi-person-vcard-fill text-success me-2"></i>Employee information</h2>
+                            <p class="page-subtitle mb-0">Information shown on the approved employee card</p></div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-6"><label class="form-label" for="employeeCode">Employee code</label><input
+                                        class="form-control" id="employeeCode" th:field="*{employeeCode}"
+                                        placeholder="e.g. EMP001" required></div>
+                                <div class="col-md-6"><label class="form-label" for="employeeName">Employee name</label><input
+                                        class="form-control" id="employeeName" th:field="*{employeeName}"
+                                        placeholder="Full legal name" required></div>
+                                <div class="col-md-6"><label class="form-label"
+                                                             for="designation">Designation</label><input
+                                        class="form-control" id="designation" th:field="*{designation}"
+                                        placeholder="Current job title" required></div>
+                                <div class="col-md-6"><label class="form-label"
+                                                             for="department">Department</label><input
+                                        class="form-control" id="department" th:field="*{department}"
+                                        placeholder="Department name" required></div>
+                                <div class="col-md-6"><label class="form-label" for="branch">Branch</label><input
+                                        class="form-control" id="branch" th:field="*{branch}"
+                                        placeholder="Branch name or code" required></div>
+                                <div class="col-md-6"><label class="form-label" for="remark">Submission
+                                    remark</label><input class="form-control" id="remark" th:field="*{remark}"
+                                                         placeholder="Reason for this request" required></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <aside class="col-xl-4">
+                    <div class="surface-card">
+                        <div class="card-header"><h2 class="h5 mb-1"><i class="bi bi-images text-success me-2"></i>Verification
+                            images</h2>
+                            <p class="page-subtitle mb-0">JPG or PNG, maximum 5 MB each</p></div>
+                        <div class="card-body">
+                            <div class="file-upload mb-3"><label class="form-label" for="photo"><i
+                                    class="bi bi-camera-fill me-1"></i>Employee photo</label><input
+                                    class="form-control image-preview-input" id="photo" type="file" th:field="*{photo}"
+                                    accept="image/jpeg,image/png" data-preview-target="photoPreview"
+                                    data-error-target="photoError" required><small class="form-hint">Use a clear,
+                                front-facing photograph.</small><small class="upload-error" id="photoError"
+                                                                       role="alert"></small>
+                                <div class="upload-preview" id="photoPreview" hidden><img
+                                        alt="Selected employee photo preview"></div>
+                            </div>
+                            <div class="file-upload">
+                                <label class="form-label" for="signature">
+                                    <i class="bi bi-pen-fill me-1"></i>Employee signature
+                                </label>
+
+                                <input
+                                        class="form-control image-preview-input"
+                                        id="signature"
+                                        type="file"
+                                        th:field="*{signature}"
+                                        accept="image/jpeg,image/png"
+                                        data-preview-target="signaturePreview"
+                                        data-error-target="signatureError"
+                                        required>
+
+                                <small class="form-hint">
+                                    Use a clean signature on a light background.
+                                </small>
+
+                                <small class="upload-error"
+                                       id="signatureError"
+                                       role="alert"></small>
+
+                                <div class="upload-preview upload-preview-signature"
+                                     id="signaturePreview"
+                                     hidden>
+                                    <img alt="Selected employee signature preview">
+                                </div>
+
+                                <!-- ADD THIS PART -->
+                                <div class="mt-4">
+                                    <h6 class="fw-semibold mb-3">
+                                        <i class="bi bi-calendar-check text-success me-2"></i>
+                                        Signature validity period
+                                    </h6>
+
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label" for="signatureValidFrom">
+                                                Valid from
+                                            </label>
+                                            <input
+                                                    class="form-control"
+                                                    id="signatureValidFrom"
+                                                    type="date"
+                                                    th:field="*{signatureValidFrom}"
+                                                    required>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <label class="form-label" for="signatureValidUntil">
+                                                Valid until
+                                            </label>
+                                            <input
+                                                    class="form-control"
+                                                    id="signatureValidUntil"
+                                                    type="date"
+                                                    th:field="*{signatureValidUntil}"
+                                                    required>
+                                        </div>
+                                    </div>
+
+                                    <small class="form-hint">
+                                        The signature will be valid only during this period.
+                                    </small>
+
+                                    <small class="upload-error"
+                                           id="signatureDateError"
+                                           role="alert"></small>
+                                </div>
+                                <!-- END OF ADDED PART -->
+
+                            </div>
+                        </div>
+
+                    </div>
+                </aside>
+            </div>
+            <div class="d-flex justify-content-end gap-2 mt-4"><a class="btn btn-soft"
+                                                                  th:href="@{/pd/dashboard}">Cancel</a>
+                <button class="btn btn-bank" type="submit"><i class="bi bi-send-check-fill me-2"></i>Submit to DGM
+                </button>
+            </div>
+        </form>
+    </div>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const from = document.getElementById('signatureValidFrom');
+        const until = document.getElementById('signatureValidUntil');
+        const error = document.getElementById('signatureDateError');
+
+        function validateSignaturePeriod() {
+            error.textContent = '';
+
+            if (from.value && until.value && until.value < from.value) {
+                error.textContent =
+                    'Valid until date must be on or after the valid from date.';
+
+                until.setCustomValidity('Invalid signature validity period.');
+            } else {
+                until.setCustomValidity('');
+            }
+        }
+
+        from.addEventListener('change', validateSignaturePeriod);
+        until.addEventListener('change', validateSignaturePeriod);
+    });
+</script>
+
+</body>
+</body>
+</html>

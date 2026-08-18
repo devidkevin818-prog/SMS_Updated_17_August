@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('PD Dashboard')}"></head>
+<body>
+<header th:replace="~{fragments/navbar :: navbar('PD')}"></header>
+<aside th:replace="~{fragments/sidebar :: sidebar('PD','dashboard')}"></aside>
+<main class="app-main">
+    <div class="content-wrap">
+        <div class="page-header">
+            <div><span class="page-eyebrow">Personnel Department</span>
+                <h1 class="page-title">Employee onboarding</h1>
+                <p class="page-subtitle">Submit complete employee records for two-level approval.</p></div>
+            <a class="btn btn-bank" th:href="@{/pd/employees/new}"><i class="bi bi-person-plus-fill me-2"></i>Create
+                employee</a></div>
+        <section class="metric-grid">
+            <article class="metric-card"><span class="metric-icon"><i
+                    class="bi bi-file-earmark-plus-fill"></i></span><strong class="metric-value">Create</strong><span
+                    class="metric-label">New employee request</span></article>
+            <article class="metric-card"><span class="metric-icon"><i class="bi bi-camera-fill"></i></span><strong
+                    class="metric-value">Photo</strong><span class="metric-label">JPG and PNG supported</span></article>
+            <article class="metric-card"><span class="metric-icon"><i class="bi bi-pen-fill"></i></span><strong
+                    class="metric-value">Signature</strong><span class="metric-label">Secure specimen upload</span>
+            </article>
+            <article class="metric-card"><span class="metric-icon"><i class="bi bi-diagram-3-fill"></i></span><strong
+                    class="metric-value">2 Levels</strong><span class="metric-label">DGM and GM approval</span>
+            </article>
+        </section>
+        <section class="surface-card">
+            <div class="card-header"><h2 class="h5 mb-1">Your workspace</h2>
+                <p class="page-subtitle mb-0">Create, track, or maintain employee records</p></div>
+            <div class="card-body">
+                <div class="quick-actions"><a class="quick-action" th:href="@{/pd/employees/new}"><i
+                        class="bi bi-person-plus-fill"></i><span><strong>Create employee request</strong><small>Upload information, photo and signature</small></span></a><a
+                        class="quick-action" th:href="@{/pd/requests}"><i class="bi bi-clock-history"></i><span><strong>My requests</strong><small>Track approval status</small></span></a><a
+                        class="quick-action" th:href="@{/pd/employees}"><i
+                        class="bi bi-pencil-square"></i><span><strong>Update employee</strong><small>Edit an approved employee record</small></span></a><a
+                        class="quick-action" th:href="@{/employees}"><i
+                        class="bi bi-person-vcard-fill"></i><span><strong>Employee directory</strong><small>View approved employee cards</small></span></a>
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

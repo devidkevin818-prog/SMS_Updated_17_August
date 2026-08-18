@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('GM Approval')}"></head>
+<body>
+<header th:replace="~{fragments/navbar :: navbar('GM')}"></header>
+<aside th:replace="~{fragments/sidebar :: sidebar('GM','approval')}"></aside>
+<main class="app-main">
+    <div class="content-wrap">
+        <div class="page-header">
+            <div><span class="page-eyebrow">Approval Level 2</span>
+                <h1 class="page-title">GM approval queue</h1>
+                <p class="page-subtitle">Provide the final authorization before an employee becomes active.</p></div>
+            <span class="status-badge status-pending"><i class="bi bi-hourglass-split me-1"></i><span
+                    th:text="${requests.totalElements} + ' pending'">0 pending</span></span></div>
+        <div th:replace="~{fragments/layout :: messages}"></div>
+        <section class="metric-grid">
+            <article class="metric-card"><span class="metric-icon"><i class="bi bi-inbox-fill"></i></span><strong
+                    class="metric-value" th:text="${requests.totalElements}">0</strong><span class="metric-label">Pending final reviews</span>
+            </article>
+            <article class="metric-card"><span class="metric-icon"><i class="bi bi-patch-check-fill"></i></span><strong
+                    class="metric-value">Final</strong><span class="metric-label">Authorization level</span></article>
+            <article class="metric-card"><span class="metric-icon"><i class="bi bi-person-check-fill"></i></span><strong
+                    class="metric-value">Activate</strong><span class="metric-label">Approved employee record</span>
+            </article>
+            <article class="metric-card"><span class="metric-icon"><i class="bi bi-bank2"></i></span><strong
+                    class="metric-value">Bank</strong><span class="metric-label">Verified internal profile</span>
+            </article>
+        </section>
+        <section class="surface-card table-card">
+            <div class="card-header"><h2 class="h5 mb-1">DGM-approved requests</h2>
+                <p class="page-subtitle mb-0">Review before final employee activation</p></div>
+            <div class="table-responsive">
+                <table class="table app-table table-hover">
+                    <thead>
+                    <tr>
+                        <th>Employee code</th>
+                        <th>Employee name</th>
+                        <th>PD user</th>
+                        <th>Submitted</th>
+                        <th class="text-end">Action</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="request:${requests.content}">
+                        <td><strong th:text="${request.employeeCode}"></strong></td>
+                        <td th:text="${request.employeeName}"></td>
+                        <td><i class="bi bi-person-circle me-1 text-secondary"></i><span
+                                th:text="${request.requestedBy.username}"></span></td>
+                        <td th:text="${#temporals.format(request.requestedAt,'dd MMM yyyy, HH:mm')}"></td>
+                        <td class="text-end"><a class="btn btn-sm btn-primary"
+                                                th:href="@{/gm/requests/{id}(id=${request.id})}"><i
+                                class="bi bi-eye-fill me-1"></i>Review</a></td>
+                    </tr>
+                    <tr th:if="${requests.empty}">
+                        <td class="empty-state" colspan="5"><i class="bi bi-check2-circle"></i>No requests are waiting
+                            for GM approval.
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<section th:fragment="review(request, basePath)" class="content-wrap">
+    <div class="page-header">
+        <div><span class="page-eyebrow"
+                   th:text="${request.updateRequest ? 'Employee Update Review' : 'New Employee Review'}">Approval Review</span>
+            <h1 class="page-title" th:text="${request.employeeName}">Employee name</h1>
+            <p class="page-subtitle">Confirm the submitted information and verification images.</p></div>
+        <span class="status-badge status-pending"
+              th:text="${#strings.replace(request.status.name(),'_',' ')}">PENDING</span></div>
+    <div th:replace="~{fragments/layout :: messages}"></div>
+    <div class="row g-4">
+        <div class="col-xl-8">
+            <article class="surface-card">
+                <div class="card-header"><h2 class="h5 mb-1"><i class="bi bi-person-vcard-fill text-success me-2"></i>Employee
+                    details</h2>
+                    <p class="page-subtitle mb-0">Submitted by <strong class="text-light"
+                                                                       th:text="${request.requestedBy.username}"></strong>
+                    </p></div>
+                <div class="card-body">
+                    <dl class="detail-list">
+                        <div class="detail-item">
+                            <dt>Employee code</dt>
+                            <dd th:text="${request.employeeCode}"></dd>
+                        </div>
+                        <div class="detail-item">
+                            <dt>Employee name</dt>
+                            <dd th:text="${request.employeeName}"></dd>
+                        </div>
+                        <div class="detail-item">
+                            <dt>Designation</dt>
+                            <dd th:text="${request.designation}"></dd>
+                        </div>
+                        <div class="detail-item">
+                            <dt>Department</dt>
+                            <dd th:text="${request.department}"></dd>
+                        </div>
+                        <div class="detail-item">
+                            <dt>Branch</dt>
+                            <dd th:text="${request.branch}"></dd>
+                        </div>
+                        <div class="detail-item">
+                            <dt>PD remark</dt>
+                            <dd th:text="${request.remark}"></dd>
+                        </div>
+                        <div class="detail-item">
+                            <dt>Signature Valid From</dt>
+                            <dd th:text="${request.SignatureValidFrom}"></dd>
+                        </div>
+                        <div class="detail-item">
+                            <dt>Signature Valid Until</dt>
+                            <dd th:text="${request.SignatureValidUntil}"></dd>
+                        </div>
+
+                    </dl>
+                    <h3 class="form-section-title"><i class="bi bi-images"></i>Verification images</h3>
+                    <div class="review-media">
+                        <div><p class="form-label">Employee photo</p>
+                            <div class="media-panel"><img class="review-image"
+                                                          th:src="@{'/uploads/'+${request.photoPath}}"
+                                                          alt="Employee photo"></div>
+                        </div>
+                        <div><p class="form-label">Specimen signature</p>
+                            <div class="media-panel"><img class="signature-image"
+                                                          th:src="@{'/uploads/'+${request.signaturePath}}"
+                                                          alt="Employee signature"></div>
+                        </div>
+                    </div>
+                </div>
+            </article>
+        </div>
+        <aside class="col-xl-4">
+            <article class="surface-card decision-card">
+                <div class="card-header"><h2 class="h5 mb-1"><i
+                        class="bi bi-clipboard2-check-fill text-success me-2"></i>Approval decision</h2>
+                    <p class="page-subtitle mb-0">Your remark is mandatory</p></div>
+                <div class="card-body">
+                    <form th:object="${approvalForm}" th:action="@{|${basePath}/requests/${request.id}/decision|}"
+                          method="post"><label class="form-label" for="approvalRemark">Decision remark</label><textarea
+                            class="form-control mb-3" id="approvalRemark" rows="5" th:field="*{remark}"
+                            placeholder="Add a clear reason for this decision" required></textarea>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-bank" type="submit" name="action" value="approve"><i
+                                    class="bi bi-check-circle-fill me-2"></i>Approve request
+                            </button>
+                            <button class="btn btn-outline-danger" type="submit" name="action" value="reject"><i
+                                    class="bi bi-x-circle-fill me-2"></i>Reject request
+                            </button>
+                        </div>
+                    </form>
+                    <div class="sidebar-security mt-3"><i class="bi bi-info-circle-fill"></i>
+                        <div><strong>Decision is recorded</strong><small>Verify all information first</small></div>
+                    </div>
+                </div>
+            </article>
+        </aside>
+    </div>
+</section>
+</body>
+</html>

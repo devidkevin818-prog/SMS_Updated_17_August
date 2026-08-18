@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<header th:fragment="navbar(role)" class="app-navbar">
+    <button class="sidebar-toggle" id="sidebarToggle" type="button" aria-label="Toggle navigation" aria-controls="appSidebar">
+        <i class="bi bi-list"></i>
+    </button>
+    <a class="app-brand" th:href="@{|/${#strings.toLowerCase(role)}/dashboard|}">
+        <span class="brand-logo-wrap"><img th:src="@{/css/images/uttara-bank-limited-seeklogo.png}" alt="Uttara Bank Limited"></span>
+        <span class="brand-copy"><strong>Employee Signature</strong><small>Management System</small></span>
+    </a>
+    <div class="navbar-account dropdown">
+        <button class="account-button dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <span class="account-avatar"><i class="bi bi-person-fill"></i></span>
+            <span class="account-copy"><strong>Secure session</strong><small th:text="${role}">ROLE</small></span>
+        </button>
+        <div class="dropdown-menu dropdown-menu-end app-dropdown">
+            <div class="dropdown-header"><span>Signed in as</span><strong th:text="${role}">ROLE</strong></div>
+            <div class="dropdown-divider"></div>
+            <form th:action="@{/logout}" method="post">
+                <button class="dropdown-item text-danger" type="submit"><i class="bi bi-box-arrow-right"></i> Logout</button>
+            </form>
+        </div>
+    </div>
+</header>
+</body>
+</html>

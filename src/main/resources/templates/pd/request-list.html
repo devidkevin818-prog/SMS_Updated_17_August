@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('My Requests')}"></head>
+<body>
+<header th:replace="~{fragments/navbar :: navbar('PD')}"></header>
+<aside th:replace="~{fragments/sidebar :: sidebar('PD','requests')}"></aside>
+<main class="app-main">
+    <div class="content-wrap">
+        <div class="page-header">
+            <div><span class="page-eyebrow">Request Tracking</span>
+                <h1 class="page-title">My employee requests</h1>
+                <p class="page-subtitle">Monitor every submission through DGM and GM approval.</p></div>
+            <a class="btn btn-bank" th:href="@{/pd/employees/new}"><i class="bi bi-plus-lg me-2"></i>New request</a>
+        </div>
+        <div th:replace="~{fragments/layout :: messages}"></div>
+        <section class="surface-card table-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div><h2 class="h5 mb-1">Submission history</h2>
+                    <p class="page-subtitle mb-0">Most recent requests appear first</p></div>
+                <span class="status-badge status-pending"
+                      th:text="${requests.totalElements} + ' request(s)'">0 requests</span></div>
+            <div class="table-responsive">
+                <table class="table app-table table-hover">
+                    <thead>
+                    <tr>
+                        <th>Employee code</th>
+                        <th>Employee name</th>
+                        <th>Submitted</th>
+                        <th>Status</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="request:${requests.content}">
+                        <td><strong th:text="${request.employeeCode}"></strong></td>
+                        <td th:text="${request.employeeName}"></td>
+                        <td th:text="${#temporals.format(request.requestedAt,'dd MMM yyyy, HH:mm')}"></td>
+                        <td><span class="status-badge"
+                                  th:classappend="${request.status.name() == 'APPROVED' ? ' status-approved' : (request.status.name() == 'REJECTED' ? ' status-rejected' : ' status-pending')}"
+                                  th:text="${#strings.replace(request.status.name(),'_',' ')}"></span></td>
+                    </tr>
+                    <tr th:if="${requests.empty}">
+                        <td class="empty-state" colspan="4"><i class="bi bi-file-earmark-text"></i>No requests submitted
+                            yet.
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

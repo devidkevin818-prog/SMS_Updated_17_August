@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Edit Employee')}"></head>
+<body>
+<header th:replace="~{fragments/navbar :: navbar('PD')}"></header>
+<aside th:replace="~{fragments/sidebar :: sidebar('PD','update')}"></aside>
+<main class="app-main">
+    <div class="content-wrap">
+        <div class="page-header">
+            <div><span class="page-eyebrow">Employee Maintenance</span>
+                <h1 class="page-title" th:text="'Edit ' + ${employee.fullName}">Edit employee</h1>
+                <p class="page-subtitle">Changes are saved as a request and applied after DGM and GM approval. Leave
+                    image fields empty to keep the existing images.</p></div>
+            <a class="btn btn-soft" th:href="@{/pd/employees}"><i class="bi bi-x-lg me-2"></i>Cancel</a></div>
+        <form th:action="@{/pd/employees/{id}/edit(id=${employee.id})}" th:object="${employeeUpdateForm}" method="post"
+              enctype="multipart/form-data">
+            <div class="alert alert-danger app-alert" th:if="${#fields.hasAnyErrors()}">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <div>
+                    <strong>Please correct the form</strong>
+
+                    <div th:each="error : ${#fields.errors('employeeCode')}"
+                         th:text="'Employee code: ' + ${error}">
+                    </div>
+
+                    <div th:each="error : ${#fields.errors('employeeName')}"
+                         th:text="'Employee name: ' + ${error}">
+                    </div>
+
+                    <div th:each="error : ${#fields.errors('designation')}"
+                         th:text="'Designation: ' + ${error}">
+                    </div>
+
+                    <div th:each="error : ${#fields.errors('department')}"
+                         th:text="'Department: ' + ${error}">
+                    </div>
+
+                    <div th:each="error : ${#fields.errors('branch')}"
+                         th:text="'Branch: ' + ${error}">
+                    </div>
+
+                    <div th:each="error : ${#fields.errors('remark')}"
+                         th:text="'Remark: ' + ${error}">
+                    </div>
+
+                    <div th:each="error : ${#fields.errors('signatureValidFrom')}"
+                         th:text="'Valid from: ' + ${error}">
+                    </div>
+
+                    <div th:each="error : ${#fields.errors('signatureValidUntil')}"
+                         th:text="'Valid until: ' + ${error}">
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <section class="col-xl-8">
+                    <div class="surface-card">
+                        <div class="card-header"><h2 class="h5 mb-0"><i
+                                class="bi bi-pencil-square text-success me-2"></i>Employee information</h2></div>
+                        <div class="card-body">
+                            <div class="row g-3">
+
+                                <div class="col-md-6">
+                                    <label class="form-label" for="employeeCode">
+                                        Employee code
+                                    </label>
+                                    <input class="form-control"
+                                           id="employeeCode"
+                                           th:field="*{employeeCode}"
+                                           required>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label" for="employeeName">
+                                        Employee name
+                                    </label>
+                                    <input class="form-control"
+                                           id="employeeName"
+                                           th:field="*{employeeName}"
+                                           required>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label" for="designation">
+                                        Designation
+                                    </label>
+                                    <input class="form-control"
+                                           id="designation"
+                                           th:field="*{designation}"
+                                           required>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label" for="department">
+                                        Department
+                                    </label>
+                                    <input class="form-control"
+                                           id="department"
+                                           th:field="*{department}"
+                                           required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="branch">
+                                        Branch
+                                    </label>
+                                    <input class="form-control"
+                                           id="branch"
+                                           th:field="*{branch}"
+                                           required>
+                                </div>
+
+                                <!-- VALID FROM -->
+                                <div class="col-md-6">
+                                    <label class="form-label" for="signatureValidFrom">
+                                        Signature Valid From
+                                    </label>
+
+                                    <input class="form-control"
+                                           type="date"
+                                           id="signatureValidFrom"
+                                           name="signatureValidFrom"
+                                           th:value="${employeeUpdateForm.signatureValidFrom != null
+                          ? employeeUpdateForm.signatureValidFrom.toString()
+                          : ''}"
+                                           required>
+
+                                    <div class="text-danger"
+                                         th:if="${#fields.hasErrors('signatureValidFrom')}"
+                                         th:errors="*{signatureValidFrom}">
+                                    </div>
+                                </div>
+
+                                <!-- VALID UNTIL -->
+                                <div class="col-md-6">
+                                    <label class="form-label" for="signatureValidUntil">
+                                        Signature Valid Until
+                                    </label>
+
+                                    <input class="form-control"
+                                           type="date"
+                                           id="signatureValidUntil"
+                                           name="signatureValidUntil"
+                                           th:value="${employeeUpdateForm.signatureValidUntil != null
+                          ? employeeUpdateForm.signatureValidUntil.toString()
+                          : ''}"
+                                           required>
+
+                                    <div class="text-danger"
+                                         th:if="${#fields.hasErrors('signatureValidUntil')}"
+                                         th:errors="*{signatureValidUntil}">
+                                    </div>
+                                </div>
+
+                                <!-- REMARK -->
+                                <div class="col-12">
+                                    <label class="form-label" for="remark">
+                                        Update reason
+                                    </label>
+
+                                    <textarea class="form-control"
+                                              id="remark"
+                                              rows="3"
+                                              th:field="*{remark}"
+                                              placeholder="Enter reason for this update"
+                                              required></textarea>
+
+                                    <div class="text-danger"
+                                         th:if="${#fields.hasErrors('remark')}"
+                                         th:errors="*{remark}">
+                                    </div>
+                                </div>
+
+                            </div>
+
+                        </div>
+                    </div>
+                 </section>
+                 <aside class="col-xl-4">
+                     <div class="surface-card">
+                         <div class="card-header"><h2 class="h5 mb-0"><i class="bi bi-images text-success me-2"></i>Current
+                             and replacement images</h2></div>
+                         <div class="card-body">
+                             <div class="file-upload mb-4"><label class="form-label">Current employee photo</label>
+                                 <div class="upload-preview"><img th:src="@{'/uploads/'+${employee.photoPath}}"
+                                                                  alt="Current employee photo"></div>
+                                 <label class="form-label mt-3" for="photo">New employee photo</label><input
+                                         class="form-control image-preview-input" id="photo" type="file"
+                                         th:field="*{photo}" accept="image/jpeg,image/png"
+                                         data-preview-target="photoPreview" data-error-target="photoError"><small
+                                         class="form-hint">Optional. JPG or PNG.</small><small class="upload-error"
+                                                                                               id="photoError"
+                                                                                               role="alert"></small>
+                                 <div class="upload-preview" id="photoPreview" hidden><img
+                                         alt="New employee photo preview"></div>
+                             </div>
+                             <div class="file-upload"><label class="form-label">Current signature</label>
+                                 <div class="upload-preview upload-preview-signature"><img
+                                         th:src="@{'/uploads/'+${employee.signaturePath}}"
+                                         alt="Current employee signature"></div>
+                                 <label class="form-label mt-3" for="signature">New signature</label><input
+                                         class="form-control image-preview-input" id="signature" type="file"
+                                         th:field="*{signature}" accept="image/jpeg,image/png"
+                                         data-preview-target="signaturePreview" data-error-target="signatureError"><small
+                                         class="form-hint">Optional. JPG or PNG.</small><small class="upload-error"
+                                                                                               id="signatureError"
+                                                                                               role="alert"></small>
+                                 <div class="upload-preview upload-preview-signature" id="signaturePreview" hidden><img
+                                         alt="New employee signature preview"></div>
+                             </div>
+                         </div>
+                     </div>
+                 </aside>
+             </div>
+             <div class="d-flex justify-content-end gap-2 mt-4"><a class="btn btn-soft"
+                                                                   th:href="@{/pd/employees}">Cancel</a>
+                 <button class="btn btn-bank" type="submit"><i class="bi bi-check-lg me-2"></i>Submit for approval
+                 </button>
+             </div>
+         </form>
+     </div>
+ </main>
+ <footer th:replace="~{fragments/layout :: footer}"></footer>
+ <div th:replace="~{fragments/layout :: scripts}"></div>
+ </body>
+ </html>

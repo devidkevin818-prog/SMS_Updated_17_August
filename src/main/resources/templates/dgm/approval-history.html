@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('My DGM Decisions')}"></head>
+<body>
+<header th:replace="~{fragments/navbar :: navbar('DGM')}"></header>
+<aside th:replace="~{fragments/sidebar :: sidebar('DGM','history')}"></aside>
+<main class="app-main">
+    <section th:replace="~{fragments/approval-history :: history(${approvals}, 'DGM')}"></section>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

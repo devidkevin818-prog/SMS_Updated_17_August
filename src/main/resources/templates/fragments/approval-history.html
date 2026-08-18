@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<section th:fragment="history(approvals, level)" class="content-wrap">
+    <div class="page-header">
+        <div><span class="page-eyebrow" th:text="'Approval Level ' + ${level}">Approval history</span>
+            <h1 class="page-title">My approval decisions</h1>
+            <p class="page-subtitle">A read-only record of approvals and rejections you submitted.</p></div>
+        <span class="status-badge status-approved"
+              th:text="${approvals.totalElements} + ' decision(s)'">0 decisions</span></div>
+    <section class="surface-card table-card">
+        <div class="card-header"><h2 class="h5 mb-1">Decision history</h2>
+            <p class="page-subtitle mb-0">Most recent decisions appear first</p></div>
+        <div class="table-responsive">
+            <table class="table app-table table-hover">
+                <thead>
+                <tr>
+                    <th>Employee code</th>
+                    <th>Employee name</th>
+                    <th>Decision</th>
+                    <th>Remark</th>
+                    <th>Date</th>
+                    <th>Signature valid from</th>
+                    <th>Signature valid until</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="approval:${approvals.content}">
+                    <td>
+                        <strong th:text="${approval.request.employeeCode}"></strong>
+                    </td>
+
+                    <td th:text="${approval.request.employeeName}"></td>
+
+                    <td>
+        <span class="status-badge"
+              th:classappend="${approval.action.name() == 'APPROVED' ? ' status-approved':' status-rejected'}"
+              th:text="${approval.action}">
+        </span>
+                    </td>
+
+                    <td th:text="${approval.remark}"></td>
+
+                    <td th:text="${#temporals.format(approval.actionAt,'dd MMM yyyy, HH:mm')}"></td>
+
+                    <!-- Signature validity dates -->
+                    <td th:text="${#temporals.format(approval.request.signatureValidFrom, 'dd-MMM-yyyy')}"></td>
+
+                    <td th:text="${#temporals.format(approval.request.signatureValidUntil, 'dd-MMM-yyyy')}"></td>
+                </tr>
+
+                <tr th:if="${approvals.empty}">
+                    <td class="empty-state" colspan="7">
+                        <i class="bi bi-clock-history"></i>
+                        You have not submitted any decisions yet.
+                    </td>
+                </tr>
+                </tbody>
+
+            </table>
+        </div>
+    </section>
+</section>
+</body>
+</html>
