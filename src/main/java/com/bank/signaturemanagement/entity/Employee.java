@@ -22,6 +22,10 @@ public class Employee {
     @Column(nullable = false, length = 100)
     private String designation;
 
+
+    @Column(name = "update_request_status", nullable = false)
+    private boolean updateRequestStatus = false;
+
     @Column(nullable = false, length = 100)
     private String department;
 
@@ -84,6 +88,13 @@ public class Employee {
 
     public void setSignatureValidUntil(LocalDate signatureValidUntil) {
         this.signatureValidUntil = signatureValidUntil;
+    }
+    public boolean isUpdateRequestStatus() {
+        return updateRequestStatus;
+    }
+
+    public void setUpdateRequestStatus(boolean updateRequestStatus) {
+        this.updateRequestStatus = updateRequestStatus;
     }
 
 }

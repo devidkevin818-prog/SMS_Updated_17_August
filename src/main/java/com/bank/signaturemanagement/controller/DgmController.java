@@ -1,9 +1,11 @@
 package com.bank.signaturemanagement.controller;
 
 import com.bank.signaturemanagement.dto.ApprovalForm;
+import com.bank.signaturemanagement.entity.Employee;
 import com.bank.signaturemanagement.entity.RequestStatus;
 import com.bank.signaturemanagement.service.EmployeeRequestService;
 import com.bank.signaturemanagement.service.ApprovalHistoryService;
+import com.bank.signaturemanagement.service.EmployeeService;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -15,9 +17,13 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class DgmController {
     private final EmployeeRequestService requestService;
     private final ApprovalHistoryService approvalHistoryService;
-    public DgmController(EmployeeRequestService requestService, ApprovalHistoryService approvalHistoryService) {
+    private final EmployeeService employeeService;
+
+
+    public DgmController(EmployeeRequestService requestService, ApprovalHistoryService approvalHistoryService, EmployeeService employeeService) {
         this.requestService = requestService;
         this.approvalHistoryService = approvalHistoryService;
+        this.employeeService = employeeService;
     }
 
     @GetMapping("/dashboard")
@@ -53,4 +59,37 @@ public class DgmController {
         model.addAttribute("approvals", approvalHistoryService.getDecisions(authentication.getName(), "DGM", page));
         return "dgm/approval-history";
     }
+    @GetMapping("/employees")
+    public String employees(@RequestParam(defaultValue = "") String query,
+                            @RequestParam(defaultValue = "0") int page,
+                            Model model) {
+
+        model.addAttribute("employees", employeeService.search(query, page));
+        model.addAttribute("query", query);
+
+        return "dgm/employee-list";
+    }
+    @PostMapping("/employees/{id}/update-request")
+    public String requestEmployeeUpdate(@PathVariable Long id,
+                                        RedirectAttributes redirectAttributes) {
+
+        System.out.println("This is id "+id);
+
+        try {
+            employeeService.requestUpdate(id);
+            redirectAttributes.addFlashAttribute(
+                    "success",
+                    "Update request submitted successfully"
+            );
+        } catch (IllegalArgumentException exception) {
+            redirectAttributes.addFlashAttribute(
+                    "error",
+                    exception.getMessage()
+            );
+        }
+
+        return "redirect:/dgm/employees";
+    }
+
+
 }

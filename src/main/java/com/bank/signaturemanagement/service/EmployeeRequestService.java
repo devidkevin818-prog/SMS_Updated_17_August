@@ -143,11 +143,16 @@ public class EmployeeRequestService {
         EmployeeRequest request = requireStatus(id, RequestStatus.PENDING_DGM);
         User actor = userRepository.findByUsername(username).orElseThrow();
         ApprovalAction approvalAction = parseAction(action);
+
         saveHistory(request, actor, "DGM", approvalAction, remark);
+
         request.setStatus(approvalAction == ApprovalAction.APPROVED
-                ? RequestStatus.PENDING_GM : RequestStatus.REJECTED);
+                ? RequestStatus.PENDING_GM
+                : RequestStatus.REJECTED);
+
         if (request.getStatus() == RequestStatus.REJECTED) {
-            deleteRejectedPendingImages(request);
+            request.setUpdatedAfterRejection(false);
+            request.setUpdateRequestStatus(true);
             request.setCompletedAt(LocalDateTime.now());
         }
     }
@@ -157,17 +162,22 @@ public class EmployeeRequestService {
         EmployeeRequest request = requireStatus(id, RequestStatus.PENDING_GM);
         User actor = userRepository.findByUsername(username).orElseThrow();
         ApprovalAction approvalAction = parseAction(action);
+
         saveHistory(request, actor, "GM", approvalAction, remark);
+
         if (approvalAction == ApprovalAction.APPROVED) {
             Employee employee = request.getTargetEmployee();
+
             if (employee == null) {
                 if (employeeRepository.existsByEmployeeNumber(request.getEmployeeCode())) {
                     throw new IllegalArgumentException("Employee code already became active");
                 }
                 employee = new Employee();
-            } else if (employeeRepository.existsByEmployeeNumberAndIdNot(request.getEmployeeCode(), employee.getId())) {
+            } else if (employeeRepository.existsByEmployeeNumberAndIdNot(
+                    request.getEmployeeCode(), employee.getId())) {
                 throw new IllegalArgumentException("Employee code already exists");
             }
+
             employee.setEmployeeNumber(request.getEmployeeCode());
             employee.setFullName(request.getEmployeeName());
             employee.setDesignation(request.getDesignation());
@@ -177,28 +187,43 @@ public class EmployeeRequestService {
             employee.setSignaturePath(request.getSignaturePath());
             employee.setSignatureValidFrom(request.getSignatureValidFrom());
             employee.setSignatureValidUntil(request.getSignatureValidUntil());
+
             employee = employeeRepository.saveAndFlush(employee);
+
             String approvedPhotoPath = fileStorageService.organizeEmployeeImage(
                     request.getPhotoPath(), "profile", employee.getId());
+
             String approvedSignaturePath = fileStorageService.organizeEmployeeImage(
                     request.getSignaturePath(), "signature", employee.getId());
+
             employee.setPhotoPath(approvedPhotoPath);
             employee.setSignaturePath(approvedSignaturePath);
+
             request.setPhotoPath(approvedPhotoPath);
             request.setSignaturePath(approvedSignaturePath);
+
             employeeRepository.save(employee);
+
             EmployeeMediaVersion mediaVersion = new EmployeeMediaVersion();
             mediaVersion.setEmployee(employee);
             mediaVersion.setRequest(request);
-            mediaVersion.setVersionNumber((int) mediaVersionRepository.countByEmployeeId(employee.getId()) + 1);
+            mediaVersion.setVersionNumber(
+                    (int) mediaVersionRepository.countByEmployeeId(employee.getId()) + 1
+            );
             mediaVersion.setPhotoPath(approvedPhotoPath);
             mediaVersion.setSignaturePath(approvedSignaturePath);
+
             mediaVersionRepository.save(mediaVersion);
+
             request.setStatus(RequestStatus.APPROVED);
+
         } else {
-            deleteRejectedPendingImages(request);
+            // GM rejected - keep images
             request.setStatus(RequestStatus.REJECTED);
+            request.setUpdatedAfterRejection(false);
+            request.setUpdateRequestStatus(true);
         }
+
         request.setCompletedAt(LocalDateTime.now());
     }
 
@@ -230,5 +255,181 @@ public class EmployeeRequestService {
         history.setAction(action);
         history.setRemark(remark.trim());
         approvalRepository.save(history);
+    }
+    public Long getTargetEmployeeIdForUpdate(Long requestId, String username) {
+        EmployeeRequest request = requestRepository.findById(requestId)
+                .orElseThrow(() -> new IllegalArgumentException("Request not found"));
+
+        if (!request.getRequestedBy().getUsername().equals(username)) {
+            throw new IllegalArgumentException("You are not authorized to update this request");
+        }
+
+        if (!request.isUpdateRequest()) {
+            throw new IllegalArgumentException("This is not an employee update request");
+        }
+        if (!request.isUpdateRequestStatus()) {
+            throw new IllegalStateException("This request is not available for update");
+        }
+
+        return request.getTargetEmployee().getId();
+    }
+    @Transactional
+    public void markUpdateRequestCompleted(Long requestId) {
+        EmployeeRequest request = requestRepository.findById(requestId)
+                .orElseThrow(() -> new IllegalArgumentException("Request not found"));
+
+        request.setUpdateRequestStatus(false);
+    }
+
+    @Transactional
+    public void updateRequest(
+            Long requestId,
+            EmployeeRequest updatedRequest,
+            String username) {
+
+        EmployeeRequest request = requestRepository.findById(requestId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("Request not found"));
+
+        // Security: only the original requester can update it
+        if (!request.getRequestedBy()
+                .getUsername()
+                .equals(username)) {
+
+            throw new IllegalArgumentException(
+                    "You are not authorized to update this request"
+            );
+        }
+
+        // Only rejected requests can be updated
+        if (request.getStatus() != RequestStatus.REJECTED) {
+            throw new IllegalStateException(
+                    "Only rejected requests can be updated"
+            );
+        }
+
+        // Validate dates
+        if (updatedRequest.getSignatureValidFrom() == null
+                || updatedRequest.getSignatureValidUntil() == null) {
+
+            throw new IllegalArgumentException(
+                    "Signature validity dates are required"
+            );
+        }
+
+        if (updatedRequest.getSignatureValidUntil()
+                .isBefore(updatedRequest.getSignatureValidFrom())) {
+
+            throw new IllegalArgumentException(
+                    "Signature valid-until date must be on or after the valid-from date."
+            );
+        }
+
+        String code = updatedRequest.getEmployeeCode().trim();
+
+        /*
+         * If this request belongs to an existing employee,
+         * make sure the new employee code is not being used
+         * by another employee.
+         */
+        if (request.getTargetEmployee() != null) {
+
+            Long employeeId = request.getTargetEmployee().getId();
+
+            if (employeeRepository.existsByEmployeeNumberAndIdNot(
+                    code,
+                    employeeId)) {
+
+                throw new IllegalArgumentException(
+                        "Employee code already exists"
+                );
+            }
+
+        } else {
+
+            // New employee request
+            if (employeeRepository.existsByEmployeeNumber(code)) {
+                throw new IllegalArgumentException(
+                        "Employee code already exists"
+                );
+            }
+        }
+
+        /*
+         * Check for another pending request using this code.
+         * Exclude the current request.
+         */
+        List<RequestStatus> pendingStatuses =
+                List.of(
+                        RequestStatus.PENDING_DGM,
+                        RequestStatus.PENDING_GM
+                );
+
+        boolean duplicatePendingRequest =
+                requestRepository.existsByEmployeeCodeAndStatusIn(
+                        code,
+                        pendingStatuses
+                );
+
+        if (duplicatePendingRequest) {
+            throw new IllegalArgumentException(
+                    "A pending request already exists for this employee code"
+            );
+        }
+
+        /*
+         * Update the existing EmployeeRequest.
+         *
+         * DO NOT replace:
+         * requestedBy
+         * targetEmployee
+         * requestedAt
+         * id
+         * photoPath
+         * signaturePath
+         *
+         * unless you explicitly want those fields changed.
+         */
+        request.setEmployeeCode(code);
+        request.setEmployeeName(
+                updatedRequest.getEmployeeName().trim()
+        );
+        request.setDesignation(
+                updatedRequest.getDesignation().trim()
+        );
+        request.setDepartment(
+                updatedRequest.getDepartment().trim()
+        );
+        request.setBranch(
+                updatedRequest.getBranch().trim()
+        );
+
+        request.setSignatureValidFrom(
+                updatedRequest.getSignatureValidFrom()
+        );
+
+        request.setSignatureValidUntil(
+                updatedRequest.getSignatureValidUntil()
+        );
+
+        request.setRemark(
+                updatedRequest.getRemark().trim()
+        );
+
+        /*
+         * This is no longer a rejected request waiting
+         * for PD to update it.
+         */
+        request.setUpdatedAfterRejection(true);
+        request.setUpdateRequestStatus(false);
+
+        /*
+         * Send the SAME request back to DGM.
+         */
+        request.setStatus(RequestStatus.PENDING_DGM);
+
+        request.setCompletedAt(null);
+
+        requestRepository.save(request);
     }
 }

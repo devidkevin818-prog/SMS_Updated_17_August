@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Update Employee')}"></head>
+<body>
+<header th:replace="~{fragments/navbar :: navbar('DGM')}"></header>
+<aside th:replace="~{fragments/sidebar :: sidebar('DGM','update')}"></aside>
+
+<main class="app-main">
+    <div class="content-wrap">
+        <div class="page-header">
+            <div>
+                <span class="page-eyebrow">Employee Maintenance</span>
+                <h1 class="page-title">Update employee</h1>
+                <p class="page-subtitle">
+                    Find an approved employee and edit their current information.
+                </p>
+            </div>
+        </div>
+
+        <div th:replace="~{fragments/layout :: messages}"></div>
+
+        <section class="search-panel">
+            <form class="row g-2" method="get" th:action="@{/dgm/employees}">
+                <div class="col">
+                    <input class="form-control"
+                           name="query"
+                           th:value="${query}"
+                           placeholder="Employee code or name">
+                </div>
+
+                <div class="col-auto">
+                    <button class="btn btn-bank">
+                        <i class="bi bi-search me-2"></i>Search
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <section class="surface-card table-card">
+            <div class="table-responsive">
+                <table class="table app-table table-hover">
+                    <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Name</th>
+                        <th>Designation</th>
+                        <th>Branch</th>
+                        <th class="text-end">Action</th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                    <tr th:each="employee:${employees.content}">
+                        <td>
+                            <strong th:text="${employee.employeeNumber}"></strong>
+                        </td>
+                        <td th:text="${employee.fullName}"></td>
+                        <td th:text="${employee.designation}"></td>
+                        <td th:text="${employee.branchCode}"></td>
+                        <td class="text-end">
+                            <form method="post"
+                                  th:action="@{/dgm/employees/{id}/update-request(id=${employee.id})}"
+                                  style="display: inline;">
+
+                                <input type="hidden"
+                                       th:name="${_csrf.parameterName}"
+                                       th:value="${_csrf.token}">
+
+                                <button type="submit" class="btn btn-sm btn-outline-warning">
+                                    <i class="bi bi-pencil-fill me-1"></i>
+                                    Update Request
+                                </button>
+
+                            </form>
+
+                        </td>
+                    </tr>
+
+                    <tr th:if="${employees.empty}">
+                        <td class="empty-state" colspan="5">
+                            <i class="bi bi-person-x"></i>No employee found.
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

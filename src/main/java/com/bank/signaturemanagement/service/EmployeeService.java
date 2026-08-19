@@ -47,6 +47,14 @@ public class EmployeeService {
 
         return form;
     }
+    @Transactional
+    public void requestUpdate(Long id) {
+        Employee employee = employeeRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Employee not found"));
+
+        employee.setUpdateRequestStatus(true);
+        employeeRepository.save(employee);
+    }
 
 
 
