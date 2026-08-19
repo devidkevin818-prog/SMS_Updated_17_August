@@ -64,7 +64,7 @@ public class DgmController {
                             @RequestParam(defaultValue = "0") int page,
                             Model model) {
 
-        model.addAttribute("employees", employeeService.search(query, page));
+        model.addAttribute("employees", requestService.searchEmployeesWithoutPendingRequest(query, page));
         model.addAttribute("query", query);
 
         return "dgm/employee-list";

@@ -58,7 +58,17 @@
                         <td th:text="${employee.designation}"></td>
                         <td th:text="${employee.branchCode}"></td>
                         <td class="text-end">
-                            <form method="post"
+                            <button th:if="${employee.updateRequestStatus}"
+                                    type="button"
+                                    class="btn btn-sm btn-secondary"
+                                    disabled>
+                                <i class="bi bi-check-circle-fill me-1"></i>
+                                Already Requested for Update
+                            </button>
+
+                            <!-- If no update request exists -->
+                            <form th:unless="${employee.updateRequestStatus}"
+                                  method="post"
                                   th:action="@{/dgm/employees/{id}/update-request(id=${employee.id})}"
                                   style="display: inline;">
 
@@ -66,12 +76,13 @@
                                        th:name="${_csrf.parameterName}"
                                        th:value="${_csrf.token}">
 
-                                <button type="submit" class="btn btn-sm btn-outline-warning">
+                                <button type="submit"
+                                        class="btn btn-sm btn-outline-warning">
                                     <i class="bi bi-pencil-fill me-1"></i>
                                     Update Request
                                 </button>
-
                             </form>
+
 
                         </td>
                     </tr>

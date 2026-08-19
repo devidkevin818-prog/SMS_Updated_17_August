@@ -2,6 +2,7 @@ package com.bank.signaturemanagement.controller;
 
 import com.bank.signaturemanagement.dto.EmployeeRequestForm;
 import com.bank.signaturemanagement.dto.EmployeeUpdateForm;
+import com.bank.signaturemanagement.entity.Employee;
 import com.bank.signaturemanagement.entity.EmployeeRequest;
 import com.bank.signaturemanagement.entity.RequestStatus;
 import com.bank.signaturemanagement.service.EmployeeService;
@@ -211,6 +212,9 @@ public class PdController {
                         authentication.getName()
                 );
 
+
+
+                employeeService.updateRequestStatus(id,false);
                 // If this update came from a rejected request,
                 // disable the Update button on the old request.
                 if (rejectedRequestId != null) {
@@ -223,6 +227,7 @@ public class PdController {
                         "success",
                         "Employee update submitted to DGM for approval"
                 );
+
 
                 return "redirect:/pd/requests";
 
@@ -268,6 +273,8 @@ public class PdController {
         EmployeeRequest request = requestService.getRequest(id);
         request.setRemark("");
 
+        Employee employee = employeeService.getEmployee(id);
+
         if (!request.getRequestedBy().getUsername().equals(authentication.getName())) {
             throw new IllegalArgumentException("You are not authorized to update this request");
         }
@@ -275,6 +282,7 @@ public class PdController {
 
 
         model.addAttribute("request", request);
+        model.addAttribute("employee",employee);
 
         return "pd/update-request";
     }

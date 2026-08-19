@@ -5,6 +5,7 @@ import com.bank.signaturemanagement.dto.EmployeeUpdateForm;
 import com.bank.signaturemanagement.entity.*;
 import com.bank.signaturemanagement.repository.*;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -432,4 +433,45 @@ public class EmployeeRequestService {
 
         requestRepository.save(request);
     }
+
+    @Transactional(readOnly = true)
+    public Page<Employee> searchEmployeesWithoutPendingRequest(String query, int page) {
+
+        String text = query == null ? "" : query.trim();
+
+        List<RequestStatus> pendingStatuses = List.of(
+                RequestStatus.PENDING_DGM,
+                RequestStatus.PENDING_GM
+        );
+
+        List<EmployeeRequest> pendingRequests =
+                requestRepository.findByStatusIn(pendingStatuses);
+
+        List<Long> pendingEmployeeIds = pendingRequests.stream()
+                .map(EmployeeRequest::getTargetEmployee)
+                .filter(employee -> employee != null)
+                .map(Employee::getId)
+                .toList();
+
+        Page<Employee> employees =
+                employeeRepository
+                        .findByEmployeeNumberContainingIgnoreCaseOrFullNameContainingIgnoreCase(
+                                text,
+                                text,
+                                PageRequest.of(page, 20)
+                        );
+
+        List<Employee> filtered = employees.getContent()
+                .stream()
+                .filter(employee -> !pendingEmployeeIds.contains(employee.getId()))
+                .toList();
+
+        return new PageImpl<>(
+                filtered,
+                employees.getPageable(),
+                filtered.size()
+        );
+    }
+
+
 }

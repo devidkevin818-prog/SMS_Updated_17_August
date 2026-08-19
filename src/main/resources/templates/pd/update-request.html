@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 
@@ -42,288 +41,299 @@
         </div>
 
 
-        <!-- Update Form -->
-        <form th:action="@{/pd/requests/{id}/update(id=${request.id})}"
-              th:object="${request}"
-              method="post"
-              enctype="multipart/form-data">
+        <!-- ========================================================= -->
+        <!-- UPDATE FORM - ONLY SHOW WHEN updateRequestStatus = TRUE -->
+        <!-- ========================================================= -->
 
-            <!-- Request Information -->
-            <div class="surface-card mb-4">
+        <div th:if="${!request.updatedAfterRejection}">
 
-                <div class="card-header">
-                    <h2 class="h5 mb-0">
-                        <i class="bi bi-info-circle text-warning me-2"></i>
-                        Request Information
-                    </h2>
-                </div>
+            <form th:action="@{/pd/requests/{id}/update(id=${request.id})}"
+                  th:object="${request}"
+                  method="post"
+                  enctype="multipart/form-data">
 
-                <div class="card-body">
+                <!-- Request Information -->
+                <div class="surface-card mb-4">
 
-                    <div class="row g-3">
+                    <div class="card-header">
+                        <h2 class="h5 mb-0">
+                            <i class="bi bi-info-circle text-warning me-2"></i>
+                            Request Information
+                        </h2>
+                    </div>
 
-                        <!-- Request ID - READ ONLY -->
-                        <div class="col-md-4">
+                    <div class="card-body">
 
-                            <label class="form-label">
-                                Request ID
-                            </label>
+                        <div class="row g-3">
 
-                            <div class="form-control bg-light"
-                                 th:text="${request.id}">
-                                0
-                            </div>
+                            <!-- Request ID - READ ONLY -->
+                            <div class="col-md-4">
 
-                        </div>
+                                <label class="form-label">
+                                    Request ID
+                                </label>
 
-
-                        <!-- Employee Code -->
-                        <div class="col-md-4">
-
-                            <label for="employeeCode"
-                                   class="form-label">
-                                Employee Code
-                            </label>
-
-                            <input type="text"
-                                   id="employeeCode"
-                                   class="form-control"
-                                   th:field="*{employeeCode}"
-                                   required>
-
-                            <div class="text-danger small"
-                                 th:if="${#fields.hasErrors('employeeCode')}"
-                                 th:errors="*{employeeCode}">
-                            </div>
-
-                        </div>
-
-
-                        <!-- Status - READ ONLY -->
-                        <div class="col-md-4">
-
-                            <label class="form-label">
-                                Status
-                            </label>
-
-                            <div>
-                                <span class="status-badge status-rejected"
-                                      th:text="${request.status}">
-                                    REJECTED
-                                </span>
-                            </div>
-
-                        </div>
-
-
-                        <!-- Employee Name -->
-                        <div class="col-md-6">
-
-                            <label for="employeeName"
-                                   class="form-label">
-                                Employee Name
-                            </label>
-
-                            <input type="text"
-                                   id="employeeName"
-                                   class="form-control"
-                                   th:field="*{employeeName}"
-                                   required>
-
-                            <div class="text-danger small"
-                                 th:if="${#fields.hasErrors('employeeName')}"
-                                 th:errors="*{employeeName}">
-                            </div>
-
-                        </div>
-
-
-                        <!-- Designation -->
-                        <div class="col-md-6">
-
-                            <label for="designation"
-                                   class="form-label">
-                                Designation
-                            </label>
-
-                            <input type="text"
-                                   id="designation"
-                                   class="form-control"
-                                   th:field="*{designation}"
-                                   required>
-
-                            <div class="text-danger small"
-                                 th:if="${#fields.hasErrors('designation')}"
-                                 th:errors="*{designation}">
-                            </div>
-
-                        </div>
-
-
-                        <!-- Department -->
-                        <div class="col-md-6">
-
-                            <label for="department"
-                                   class="form-label">
-                                Department
-                            </label>
-
-                            <input type="text"
-                                   id="department"
-                                   class="form-control"
-                                   th:field="*{department}"
-                                   required>
-
-                            <div class="text-danger small"
-                                 th:if="${#fields.hasErrors('department')}"
-                                 th:errors="*{department}">
-                            </div>
-
-                        </div>
-
-
-                        <!-- Branch -->
-                        <div class="col-md-6">
-
-                            <label for="branch"
-                                   class="form-label">
-                                Branch
-                            </label>
-
-                            <input type="text"
-                                   id="branch"
-                                   class="form-control"
-                                   th:field="*{branch}"
-                                   required>
-
-                            <div class="text-danger small"
-                                 th:if="${#fields.hasErrors('branch')}"
-                                 th:errors="*{branch}">
-                            </div>
-
-                        </div>
-
-
-                        <!-- Signature Valid From -->
-                        <div class="col-md-6">
-
-                            <label for="signatureValidFrom"
-                                   class="form-label">
-                                Signature Valid From
-                            </label>
-
-                            <input type="date"
-                                   id="signatureValidFrom"
-                                   name="signatureValidFrom"
-                                   class="form-control"
-                                   th:value="${request.signatureValidFrom != null ? #temporals.format(request.signatureValidFrom, 'yyyy-MM-dd') : ''}"
-                                   required>
-
-                            <div class="text-danger small"
-                                 th:if="${#fields.hasErrors('signatureValidFrom')}"
-                                 th:errors="*{signatureValidFrom}">
-                            </div>
-
-                        </div>
-                        <!-- Signature Valid Until -->
-                        <div class="col-md-6">
-
-                            <label for="signatureValidUntil"
-                                   class="form-label">
-                                Signature Valid Until
-                            </label>
-
-                            <input type="date"
-                                   id="signatureValidUntil"
-                                   name="signatureValidUntil"
-                                   class="form-control"
-                                   th:value="${request.signatureValidUntil != null ? #temporals.format(request.signatureValidUntil, 'yyyy-MM-dd') : ''}"
-                                   required>
-
-                            <div class="text-danger small"
-                                 th:if="${#fields.hasErrors('signatureValidUntil')}"
-                                 th:errors="*{signatureValidUntil}">
-                            </div>
-
-                        </div>
-
-                        <!-- Employee Photo -->
-                        <div class="col-md-6">
-
-                            <label class="form-label">
-                                Employee Photo
-                            </label>
-
-                            <div class="border rounded p-3 bg-light text-center"
-                                 style="min-height: 250px;">
-
-                                <img th:src="@{'/uploads/' + ${request.photoPath}}"
-                                     alt="Employee Photo"
-                                     class="img-fluid rounded"
-                                     style="max-height: 220px;
-                                            max-width: 100%;
-                                            object-fit: contain;"
-                                     onerror="this.style.display='none';">
+                                <div class="form-control bg-light"
+                                     th:text="${request.id}">
+                                    0
+                                </div>
 
                             </div>
 
-                            <small class="text-muted">
-                                Current photo. Existing photo will be retained.
-                            </small>
 
-                        </div>
+                            <!-- Employee Code -->
+                            <div class="col-md-4">
 
+                                <label for="employeeCode"
+                                       class="form-label">
+                                    Employee Code
+                                </label>
 
-                        <!-- Employee Signature -->
-                        <div class="col-md-6">
+                                <input type="text"
+                                       id="employeeCode"
+                                       class="form-control"
+                                       th:field="*{employeeCode}"
+                                       required>
 
-                            <label class="form-label">
-                                Employee Signature
-                            </label>
-
-                            <div class="border rounded p-3 bg-light text-center"
-                                 style="min-height: 250px;">
-
-                                <img th:src="@{'/uploads/' + ${request.signaturePath}}"
-                                     alt="Employee Signature"
-                                     class="img-fluid"
-                                     style="max-height: 220px;
-                                            max-width: 100%;
-                                            object-fit: contain;"
-                                     onerror="this.style.display='none';">
+                                <div class="text-danger small"
+                                     th:if="${#fields.hasErrors('employeeCode')}"
+                                     th:errors="*{employeeCode}">
+                                </div>
 
                             </div>
 
-                            <small class="text-muted">
-                                Current signature. Existing signature will be retained.
-                            </small>
 
-                        </div>
+                            <!-- Status - READ ONLY -->
+                            <div class="col-md-4">
 
+                                <label class="form-label">
+                                    Status
+                                </label>
 
+                                <div>
+                                    <span class="status-badge status-rejected"
+                                          th:text="${request.status}">
+                                        REJECTED
+                                    </span>
+                                </div>
 
-                        <!-- New Remark -->
-                        <div class="col-12">
-
-                            <label for="remark"
-                                   class="form-label">
-                                Update Remark
-                            </label>
-
-                            <textarea id="remark"
-                                      class="form-control"
-                                      rows="4"
-                                      th:field="*{remark}"
-                                      required></textarea>
-
-                            <div class="text-danger small"
-                                 th:if="${#fields.hasErrors('remark')}"
-                                 th:errors="*{remark}">
                             </div>
 
-                            <small class="text-muted">
-                                This remark will be saved with the updated request.
-                            </small>
+
+                            <!-- Employee Name -->
+                            <div class="col-md-6">
+
+                                <label for="employeeName"
+                                       class="form-label">
+                                    Employee Name
+                                </label>
+
+                                <input type="text"
+                                       id="employeeName"
+                                       class="form-control"
+                                       th:field="*{employeeName}"
+                                       required>
+
+                                <div class="text-danger small"
+                                     th:if="${#fields.hasErrors('employeeName')}"
+                                     th:errors="*{employeeName}">
+                                </div>
+
+                            </div>
+
+
+                            <!-- Designation -->
+                            <div class="col-md-6">
+
+                                <label for="designation"
+                                       class="form-label">
+                                    Designation
+                                </label>
+
+                                <input type="text"
+                                       id="designation"
+                                       class="form-control"
+                                       th:field="*{designation}"
+                                       required>
+
+                                <div class="text-danger small"
+                                     th:if="${#fields.hasErrors('designation')}"
+                                     th:errors="*{designation}">
+                                </div>
+
+                            </div>
+
+
+                            <!-- Department -->
+                            <div class="col-md-6">
+
+                                <label for="department"
+                                       class="form-label">
+                                    Department
+                                </label>
+
+                                <input type="text"
+                                       id="department"
+                                       class="form-control"
+                                       th:field="*{department}"
+                                       required>
+
+                                <div class="text-danger small"
+                                     th:if="${#fields.hasErrors('department')}"
+                                     th:errors="*{department}">
+                                </div>
+
+                            </div>
+
+
+                            <!-- Branch -->
+                            <div class="col-md-6">
+
+                                <label for="branch"
+                                       class="form-label">
+                                    Branch
+                                </label>
+
+                                <input type="text"
+                                       id="branch"
+                                       class="form-control"
+                                       th:field="*{branch}"
+                                       required>
+
+                                <div class="text-danger small"
+                                     th:if="${#fields.hasErrors('branch')}"
+                                     th:errors="*{branch}">
+                                </div>
+
+                            </div>
+
+
+                            <!-- Signature Valid From -->
+                            <div class="col-md-6">
+
+                                <label for="signatureValidFrom"
+                                       class="form-label">
+                                    Signature Valid From
+                                </label>
+
+                                <input type="date"
+                                       id="signatureValidFrom"
+                                       name="signatureValidFrom"
+                                       class="form-control"
+                                       th:value="${request.signatureValidFrom != null ? #temporals.format(request.signatureValidFrom, 'yyyy-MM-dd') : ''}"
+                                       required>
+
+                                <div class="text-danger small"
+                                     th:if="${#fields.hasErrors('signatureValidFrom')}"
+                                     th:errors="*{signatureValidFrom}">
+                                </div>
+
+                            </div>
+
+
+                            <!-- Signature Valid Until -->
+                            <div class="col-md-6">
+
+                                <label for="signatureValidUntil"
+                                       class="form-label">
+                                    Signature Valid Until
+                                </label>
+
+                                <input type="date"
+                                       id="signatureValidUntil"
+                                       name="signatureValidUntil"
+                                       class="form-control"
+                                       th:value="${request.signatureValidUntil != null ? #temporals.format(request.signatureValidUntil, 'yyyy-MM-dd') : ''}"
+                                       required>
+
+                                <div class="text-danger small"
+                                     th:if="${#fields.hasErrors('signatureValidUntil')}"
+                                     th:errors="*{signatureValidUntil}">
+                                </div>
+
+                            </div>
+
+
+                            <!-- Employee Photo -->
+                            <div class="col-md-6">
+
+                                <label class="form-label">
+                                    Employee Photo
+                                </label>
+
+                                <div class="border rounded p-3 bg-light text-center"
+                                     style="min-height: 250px;">
+
+                                    <img th:if="${request.photoPath != null}"
+                                         th:src="@{'/uploads/' + ${request.photoPath}}"
+                                         alt="Employee Photo"
+                                         class="img-fluid rounded"
+                                         style="max-height: 220px;
+                                                max-width: 100%;
+                                                object-fit: contain;"
+                                         onerror="this.style.display='none';">
+
+                                </div>
+
+                                <small class="text-muted">
+                                    Current photo. Existing photo will be retained.
+                                </small>
+
+                            </div>
+
+
+                            <!-- Employee Signature -->
+                            <div class="col-md-6">
+
+                                <label class="form-label">
+                                    Employee Signature
+                                </label>
+
+                                <div class="border rounded p-3 bg-light text-center"
+                                     style="min-height: 250px;">
+
+                                    <img th:if="${request.signaturePath != null}"
+                                         th:src="@{'/uploads/' + ${request.signaturePath}}"
+                                         alt="Employee Signature"
+                                         class="img-fluid"
+                                         style="max-height: 220px;
+                                                max-width: 100%;
+                                                object-fit: contain;"
+                                         onerror="this.style.display='none';">
+
+                                </div>
+
+                                <small class="text-muted">
+                                    Current signature. Existing signature will be retained.
+                                </small>
+
+                            </div>
+
+
+                            <!-- New Remark -->
+                            <div class="col-12">
+
+                                <label for="remark"
+                                       class="form-label">
+                                    Update Remark
+                                </label>
+
+                                <textarea id="remark"
+                                          class="form-control"
+                                          rows="4"
+                                          th:field="*{remark}"
+                                          required></textarea>
+
+                                <div class="text-danger small"
+                                     th:if="${#fields.hasErrors('remark')}"
+                                     th:errors="*{remark}">
+                                </div>
+
+                                <small class="text-muted">
+                                    This remark will be saved with the updated request.
+                                </small>
+
+                            </div>
 
                         </div>
 
@@ -331,56 +341,95 @@
 
                 </div>
 
-            </div>
+
+                <!-- Submit Section -->
+                <div class="surface-card">
+
+                    <div class="card-header">
+
+                        <h2 class="h5 mb-0">
+                            <i class="bi bi-send text-success me-2"></i>
+                            Submit Updated Request
+                        </h2>
+
+                    </div>
+
+                    <div class="card-body">
+
+                        <p class="text-muted mb-4">
+                            After submission, this rejected request will be
+                            sent back to DGM for approval.
+                        </p>
+
+                        <div class="d-flex justify-content-end gap-2">
+
+                            <!-- Cancel -->
+                            <a class="btn btn-soft"
+                               th:href="@{/pd/requests}">
+
+                                <i class="bi bi-x-lg me-2"></i>
+                                Cancel
+
+                            </a>
 
 
-            <!-- Submit Section -->
-            <div class="surface-card">
+                            <!-- Submit -->
+                            <button type="submit"
+                                    class="btn btn-bank">
 
-                <div class="card-header">
+                                <i class="bi bi-check-lg me-2"></i>
+                                Submit Update
 
-                    <h2 class="h5 mb-0">
-                        <i class="bi bi-send text-success me-2"></i>
-                        Submit Updated Request
-                    </h2>
+                            </button>
 
-                </div>
-
-                <div class="card-body">
-
-                    <p class="text-muted mb-4">
-                        After submission, this rejected request will be
-                        sent back to DGM for approval.
-                    </p>
-
-                    <div class="d-flex justify-content-end gap-2">
-
-                        <!-- Cancel -->
-                        <a class="btn btn-soft"
-                           th:href="@{/pd/requests}">
-
-                            <i class="bi bi-x-lg me-2"></i>
-                            Cancel
-
-                        </a>
-
-
-                        <!-- Submit -->
-                        <button type="submit"
-                                class="btn btn-bank">
-
-                            <i class="bi bi-check-lg me-2"></i>
-                            Submit Update
-
-                        </button>
+                        </div>
 
                     </div>
 
                 </div>
 
+            </form>
+
+        </div>
+
+
+        <!-- ========================================================= -->
+        <!-- MESSAGE - ONLY SHOW WHEN updateRequestStatus = FALSE -->
+        <!-- ========================================================= -->
+
+        <div th:unless="${request.updateRequestStatus}"
+             class="surface-card">
+
+            <div class="card-body text-center py-5">
+
+                <div class="mb-3">
+
+                    <i class="bi bi-info-circle text-secondary"
+                       style="font-size: 3rem;">
+                    </i>
+
+                </div>
+
+                <h4 class="mb-2">
+                    Update Request Not Available
+                </h4>
+
+                <p class="text-muted mb-4">
+                    This employee does not currently have an active
+                    update request.
+                </p>
+
+                <a class="btn btn-soft"
+                   th:href="@{/pd/requests}">
+
+                    <i class="bi bi-arrow-left me-2"></i>
+                    Back to Requests
+
+                </a>
+
             </div>
 
-        </form>
+        </div>
 
     </div>
 
@@ -394,4 +443,3 @@
 </body>
 
 </html>
-```

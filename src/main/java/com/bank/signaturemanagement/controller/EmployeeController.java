@@ -1,5 +1,6 @@
 package com.bank.signaturemanagement.controller;
 
+import com.bank.signaturemanagement.repository.EmployeeMediaVersionRepository;
 import com.bank.signaturemanagement.service.EmployeeService;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -13,8 +14,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RequestMapping("/employees")
 public class EmployeeController {
     private final EmployeeService employeeService;
+    private final EmployeeMediaVersionRepository mediaVersionRepository;
 
-    public EmployeeController(EmployeeService employeeService) { this.employeeService = employeeService; }
+    public EmployeeController(EmployeeService employeeService, EmployeeMediaVersionRepository mediaVersionRepository) { this.employeeService = employeeService;
+        this.mediaVersionRepository = mediaVersionRepository;
+    }
 
     @GetMapping
     public String directory(@RequestParam(defaultValue = "") String query,
@@ -30,6 +34,7 @@ public class EmployeeController {
     public String card(@PathVariable Long id, Authentication authentication, Model model) {
         model.addAttribute("employee", employeeService.getEmployee(id));
         model.addAttribute("currentRole", roleName(authentication));
+        model.addAttribute("media-version",mediaVersionRepository.findByEmployeeIdOrderByVersionNumberDesc(id));
         return "employee/card";
     }
 

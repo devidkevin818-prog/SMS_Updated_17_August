@@ -1,64 +1,306 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
+
 <head th:replace="~{fragments/head :: head('Employee Card')}"></head>
+
 <body>
+
 <header th:replace="~{fragments/navbar :: navbar(${currentRole})}"></header>
+
 <aside th:replace="~{fragments/sidebar :: sidebar(${currentRole},'directory')}"></aside>
+
 <main class="app-main">
     <div class="content-wrap">
+
+        <!-- Page Header -->
         <div class="page-header">
-            <div><span class="page-eyebrow">Verified Employee</span>
-                <h1 class="page-title">Official employee profile</h1>
-                <p class="page-subtitle">GM-approved information and specimen signature.</p></div>
-            <div class="d-flex gap-2"><a class="btn btn-outline-warning" th:if="${currentRole == 'PD'}"
-                                         th:href="@{/pd/employees/{id}/edit(id=${employee.id})}"><i
-                    class="bi bi-pencil-fill me-2"></i>Edit employee</a><a class="btn btn-soft" th:href="@{/employees}"><i
-                    class="bi bi-arrow-left me-2"></i>Back to directory</a></div>
+            <div>
+                <span class="page-eyebrow">Verified Employee</span>
+
+                <h1 class="page-title">
+                    Official employee profile
+                </h1>
+
+                <p class="page-subtitle">
+                    GM-approved information and specimen signature.
+                </p>
+            </div>
+
+            <div class="d-flex gap-2">
+
+                <a class="btn btn-outline-warning"
+                   th:if="${currentRole == 'PD'}"
+                   th:href="@{/pd/employees/{id}/edit(id=${employee.id})}">
+                    <i class="bi bi-pencil-fill me-2"></i>
+                    Edit employee
+                </a>
+
+                <a class="btn btn-soft"
+                   th:href="@{/employees}">
+                    <i class="bi bi-arrow-left me-2"></i>
+                    Back to directory
+                </a>
+
+            </div>
         </div>
+
+
+        <!-- Current Employee Card -->
         <article class="employee-id-card">
+
+            <!-- Card Header -->
             <header class="id-card-header">
-                <div class="id-bank-brand"><img th:src="@{/css/images/uttara-bank-limited-seeklogo.png}"
-                                                alt="Uttara Bank Limited"></div>
-                <span class="id-card-mark"><i class="bi bi-patch-check-fill me-1"></i>Verified profile</span></header>
+
+                <div class="id-bank-brand">
+                    <img th:src="@{/css/images/uttara-bank-limited-seeklogo.png}"
+                         alt="Uttara Bank Limited">
+                </div>
+
+                <span class="id-card-mark">
+                    <i class="bi bi-patch-check-fill me-1"></i>
+                    Verified profile
+                </span>
+
+            </header>
+
+
+            <!-- Card Body -->
             <div class="id-card-body">
-                <div class="employee-photo-wrap"><img class="employee-photo"
-                                                      th:src="@{'/uploads/'+${employee.photoPath}}"
-                                                      alt="Employee photo"></div>
-                <section><h2 class="employee-name" th:text="${employee.fullName}"></h2>
-                    <div class="employee-designation" th:text="${employee.designation}"></div>
+
+                <!-- Employee Photo -->
+                <div class="employee-photo-wrap">
+
+                    <img class="employee-photo"
+                         th:src="@{'/uploads/' + ${employee.photoPath}}"
+                         alt="Employee photo">
+
+                </div>
+
+
+                <!-- Employee Information -->
+                <section>
+
+                    <h2 class="employee-name"
+                        th:text="${employee.fullName}">
+                    </h2>
+
+                    <div class="employee-designation"
+                         th:text="${employee.designation}">
+                    </div>
+
+
                     <table class="id-details">
+
                         <tr>
                             <th>Employee code</th>
                             <td th:text="${employee.employeeNumber}"></td>
                         </tr>
+
                         <tr>
                             <th>Department</th>
                             <td th:text="${employee.department}"></td>
                         </tr>
+
                         <tr>
                             <th>Branch</th>
                             <td th:text="${employee.branchCode}"></td>
                         </tr>
+
                         <tr>
                             <th>Signature valid from</th>
-                            <td th:text="${#temporals.format(employee.signatureValidFrom, 'dd-MMM-yyyy')}"></td>
+                            <td th:text="${#temporals.format(employee.signatureValidFrom, 'dd-MMM-yyyy')}">
+                            </td>
                         </tr>
+
                         <tr>
                             <th>Signature valid until</th>
-                            <td th:text="${#temporals.format(employee.signatureValidUntil, 'dd-MMM-yyyy')}"></td>
+                            <td th:text="${#temporals.format(employee.signatureValidUntil, 'dd-MMM-yyyy')}">
+                            </td>
                         </tr>
 
                     </table>
-                    <div class="signature-panel"><span>Approved specimen signature</span><img
-                            th:src="@{'/uploads/'+${employee.signaturePath}}" alt="Approved signature"></div>
+
+
+                    <!-- Current Signature -->
+                    <div class="signature-panel">
+
+                        <span>
+                            Approved specimen signature
+                        </span>
+
+                        <img th:src="@{'/uploads/' + ${employee.signaturePath}}"
+                             alt="Approved signature">
+
+                    </div>
+
                 </section>
+
             </div>
-            <footer class="id-card-footer"><span>Employee Signature Management System</span><span>Authorized internal use only</span>
+
+
+            <!-- Card Footer -->
+            <footer class="id-card-footer">
+
+                <span>
+                    Employee Signature Management System
+                </span>
+
+                <span>
+                    Authorized internal use only
+                </span>
+
             </footer>
+
         </article>
+
     </div>
 </main>
+
+
+<!-- Footer -->
 <footer th:replace="~{fragments/layout :: footer}"></footer>
+
 <div th:replace="~{fragments/layout :: scripts}"></div>
+
+
+<!-- Version Styling -->
+<style>
+
+    .media-version-section {
+        margin-bottom: 40px;
+    }
+
+    .version-list {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
+
+    .version-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+    }
+
+    .version-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        padding: 16px 20px;
+        background: #f8fafc;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .version-card-body {
+        display: grid;
+        grid-template-columns: 180px 1fr;
+        gap: 30px;
+        padding: 25px;
+    }
+
+    .version-media {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .version-label {
+        display: block;
+        color: #64748b;
+        font-size: 13px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+    }
+
+    .version-photo-wrap {
+        width: 150px;
+        height: 180px;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        overflow: hidden;
+        background: #f8fafc;
+    }
+
+    .version-photo {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .version-signature-wrap {
+        min-height: 180px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        background: #fff;
+    }
+
+    .version-signature {
+        max-width: 100%;
+        max-height: 140px;
+        object-fit: contain;
+    }
+
+    .version-empty {
+        width: 150px;
+        height: 180px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        color: #94a3b8;
+        background: #f8fafc;
+        border: 1px dashed #cbd5e1;
+        border-radius: 10px;
+    }
+
+    .version-empty i {
+        font-size: 28px;
+    }
+
+    .version-card-footer {
+        display: flex;
+        justify-content: space-between;
+        gap: 15px;
+        padding: 12px 20px;
+        color: #64748b;
+        font-size: 13px;
+        background: #f8fafc;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    @media (max-width: 768px) {
+
+        .version-card-header {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .version-card-body {
+            grid-template-columns: 1fr;
+        }
+
+        .version-photo-wrap,
+        .version-empty {
+            width: 100%;
+            max-width: 180px;
+        }
+
+        .version-card-footer {
+            flex-direction: column;
+        }
+
+    }
+
+</style>
+
 </body>
 </html>
