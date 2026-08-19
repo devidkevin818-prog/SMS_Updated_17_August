@@ -1,280 +1,1007 @@
-/*
- Employee Signature Management System - Microsoft SQL Server schema
+/* ============================================================
+   Employee Signature Management System
+   Microsoft SQL Server
+   Department + Designation + Branch + Signature Type + Status
+   Idempotent Upgrade Script
+   ============================================================ */
 
- Run this complete file in SQL Server Management Studio or IntelliJ's SQL console.
- It creates the database when necessary, creates the application tables, adds indexes,
- and inserts the application roles. Existing tables and roles are left unchanged.
-*/
-
-USE master;
+USE [master];
 GO
 
-IF DB_ID('EmployeeSignatureDB') IS NULL
+/* ============================================================
+   DATABASE
+   ============================================================ */
+
+IF DB_ID(N'EmployeeSignatureDB') IS NULL
 BEGIN
-    EXEC ('CREATE DATABASE EmployeeSignatureDB');
+    CREATE DATABASE [EmployeeSignatureDB];
 END;
 GO
 
-USE EmployeeSignatureDB;
+USE [EmployeeSignatureDB];
 GO
 
-IF OBJECT_ID('dbo.roles', 'U') IS NULL
+
+/* ============================================================
+   ROLES
+   ============================================================ */
+
+IF OBJECT_ID(N'dbo.roles', N'U') IS NULL
 BEGIN
-    CREATE TABLE dbo.roles (
-        id          BIGINT IDENTITY(1,1) NOT NULL,
-        name        VARCHAR(30) NOT NULL,
-        description VARCHAR(200) NULL,
-        active      BIT NOT NULL CONSTRAINT df_roles_active DEFAULT (1),
+CREATE TABLE dbo.roles
+(
+    id BIGINT IDENTITY(1,1) NOT NULL,
+    name VARCHAR(30) NOT NULL,
+    description VARCHAR(200) NULL,
+    active BIT NOT NULL
+        CONSTRAINT DF_roles_active DEFAULT (1),
 
-        CONSTRAINT pk_roles PRIMARY KEY (id),
-        CONSTRAINT uq_roles_name UNIQUE (name)
-    );
-END;
-GO
+    CONSTRAINT PK_roles
+        PRIMARY KEY (id),
 
-IF OBJECT_ID('dbo.users', 'U') IS NULL
-BEGIN
-    CREATE TABLE dbo.users (
-        id            BIGINT IDENTITY(1,1) NOT NULL,
-        username      VARCHAR(50) NOT NULL,
-        password_hash VARCHAR(255) NOT NULL,
-        full_name     VARCHAR(100) NOT NULL,
-        email         VARCHAR(100) NOT NULL,
-        role_id       BIGINT NOT NULL,
-        active        BIT NOT NULL CONSTRAINT df_users_active DEFAULT (1),
-        must_change_password BIT NOT NULL CONSTRAINT df_users_must_change_password DEFAULT (1),
-        created_at    DATETIME2 NOT NULL CONSTRAINT df_users_created_at DEFAULT (SYSDATETIME()),
-
-        CONSTRAINT pk_users PRIMARY KEY (id),
-        CONSTRAINT uq_users_username UNIQUE (username),
-        CONSTRAINT uq_users_email UNIQUE (email),
-        CONSTRAINT fk_users_role FOREIGN KEY (role_id) REFERENCES dbo.roles(id)
-    );
-END;
-GO
-
--- Upgrade databases created before first-login password changes were introduced.
-IF COL_LENGTH('dbo.users', 'must_change_password') IS NULL
-BEGIN
-    ALTER TABLE dbo.users
-        ADD must_change_password BIT NOT NULL
-            CONSTRAINT df_users_must_change_password DEFAULT (1) WITH VALUES;
-END;
-GO
-
-IF OBJECT_ID('dbo.employee_requests', 'U') IS NULL
-BEGIN
-    CREATE TABLE dbo.employee_requests (
-        id             BIGINT IDENTITY(1,1) NOT NULL,
-        requested_by   BIGINT NOT NULL,
-        employee_code  VARCHAR(30) NOT NULL,
-        employee_name  VARCHAR(100) NOT NULL,
-        designation    VARCHAR(100) NOT NULL,
-        department     VARCHAR(100) NOT NULL,
-        branch         VARCHAR(100) NOT NULL,
-        photo_path     VARCHAR(500) NOT NULL,
-        signature_path VARCHAR(500) NOT NULL,
-        status          VARCHAR(30) NOT NULL,
-        remark          VARCHAR(500) NOT NULL,
-        requested_at    DATETIME2 NOT NULL CONSTRAINT df_requests_requested_at DEFAULT (SYSDATETIME()),
-        completed_at    DATETIME2 NULL,
-
-        CONSTRAINT pk_employee_requests PRIMARY KEY (id),
-        CONSTRAINT fk_requests_user FOREIGN KEY (requested_by) REFERENCES dbo.users(id),
-        CONSTRAINT ck_requests_status CHECK
-            (status IN ('PENDING_DGM', 'PENDING_GM', 'APPROVED', 'REJECTED'))
-    );
-END;
-GO
-
-IF OBJECT_ID('dbo.employees', 'U') IS NULL
-BEGIN
-    CREATE TABLE dbo.employees (
-        id             BIGINT IDENTITY(1,1) NOT NULL,
-        employee_number VARCHAR(30) NOT NULL,
-        full_name       VARCHAR(100) NOT NULL,
-        designation     VARCHAR(100) NOT NULL,
-        department      VARCHAR(100) NOT NULL,
-        branch_code     VARCHAR(100) NOT NULL,
-        photo_path      VARCHAR(500) NOT NULL,
-        signature_path  VARCHAR(500) NOT NULL,
-        created_at      DATETIME2 NOT NULL CONSTRAINT df_employees_created_at DEFAULT (SYSDATETIME()),
-        updated_at      DATETIME2 NOT NULL CONSTRAINT df_employees_updated_at DEFAULT (SYSDATETIME()),
-
-        CONSTRAINT pk_employees PRIMARY KEY (id),
-        CONSTRAINT uq_employees_number UNIQUE (employee_number)
-    );
-END;
-GO
-
-IF COL_LENGTH('dbo.employee_requests', 'target_employee_id') IS NULL
-BEGIN
-    ALTER TABLE dbo.employee_requests ADD target_employee_id BIGINT NULL;
-    ALTER TABLE dbo.employee_requests ADD CONSTRAINT fk_requests_target_employee
-        FOREIGN KEY (target_employee_id) REFERENCES dbo.employees(id);
-END;
-GO
-
-IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'ix_requests_target_employee')
-    CREATE INDEX ix_requests_target_employee ON dbo.employee_requests(target_employee_id, status);
-GO
-
-IF OBJECT_ID('dbo.approval_history', 'U') IS NULL
-BEGIN
-    CREATE TABLE dbo.approval_history (
-        id             BIGINT IDENTITY(1,1) NOT NULL,
-        request_id     BIGINT NOT NULL,
-        acted_by       BIGINT NOT NULL,
-        approval_level VARCHAR(10) NOT NULL,
-        action          VARCHAR(20) NOT NULL,
-        remark          VARCHAR(500) NOT NULL,
-        action_at       DATETIME2 NOT NULL CONSTRAINT df_approval_action_at DEFAULT (SYSDATETIME()),
-
-        CONSTRAINT pk_approval_history PRIMARY KEY (id),
-        CONSTRAINT fk_approval_request FOREIGN KEY (request_id) REFERENCES dbo.employee_requests(id),
-        CONSTRAINT fk_approval_user FOREIGN KEY (acted_by) REFERENCES dbo.users(id),
-        CONSTRAINT ck_approval_level CHECK (approval_level IN ('DGM', 'GM')),
-        CONSTRAINT ck_approval_action CHECK (action IN ('APPROVED', 'REJECTED'))
-    );
-END;
-GO
-
-IF OBJECT_ID('dbo.employee_media_versions', 'U') IS NULL
-BEGIN
-    CREATE TABLE dbo.employee_media_versions (
-        id              BIGINT IDENTITY(1,1) NOT NULL,
-        employee_id     BIGINT NOT NULL,
-        request_id      BIGINT NULL,
-        version_number  INT NOT NULL,
-        photo_path      VARCHAR(500) NOT NULL,
-        signature_path  VARCHAR(500) NOT NULL,
-        approved_at     DATETIME2 NOT NULL CONSTRAINT df_media_versions_approved_at DEFAULT (SYSDATETIME()),
-        CONSTRAINT pk_employee_media_versions PRIMARY KEY (id),
-        CONSTRAINT fk_media_versions_employee FOREIGN KEY (employee_id) REFERENCES dbo.employees(id),
-        CONSTRAINT fk_media_versions_request FOREIGN KEY (request_id) REFERENCES dbo.employee_requests(id),
-        CONSTRAINT uq_employee_media_version UNIQUE (employee_id, version_number)
-    );
-END;
-GO
-
--- SQL Server permits only one NULL in a normal UNIQUE constraint. Older versions
--- of this script created uq_employee_media_request, which prevents backfilling
--- multiple existing employees whose request_id is NULL. Replace it safely.
-IF EXISTS (
-    SELECT 1 FROM sys.key_constraints
-    WHERE name = 'uq_employee_media_request'
-      AND parent_object_id = OBJECT_ID('dbo.employee_media_versions')
-)
-    ALTER TABLE dbo.employee_media_versions DROP CONSTRAINT uq_employee_media_request;
-GO
-
-IF NOT EXISTS (
-    SELECT 1 FROM sys.indexes
-    WHERE name = 'ux_employee_media_request_not_null'
-      AND object_id = OBJECT_ID('dbo.employee_media_versions')
-)
-    CREATE UNIQUE INDEX ux_employee_media_request_not_null
-        ON dbo.employee_media_versions(request_id)
-        WHERE request_id IS NOT NULL;
-GO
-
-INSERT INTO dbo.employee_media_versions (employee_id, request_id, version_number, photo_path, signature_path, approved_at)
-SELECT e.id, NULL, 1, e.photo_path, e.signature_path, e.updated_at
-FROM dbo.employees e
-WHERE NOT EXISTS (SELECT 1 FROM dbo.employee_media_versions v WHERE v.employee_id = e.id);
-GO
-
-IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'ix_requests_status_date')
-    CREATE INDEX ix_requests_status_date ON dbo.employee_requests(status, requested_at);
-GO
-
-IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'ix_requests_code')
-    CREATE INDEX ix_requests_code ON dbo.employee_requests(employee_code);
-GO
-
-IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'ix_employees_name')
-    CREATE INDEX ix_employees_name ON dbo.employees(full_name);
-GO
-
-IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'ix_approval_request')
-    CREATE INDEX ix_approval_request ON dbo.approval_history(request_id, action_at);
-GO
-
-MERGE dbo.roles AS target
-USING (VALUES
-    ('ADMIN',  'Manages users'),
-    ('PD',     'Creates employee requests'),
-    ('DGM',    'Level 1 approver'),
-    ('GM',     'Level 2 approver'),
-    ('BRANCH', 'Views approved employees')
-) AS source(name, description)
-ON target.name = source.name
-WHEN NOT MATCHED THEN
-    INSERT (name, description, active)
-    VALUES (source.name, source.description, 1);
-GO
-
-SELECT name, description, active FROM dbo.roles ORDER BY id;
-GO
-
-
-/*=======================For adding branch=========================*/
-CREATE TABLE dbo.branches (
-                              branch_id BIGINT IDENTITY(1,1) PRIMARY KEY,
-                              branch_name NVARCHAR(100) NOT NULL UNIQUE
+    CONSTRAINT UQ_roles_name
+        UNIQUE (name)
 );
+END;
+GO
 
+
+/* ============================================================
+   USERS
+   ============================================================ */
+
+IF OBJECT_ID(N'dbo.users', N'U') IS NULL
+BEGIN
+CREATE TABLE dbo.users
+(
+    id BIGINT IDENTITY(1,1) NOT NULL,
+    username VARCHAR(50) NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    full_name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    role_id BIGINT NOT NULL,
+    active BIT NOT NULL
+        CONSTRAINT DF_users_active DEFAULT (1),
+    must_change_password BIT NOT NULL
+        CONSTRAINT DF_users_must_change_password DEFAULT (1),
+    created_at DATETIME2 NOT NULL
+        CONSTRAINT DF_users_created_at DEFAULT (SYSDATETIME()),
+
+    CONSTRAINT PK_users
+        PRIMARY KEY (id),
+
+    CONSTRAINT UQ_users_username
+        UNIQUE (username),
+
+    CONSTRAINT UQ_users_email
+        UNIQUE (email),
+
+    CONSTRAINT FK_users_role
+        FOREIGN KEY (role_id)
+            REFERENCES dbo.roles(id)
+);
+END;
+GO
+
+
+/* Add must_change_password if missing */
+
+IF COL_LENGTH(N'dbo.users', N'must_change_password') IS NULL
+BEGIN
+ALTER TABLE dbo.users
+    ADD must_change_password BIT NOT NULL
+    CONSTRAINT DF_users_must_change_password
+    DEFAULT (1) WITH VALUES;
+END;
+GO
+
+
+/* ============================================================
+   BRANCHES
+   ============================================================ */
+
+IF OBJECT_ID(N'dbo.branches', N'U') IS NULL
+BEGIN
+CREATE TABLE dbo.branches
+(
+    branch_id BIGINT IDENTITY(1,1) NOT NULL,
+    branch_name NVARCHAR(100) NOT NULL,
+
+    CONSTRAINT PK_branches
+        PRIMARY KEY (branch_id),
+
+    CONSTRAINT UQ_branches_name
+        UNIQUE (branch_name)
+);
+END;
+GO
+
+
+/* Add branch_id to users only if missing */
+
+IF COL_LENGTH(N'dbo.users', N'branch_id') IS NULL
+BEGIN
+ALTER TABLE dbo.users
+    ADD branch_id BIGINT NULL;
+END;
+GO
+
+
+/* Insert branches only if they don't exist */
+
+IF NOT EXISTS
+(
+    SELECT 1
+    FROM dbo.branches
+    WHERE branch_name = N'Head Office'
+)
+BEGIN
 INSERT INTO dbo.branches (branch_name)
+VALUES (N'Head Office');
+END;
+GO
+
+IF NOT EXISTS
+(
+    SELECT 1
+    FROM dbo.branches
+    WHERE branch_name = N'Dhaka Branch'
+)
+BEGIN
+INSERT INTO dbo.branches (branch_name)
+VALUES (N'Dhaka Branch');
+END;
+GO
+
+IF NOT EXISTS
+(
+    SELECT 1
+    FROM dbo.branches
+    WHERE branch_name = N'Chittagong Branch'
+)
+BEGIN
+INSERT INTO dbo.branches (branch_name)
+VALUES (N'Chittagong Branch');
+END;
+GO
+
+IF NOT EXISTS
+(
+    SELECT 1
+    FROM dbo.branches
+    WHERE branch_name = N'Sylhet Branch'
+)
+BEGIN
+INSERT INTO dbo.branches (branch_name)
+VALUES (N'Sylhet Branch');
+END;
+GO
+
+IF NOT EXISTS
+(
+    SELECT 1
+    FROM dbo.branches
+    WHERE branch_name = N'Rajshahi Branch'
+)
+BEGIN
+INSERT INTO dbo.branches (branch_name)
+VALUES (N'Rajshahi Branch');
+END;
+GO
+
+IF NOT EXISTS
+(
+    SELECT 1
+    FROM dbo.branches
+    WHERE branch_name = N'Khulna Branch'
+)
+BEGIN
+INSERT INTO dbo.branches (branch_name)
+VALUES (N'Khulna Branch');
+END;
+GO
+
+
+/* ============================================================
+   DEPARTMENT
+   ============================================================ */
+
+IF OBJECT_ID(N'dbo.Department', N'U') IS NULL
+BEGIN
+CREATE TABLE dbo.Department
+(
+    DepartmentId BIGINT IDENTITY(1,1) NOT NULL,
+    DepartmentName VARCHAR(200) NOT NULL,
+    Description VARCHAR(500) NULL,
+    IsActive BIT NOT NULL
+        CONSTRAINT DF_Department_IsActive DEFAULT (1),
+    CreatedAt DATETIME2 NOT NULL
+        CONSTRAINT DF_Department_CreatedAt DEFAULT (SYSDATETIME()),
+
+    CONSTRAINT PK_Department
+        PRIMARY KEY (DepartmentId),
+
+    CONSTRAINT UQ_Department_DepartmentName
+        UNIQUE (DepartmentName)
+);
+END;
+GO
+
+
+/* ============================================================
+   DESIGNATION
+   ============================================================ */
+
+IF OBJECT_ID(N'dbo.Designation', N'U') IS NULL
+BEGIN
+CREATE TABLE dbo.Designation
+(
+    DesignationId BIGINT IDENTITY(1,1) NOT NULL,
+    DesignationName VARCHAR(200) NOT NULL,
+    Description VARCHAR(500) NULL,
+    IsActive BIT NOT NULL
+        CONSTRAINT DF_Designation_IsActive DEFAULT (1),
+    CreatedAt DATETIME2 NOT NULL
+        CONSTRAINT DF_Designation_CreatedAt DEFAULT (SYSDATETIME()),
+
+    CONSTRAINT PK_Designation
+        PRIMARY KEY (DesignationId),
+
+    CONSTRAINT UQ_Designation_DesignationName
+        UNIQUE (DesignationName)
+);
+END;
+GO
+
+
+/* ============================================================
+   DEPARTMENT DATA
+   ============================================================ */
+
+IF NOT EXISTS
+(
+    SELECT 1 FROM dbo.Department
+    WHERE DepartmentName = 'Human Resources'
+)
+INSERT INTO dbo.Department
+    (DepartmentName, Description, IsActive)
 VALUES
-    (N'Head Office'),
-    (N'Dhaka Branch'),
-    (N'Chittagong Branch'),
-    (N'Sylhet Branch'),
-    (N'Rajshahi Branch'),
-    (N'Khulna Branch');
-
-ALTER TABLE dbo.users
-    ADD branch_id NVARCHAR(100) NULL;
-
-UPDATE dbo.users
-SET branch_id = N'1'
-WHERE branch_id IS NULL;
-
-ALTER TABLE dbo.users
-ALTER COLUMN branch_id NVARCHAR(100) NOT NULL;
-
-
- /*     ============         for adding Signature Validation time ======*/
-      USE EmployeeSignatureDB;
+    ('Human Resources', 'Human Resources Department', 1);
 GO
 
-ALTER TABLE employee_requests
-    ADD
-        signature_valid_from DATE NULL,
-    signature_valid_until DATE NULL;
+IF NOT EXISTS
+(
+    SELECT 1 FROM dbo.Department
+    WHERE DepartmentName = 'Information Technology'
+)
+INSERT INTO dbo.Department
+    (DepartmentName, Description, IsActive)
+VALUES
+    ('Information Technology', 'Information Technology Department', 1);
 GO
 
-UPDATE employee_requests
-SET
-    signature_valid_from = '2026-08-16',
-    signature_valid_until = '2027-08-16'
-WHERE
-    signature_valid_from IS NULL
-   OR signature_valid_until IS NULL;
+IF NOT EXISTS
+(
+    SELECT 1 FROM dbo.Department
+    WHERE DepartmentName = 'Finance'
+)
+INSERT INTO dbo.Department
+    (DepartmentName, Description, IsActive)
+VALUES
+    ('Finance', 'Finance Department', 1);
 GO
 
-ALTER TABLE employee_requests
-ALTER COLUMN signature_valid_from DATE NOT NULL;
+IF NOT EXISTS
+(
+    SELECT 1 FROM dbo.Department
+    WHERE DepartmentName = 'Accounts'
+)
+INSERT INTO dbo.Department
+    (DepartmentName, Description, IsActive)
+VALUES
+    ('Accounts', 'Accounts Department', 1);
 GO
 
-ALTER TABLE employee_requests
-ALTER COLUMN signature_valid_until DATE NOT NULL;
+IF NOT EXISTS
+(
+    SELECT 1 FROM dbo.Department
+    WHERE DepartmentName = 'Administration'
+)
+INSERT INTO dbo.Department
+    (DepartmentName, Description, IsActive)
+VALUES
+    ('Administration', 'Administration Department', 1);
 GO
 
-ALTER TABLE employees
-    ADD signature_valid_from DATE NOT NULL,
-    signature_valid_until DATE NOT NULL;
+IF NOT EXISTS
+(
+    SELECT 1 FROM dbo.Department
+    WHERE DepartmentName = 'Audit'
+)
+INSERT INTO dbo.Department
+    (DepartmentName, Description, IsActive)
+VALUES
+    ('Audit', 'Audit Department', 1);
+GO
 
-  ALTER TABLE users
-ALTER COLUMN branch_id BIGINT;
-/* =====================================*/
+IF NOT EXISTS
+(
+    SELECT 1 FROM dbo.Department
+    WHERE DepartmentName = 'Operations'
+)
+INSERT INTO dbo.Department
+    (DepartmentName, Description, IsActive)
+VALUES
+    ('Operations', 'Operations Department', 1);
+GO
+
+IF NOT EXISTS
+(
+    SELECT 1 FROM dbo.Department
+    WHERE DepartmentName = 'Credit'
+)
+INSERT INTO dbo.Department
+    (DepartmentName, Description, IsActive)
+VALUES
+    ('Credit', 'Credit Department', 1);
+GO
+
+IF NOT EXISTS
+(
+    SELECT 1 FROM dbo.Department
+    WHERE DepartmentName = 'General Banking'
+)
+INSERT INTO dbo.Department
+    (DepartmentName, Description, IsActive)
+VALUES
+    ('General Banking', 'General Banking Department', 1);
+GO
+
+
+/* ============================================================
+   DESIGNATION DATA
+   ============================================================ */
+
+IF NOT EXISTS
+(
+    SELECT 1 FROM dbo.Designation
+    WHERE DesignationName = 'Managing Director'
+)
+INSERT INTO dbo.Designation
+    (DesignationName, Description, IsActive)
+VALUES
+    ('Managing Director', 'Managing Director', 1);
+GO
+
+IF NOT EXISTS
+(
+    SELECT 1 FROM dbo.Designation
+    WHERE DesignationName = 'General Manager'
+)
+INSERT INTO dbo.Designation
+    (DesignationName, Description, IsActive)
+VALUES
+    ('General Manager', 'General Manager', 1);
+GO
+
+IF NOT EXISTS
+(
+    SELECT 1 FROM dbo.Designation
+    WHERE DesignationName = 'Deputy General Manager'
+)
+INSERT INTO dbo.Designation
+    (DesignationName, Description, IsActive)
+VALUES
+    ('Deputy General Manager', 'Deputy General Manager', 1);
+GO
+
+IF NOT EXISTS
+(
+    SELECT 1 FROM dbo.Designation
+    WHERE DesignationName = 'Senior Officer'
+)
+INSERT INTO dbo.Designation
+    (DesignationName, Description, IsActive)
+VALUES
+    ('Senior Officer', 'Senior Officer', 1);
+GO
+
+IF NOT EXISTS
+(
+    SELECT 1 FROM dbo.Designation
+    WHERE DesignationName = 'Officer'
+)
+INSERT INTO dbo.Designation
+    (DesignationName, Description, IsActive)
+VALUES
+    ('Officer', 'Officer', 1);
+GO
+
+
+/* ============================================================
+   EMPLOYEE REQUESTS
+   ============================================================ */
+
+IF OBJECT_ID(N'dbo.employee_requests', N'U') IS NULL
+BEGIN
+CREATE TABLE dbo.employee_requests
+(
+    id BIGINT IDENTITY(1,1) NOT NULL,
+    requested_by BIGINT NOT NULL,
+    employee_code VARCHAR(30) NOT NULL,
+    employee_name VARCHAR(100) NOT NULL,
+    designation VARCHAR(100) NOT NULL,
+    department VARCHAR(100) NOT NULL,
+    branch VARCHAR(100) NOT NULL,
+    photo_path VARCHAR(500) NOT NULL,
+    signature_path VARCHAR(500) NOT NULL,
+    status VARCHAR(30) NOT NULL,
+    remark VARCHAR(500) NOT NULL,
+
+    requested_at DATETIME2 NOT NULL
+        CONSTRAINT DF_requests_requested_at
+        DEFAULT (SYSDATETIME()),
+
+    completed_at DATETIME2 NULL,
+
+    CONSTRAINT PK_employee_requests
+        PRIMARY KEY (id),
+
+    CONSTRAINT FK_requests_user
+        FOREIGN KEY (requested_by)
+            REFERENCES dbo.users(id),
+
+    CONSTRAINT CK_requests_status
+        CHECK
+            (
+            status IN
+            (
+             'PENDING_DGM',
+             'PENDING_GM',
+             'APPROVED',
+             'REJECTED'
+                )
+            )
+);
+END;
+GO
+
+
+/* ============================================================
+   EMPLOYEES
+   ============================================================ */
+
+IF OBJECT_ID(N'dbo.employees', N'U') IS NULL
+BEGIN
+CREATE TABLE dbo.employees
+(
+    id BIGINT IDENTITY(1,1) NOT NULL,
+    employee_number VARCHAR(30) NOT NULL,
+    full_name VARCHAR(100) NOT NULL,
+    designation VARCHAR(100) NOT NULL,
+    department VARCHAR(100) NOT NULL,
+    branch_code VARCHAR(100) NOT NULL,
+
+    photo_path VARCHAR(500) NOT NULL,
+    signature_path VARCHAR(500) NOT NULL,
+
+    created_at DATETIME2 NOT NULL
+        CONSTRAINT DF_employees_created_at
+        DEFAULT (SYSDATETIME()),
+
+    updated_at DATETIME2 NOT NULL
+        CONSTRAINT DF_employees_updated_at
+        DEFAULT (SYSDATETIME()),
+
+    CONSTRAINT PK_employees
+        PRIMARY KEY (id),
+
+    CONSTRAINT UQ_employees_number
+        UNIQUE (employee_number)
+);
+END;
+GO
+
+
+/* ============================================================
+   TARGET EMPLOYEE ID
+   ============================================================ */
+
+IF COL_LENGTH(N'dbo.employee_requests', N'target_employee_id') IS NULL
+BEGIN
+ALTER TABLE dbo.employee_requests
+    ADD target_employee_id BIGINT NULL;
+END;
+GO
+
+IF NOT EXISTS
+(
+    SELECT 1
+    FROM sys.foreign_keys
+    WHERE name = 'FK_requests_target_employee'
+      AND parent_object_id = OBJECT_ID(N'dbo.employee_requests')
+)
+BEGIN
+ALTER TABLE dbo.employee_requests
+    ADD CONSTRAINT FK_requests_target_employee
+        FOREIGN KEY (target_employee_id)
+            REFERENCES dbo.employees(id);
+END;
+GO
+
+
+/* ============================================================
+   APPROVAL HISTORY
+   ============================================================ */
+
+IF OBJECT_ID(N'dbo.approval_history', N'U') IS NULL
+BEGIN
+CREATE TABLE dbo.approval_history
+(
+    id BIGINT IDENTITY(1,1) NOT NULL,
+    request_id BIGINT NOT NULL,
+    acted_by BIGINT NOT NULL,
+    approval_level VARCHAR(10) NOT NULL,
+    action VARCHAR(20) NOT NULL,
+    remark VARCHAR(500) NOT NULL,
+
+    action_at DATETIME2 NOT NULL
+        CONSTRAINT DF_approval_action_at
+        DEFAULT (SYSDATETIME()),
+
+    CONSTRAINT PK_approval_history
+        PRIMARY KEY (id),
+
+    CONSTRAINT FK_approval_request
+        FOREIGN KEY (request_id)
+            REFERENCES dbo.employee_requests(id),
+
+    CONSTRAINT FK_approval_user
+        FOREIGN KEY (acted_by)
+            REFERENCES dbo.users(id),
+
+    CONSTRAINT CK_approval_level
+        CHECK (approval_level IN ('DGM', 'GM')),
+
+    CONSTRAINT CK_approval_action
+        CHECK (action IN ('APPROVED', 'REJECTED'))
+    );
+END;
+GO
+
+
+/* ============================================================
+   EMPLOYEE MEDIA VERSIONS
+   ============================================================ */
+
+IF OBJECT_ID(N'dbo.employee_media_versions', N'U') IS NULL
+BEGIN
+CREATE TABLE dbo.employee_media_versions
+(
+    id BIGINT IDENTITY(1,1) NOT NULL,
+    employee_id BIGINT NOT NULL,
+    request_id BIGINT NULL,
+    version_number INT NOT NULL,
+    photo_path VARCHAR(500) NOT NULL,
+    signature_path VARCHAR(500) NOT NULL,
+
+    approved_at DATETIME2 NOT NULL
+        CONSTRAINT DF_media_versions_approved_at
+        DEFAULT (SYSDATETIME()),
+
+    CONSTRAINT PK_employee_media_versions
+        PRIMARY KEY (id),
+
+    CONSTRAINT FK_media_versions_employee
+        FOREIGN KEY (employee_id)
+            REFERENCES dbo.employees(id),
+
+    CONSTRAINT FK_media_versions_request
+        FOREIGN KEY (request_id)
+            REFERENCES dbo.employee_requests(id),
+
+    CONSTRAINT UQ_employee_media_version
+        UNIQUE (employee_id, version_number)
+);
+END;
+GO
+
+
+/* ============================================================
+   SIGNATURE VALIDITY
+   ============================================================ */
+
+IF COL_LENGTH(N'dbo.employee_requests', N'signature_valid_from') IS NULL
+BEGIN
+ALTER TABLE dbo.employee_requests
+    ADD signature_valid_from DATE NULL;
+END;
+GO
+
+IF COL_LENGTH(N'dbo.employee_requests', N'signature_valid_until') IS NULL
+BEGIN
+ALTER TABLE dbo.employee_requests
+    ADD signature_valid_until DATE NULL;
+END;
+GO
+
+IF COL_LENGTH(N'dbo.employees', N'signature_valid_from') IS NULL
+BEGIN
+ALTER TABLE dbo.employees
+    ADD signature_valid_from DATE NULL;
+END;
+GO
+
+IF COL_LENGTH(N'dbo.employees', N'signature_valid_until') IS NULL
+BEGIN
+ALTER TABLE dbo.employees
+    ADD signature_valid_until DATE NULL;
+END;
+GO
+
+
+/* ============================================================
+   REJECTION / UPDATE STATUS
+   ============================================================ */
+
+IF COL_LENGTH(N'dbo.employee_requests', N'updated_after_rejection') IS NULL
+BEGIN
+ALTER TABLE dbo.employee_requests
+    ADD updated_after_rejection BIT NOT NULL
+    CONSTRAINT DF_employee_requests_updated_after_rejection
+    DEFAULT (0) WITH VALUES;
+END;
+GO
+
+IF COL_LENGTH(N'dbo.employee_requests', N'update_request_status') IS NULL
+BEGIN
+ALTER TABLE dbo.employee_requests
+    ADD update_request_status BIT NOT NULL
+    CONSTRAINT DF_employee_requests_update_request_status
+    DEFAULT (0) WITH VALUES;
+END;
+GO
+
+IF COL_LENGTH(N'dbo.employees', N'update_request_status') IS NULL
+BEGIN
+ALTER TABLE dbo.employees
+    ADD update_request_status BIT NOT NULL
+    CONSTRAINT DF_employees_update_request_status
+    DEFAULT (0) WITH VALUES;
+END;
+GO
+
+
+/* ============================================================
+   SIGNATURE TYPES
+   ============================================================ */
+
+IF OBJECT_ID(N'dbo.signature_types', N'U') IS NULL
+BEGIN
+CREATE TABLE dbo.signature_types
+(
+    signature_type_id BIGINT IDENTITY(1,1) NOT NULL,
+    signature_type_name VARCHAR(20) NOT NULL,
+    active BIT NOT NULL DEFAULT (1),
+
+    CONSTRAINT PK_signature_types
+        PRIMARY KEY (signature_type_id),
+
+    CONSTRAINT UQ_signature_types_name
+        UNIQUE (signature_type_name)
+);
+END;
+GO
+
+IF NOT EXISTS
+(
+    SELECT 1 FROM dbo.signature_types
+    WHERE signature_type_name = 'Local'
+)
+BEGIN
+INSERT INTO dbo.signature_types (signature_type_name)
+VALUES ('Local');
+END;
+GO
+
+IF NOT EXISTS
+(
+    SELECT 1 FROM dbo.signature_types
+    WHERE signature_type_name = 'Foreign'
+)
+BEGIN
+INSERT INTO dbo.signature_types (signature_type_name)
+VALUES ('Foreign');
+END;
+GO
+
+
+/* ============================================================
+   LOCAL / FOREIGN SIGNATURE PATH
+   ============================================================ */
+
+IF COL_LENGTH(N'dbo.employee_requests', N'local_signature_path') IS NULL
+BEGIN
+ALTER TABLE dbo.employee_requests
+    ADD local_signature_path VARCHAR(500) NULL;
+END;
+GO
+
+IF COL_LENGTH(N'dbo.employee_requests', N'foreign_signature_path') IS NULL
+BEGIN
+ALTER TABLE dbo.employee_requests
+    ADD foreign_signature_path VARCHAR(500) NULL;
+END;
+GO
+
+IF COL_LENGTH(N'dbo.employees', N'local_signature_path') IS NULL
+BEGIN
+ALTER TABLE dbo.employees
+    ADD local_signature_path VARCHAR(500) NULL;
+END;
+GO
+
+IF COL_LENGTH(N'dbo.employees', N'foreign_signature_path') IS NULL
+BEGIN
+ALTER TABLE dbo.employees
+    ADD foreign_signature_path VARCHAR(500) NULL;
+END;
+GO
+
+
+/* ============================================================
+   EMPLOYEE STATUS
+   ============================================================ */
+
+IF OBJECT_ID(N'dbo.employee_status', N'U') IS NULL
+BEGIN
+CREATE TABLE dbo.employee_status
+(
+    status_id BIGINT IDENTITY(1,1) NOT NULL,
+    status_name VARCHAR(20) NOT NULL,
+
+    CONSTRAINT PK_employee_status
+        PRIMARY KEY (status_id),
+
+    CONSTRAINT UQ_employee_status_name
+        UNIQUE (status_name)
+);
+END;
+GO
+
+IF NOT EXISTS
+(
+    SELECT 1 FROM dbo.employee_status
+    WHERE status_name = 'Active'
+)
+BEGIN
+INSERT INTO dbo.employee_status (status_name)
+VALUES ('Active');
+END;
+GO
+
+IF NOT EXISTS
+(
+    SELECT 1 FROM dbo.employee_status
+    WHERE status_name = 'Inactive'
+)
+BEGIN
+INSERT INTO dbo.employee_status (status_name)
+VALUES ('Inactive');
+END;
+GO
+
+IF NOT EXISTS
+(
+    SELECT 1 FROM dbo.employee_status
+    WHERE status_name = 'Resign'
+)
+BEGIN
+INSERT INTO dbo.employee_status (status_name)
+VALUES ('Resign');
+END;
+GO
+
+
+/* ============================================================
+   EMPLOYEE STATUS ID
+   ============================================================ */
+
+IF COL_LENGTH(N'dbo.employees', N'employee_status_id') IS NULL
+BEGIN
+ALTER TABLE dbo.employees
+    ADD employee_status_id BIGINT NULL;
+END;
+GO
+
+IF NOT EXISTS
+(
+    SELECT 1
+    FROM sys.foreign_keys
+    WHERE name = 'FK_employees_status'
+      AND parent_object_id = OBJECT_ID(N'dbo.employees')
+)
+BEGIN
+ALTER TABLE dbo.employees
+    ADD CONSTRAINT FK_employees_status
+        FOREIGN KEY (employee_status_id)
+            REFERENCES dbo.employee_status(status_id);
+END;
+GO
+
+
+/* ============================================================
+   INDEXES
+   ============================================================ */
+
+IF NOT EXISTS
+(
+    SELECT 1
+    FROM sys.indexes
+    WHERE name = 'IX_requests_target_employee'
+      AND object_id = OBJECT_ID(N'dbo.employee_requests')
+)
+BEGIN
+CREATE INDEX IX_requests_target_employee
+    ON dbo.employee_requests(target_employee_id, status);
+END;
+GO
+
+IF NOT EXISTS
+(
+    SELECT 1
+    FROM sys.indexes
+    WHERE name = 'IX_requests_status_date'
+      AND object_id = OBJECT_ID(N'dbo.employee_requests')
+)
+BEGIN
+CREATE INDEX IX_requests_status_date
+    ON dbo.employee_requests(status, requested_at);
+END;
+GO
+
+IF NOT EXISTS
+(
+    SELECT 1
+    FROM sys.indexes
+    WHERE name = 'IX_requests_code'
+      AND object_id = OBJECT_ID(N'dbo.employee_requests')
+)
+BEGIN
+CREATE INDEX IX_requests_code
+    ON dbo.employee_requests(employee_code);
+END;
+GO
+
+IF NOT EXISTS
+(
+    SELECT 1
+    FROM sys.indexes
+    WHERE name = 'IX_employees_name'
+      AND object_id = OBJECT_ID(N'dbo.employees')
+)
+BEGIN
+CREATE INDEX IX_employees_name
+    ON dbo.employees(full_name);
+END;
+GO
+
+IF NOT EXISTS
+(
+    SELECT 1
+    FROM sys.indexes
+    WHERE name = 'IX_approval_request'
+      AND object_id = OBJECT_ID(N'dbo.approval_history')
+)
+BEGIN
+CREATE INDEX IX_approval_request
+    ON dbo.approval_history(request_id, action_at);
+END;
+GO
+
+
+/* ============================================================
+   ROLES DATA
+   ============================================================ */
+
+IF NOT EXISTS (SELECT 1 FROM dbo.roles WHERE name = 'ADMIN')
+BEGIN
+INSERT INTO dbo.roles (name, description, active)
+VALUES ('ADMIN', 'Manages users', 1);
+END;
+GO
+
+IF NOT EXISTS (SELECT 1 FROM dbo.roles WHERE name = 'PD')
+BEGIN
+INSERT INTO dbo.roles (name, description, active)
+VALUES ('PD', 'Creates employee requests', 1);
+END;
+GO
+
+IF NOT EXISTS (SELECT 1 FROM dbo.roles WHERE name = 'DGM')
+BEGIN
+INSERT INTO dbo.roles (name, description, active)
+VALUES ('DGM', 'Level 1 approver', 1);
+END;
+GO
+
+IF NOT EXISTS (SELECT 1 FROM dbo.roles WHERE name = 'GM')
+BEGIN
+INSERT INTO dbo.roles (name, description, active)
+VALUES ('GM', 'Level 2 approver', 1);
+END;
+GO
+
+IF NOT EXISTS (SELECT 1 FROM dbo.roles WHERE name = 'BRANCH')
+BEGIN
+INSERT INTO dbo.roles (name, description, active)
+VALUES ('BRANCH', 'Views approved employees', 1);
+END;
+GO
+
+
+/* ============================================================
+   FINAL CHECK
+   ============================================================ */
+
+SELECT
+    'roles' AS TableName,
+    COUNT(*) AS TotalRows
+FROM dbo.roles
+
+UNION ALL
+
+SELECT
+    'users',
+    COUNT(*)
+FROM dbo.users
+
+UNION ALL
+
+SELECT
+    'branches',
+    COUNT(*)
+FROM dbo.branches
+
+UNION ALL
+
+SELECT
+    'Department',
+    COUNT(*)
+FROM dbo.Department
+
+UNION ALL
+
+SELECT
+    'Designation',
+    COUNT(*)
+FROM dbo.Designation
+
+UNION ALL
+
+SELECT
+    'employee_requests',
+    COUNT(*)
+FROM dbo.employee_requests
+
+UNION ALL
+
+SELECT
+    'employees',
+    COUNT(*)
+FROM dbo.employees
+
+UNION ALL
+
+SELECT
+    'signature_types',
+    COUNT(*)
+FROM dbo.signature_types
+
+UNION ALL
+
+SELECT
+    'employee_status',
+    COUNT(*)
+FROM dbo.employee_status;
+GO
