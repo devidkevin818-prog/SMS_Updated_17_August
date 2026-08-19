@@ -7,7 +7,9 @@ import com.bank.signaturemanagement.entity.EmployeeRequest;
 import com.bank.signaturemanagement.entity.RequestStatus;
 import com.bank.signaturemanagement.service.EmployeeService;
 import com.bank.signaturemanagement.service.EmployeeRequestService;
+import com.bank.signaturemanagement.service.ApprovedSignaturePdfService;
 import com.bank.signaturemanagement.repository.EmployeeMediaVersionRepository;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -22,13 +24,17 @@ public class PdController {
 
     private final EmployeeRequestService requestService;
     private final EmployeeService employeeService;
+    private final ApprovedSignaturePdfService pdfService;
     private final EmployeeMediaVersionRepository mediaVersionRepository;
 
     public PdController(EmployeeRequestService requestService,
                         EmployeeService employeeService,
+                        ApprovedSignaturePdfService pdfService,
                         EmployeeMediaVersionRepository mediaVersionRepository) {
+
         this.requestService = requestService;
         this.employeeService = employeeService;
+        this.pdfService = pdfService;
         this.mediaVersionRepository = mediaVersionRepository;
     }
 
@@ -109,6 +115,25 @@ public class PdController {
         model.addAttribute("employees", employeeService.search(query, page));
 
         return "pd/approved-signatures";
+    }
+
+    @GetMapping("/approved-signatures/pdf")
+    public void downloadApprovedPdf(
+            HttpServletResponse response
+    ) throws Exception {
+
+
+        response.setContentType("application/pdf");
+
+        response.setHeader(
+                "Content-Disposition",
+                "attachment; filename=approved-signatures.pdf"
+        );
+
+
+        pdfService.generateApprovedPdf(
+                response.getOutputStream()
+        );
     }
 
     @GetMapping("/approved-signatures/{id}")
