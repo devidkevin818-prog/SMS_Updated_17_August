@@ -50,6 +50,12 @@ public class EmployeeRequest {
     @Column(nullable = false, length = 30)
     private RequestStatus status = RequestStatus.PENDING_DGM;
 
+    @Column(name = "update_request_status", nullable = false)
+    private boolean updateRequestStatus = false;
+
+    @Column(name = "updated_after_rejection", nullable = false)
+    private boolean updatedAfterRejection = false;
+
     @Column(nullable = false, length = 500)
     private String remark;
 
@@ -61,6 +67,8 @@ public class EmployeeRequest {
 
     public EmployeeRequest() {
     }
+
+
 
     public Long getId() { return id; }
     public User getRequestedBy() { return requestedBy; }
@@ -96,6 +104,21 @@ public class EmployeeRequest {
 
     public void setSignatureValidUntil(LocalDate signatureValidUntil) {
         this.signatureValidUntil = signatureValidUntil;
+    }
+    public boolean isUpdateRequestStatus() {
+        return updateRequestStatus;
+    }
+
+    public void setUpdateRequestStatus(boolean updateRequestStatus) {
+        this.updateRequestStatus = updateRequestStatus;
+    }
+
+    public boolean isUpdatedAfterRejection() {
+        return updatedAfterRejection;
+    }
+
+    public void setUpdatedAfterRejection(boolean updatedAfterRejection) {
+        this.updatedAfterRejection = updatedAfterRejection;
     }
     public RequestStatus getStatus() { return status; }
     public void setStatus(RequestStatus status) { this.status = status; }
