@@ -25,6 +25,16 @@
  department, branch/branch_code and signature_path because the existing
  application may still use them. Lookup tables are retained alongside them.
 
+ CHANGE LOG
+ ----------
+ - Added a type-correction step for dbo.users.branch_id. Earlier runs of this
+   database (or Hibernate's own ddl-auto) may have created branch_id as
+   BIGINT. The application entity expects NVARCHAR(100), and Hibernate's
+   schema validator fails startup on the mismatch. The new step converts
+   branch_id to NVARCHAR(100) only if it is not already that type, and only
+   runs once existing data is safe to convert. No data is lost: BIGINT values
+   convert cleanly to their text representation.
+
  Run this complete file in SQL Server Management Studio (SSMS) or a SQL Server
  console that supports GO batch separators.
 ===============================================================================
@@ -264,6 +274,80 @@ GO
 IF COL_LENGTH(N'dbo.users', N'branch_id') IS NULL
 BEGIN
 ALTER TABLE dbo.users ADD branch_id NVARCHAR(100) NULL;
+END;
+GO
+
+/*
+ FIX: Correct branch_id's data type if it exists but was created with the
+ wrong type (e.g. BIGINT from an earlier schema version or from Hibernate's
+ own ddl-auto). The application entity maps branch_id as a String, and
+ Hibernate's schema validator will refuse to start the app if the actual
+ column type does not match. Converting BIGINT -> NVARCHAR(100) is a safe,
+ lossless implicit conversion, so any existing branch_id values are kept.
+
+ This block must run BEFORE the "Do NOT overwrite existing branch
+ assignments" step below, since that step also touches branch_id.
+*/
+
+/* Step A: drop any foreign key that depends on users.branch_id. A numeric
+   FK to dbo.branches (branch_id BIGINT) cannot coexist with the text-based
+   branch_id design this script (and the application entity) uses, so this
+   constraint - if present - is a leftover that must go before the column
+   can change type. */
+IF EXISTS
+(
+    SELECT 1
+    FROM sys.foreign_keys
+    WHERE parent_object_id = OBJECT_ID(N'dbo.users')
+      AND name = N'fk_users_branch'
+)
+BEGIN
+    PRINT 'Dropping fk_users_branch so branch_id can change type...';
+ALTER TABLE dbo.users DROP CONSTRAINT fk_users_branch;
+END;
+GO
+
+/* Step B: also catch any other, differently-named FK that happens to target
+   users.branch_id, so re-running this script stays robust even if the
+   constraint was created under a different name. */
+DECLARE @fk_name SYSNAME;
+DECLARE fk_cursor CURSOR FOR
+SELECT fk.name
+FROM sys.foreign_keys fk
+         JOIN sys.foreign_key_columns fkc
+              ON fkc.constraint_object_id = fk.object_id
+         JOIN sys.columns c
+              ON c.object_id = fkc.parent_object_id
+                  AND c.column_id = fkc.parent_column_id
+WHERE fk.parent_object_id = OBJECT_ID(N'dbo.users')
+  AND c.name = N'branch_id';
+
+OPEN fk_cursor;
+FETCH NEXT FROM fk_cursor INTO @fk_name;
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    PRINT 'Dropping foreign key ' + @fk_name + ' so branch_id can change type...';
+EXEC (N'ALTER TABLE dbo.users DROP CONSTRAINT [' + @fk_name + N']');
+FETCH NEXT FROM fk_cursor INTO @fk_name;
+END;
+CLOSE fk_cursor;
+DEALLOCATE fk_cursor;
+GO
+
+/* Step C: now safe to convert the column type. */
+IF EXISTS
+(
+    SELECT 1
+    FROM sys.columns c
+    JOIN sys.types t ON t.user_type_id = c.user_type_id
+    WHERE c.object_id = OBJECT_ID(N'dbo.users')
+      AND c.name = N'branch_id'
+      AND t.name <> N'nvarchar'
+)
+BEGIN
+    PRINT 'Converting dbo.users.branch_id to NVARCHAR(100)...';
+ALTER TABLE dbo.users
+ALTER COLUMN branch_id NVARCHAR(100) NULL;
 END;
 GO
 
