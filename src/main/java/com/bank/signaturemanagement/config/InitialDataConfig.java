@@ -11,9 +11,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Map;
-//hey you
-
-//hey you
 
 @Configuration
 public class InitialDataConfig {
