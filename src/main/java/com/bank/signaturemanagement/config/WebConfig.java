@@ -19,5 +19,13 @@ public class WebConfig implements WebMvcConfigurer {
                 .addResourceLocations(fileStorageService.getProfilePhotoRoot().toUri().toString());
         registry.addResourceHandler("/uploads/signature/**")
                 .addResourceLocations(fileStorageService.getSignatureRoot().toUri().toString());
+        registry.addResourceHandler("/uploads/foreign-signature/**")
+                .addResourceLocations(
+                        fileStorageService
+                                .getForeignSignatureRoot()
+                                .toUri()
+                                .toString()
+                );
     }
+
 }

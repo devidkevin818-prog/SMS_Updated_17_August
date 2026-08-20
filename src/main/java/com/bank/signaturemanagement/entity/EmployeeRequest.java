@@ -40,6 +40,19 @@ public class EmployeeRequest {
 
     @Column(name = "signature_path", nullable = false, length = 500)
     private String signaturePath;
+
+    @Column(name = "foreign_signature_path", nullable = true,length = 500)
+    private String foreignSignaturePath;
+
+    public String getForeignSignaturePath() {
+        return foreignSignaturePath;
+    }
+
+    public void setForeignSignaturePath(String foreignSignaturePath) {
+        this.foreignSignaturePath = foreignSignaturePath;
+    }
+
+
     @Column(name = "signature_valid_from", nullable = false)
     private LocalDate signatureValidFrom;
 
