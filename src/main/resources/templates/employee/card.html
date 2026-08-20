@@ -25,7 +25,7 @@
                                                       th:src="@{'/uploads/'+${employee.photoPath}}"
                                                       alt="Employee photo"></div>
                 <section><h2 class="employee-name" th:text="${employee.fullName}"></h2>
-                    <div class="employee-designation" th:text="${employee.designation}"></div>
+                    <div class="employee-designation" th:text="${employee.designation.designationName}"></div>
                     <table class="id-details">
                         <tr>
                             <th>Employee code</th>
@@ -33,11 +33,11 @@
                         </tr>
                         <tr>
                             <th>Department</th>
-                            <td th:text="${employee.department}"></td>
+                            <td th:text="${employee.department.departmentName}"></td>
                         </tr>
                         <tr>
                             <th>Branch</th>
-                            <td th:text="${employee.branchCode}"></td>
+                            <td th:text="${employee.branch.branchName}"></td>
                         </tr>
                         <tr>
                             <th>Signature valid from</th>

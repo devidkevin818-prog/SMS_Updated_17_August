@@ -2,9 +2,7 @@ package com.bank.signaturemanagement.controller;
 
 import com.bank.signaturemanagement.dto.EmployeeRequestForm;
 import com.bank.signaturemanagement.dto.EmployeeUpdateForm;
-import com.bank.signaturemanagement.service.EmployeeService;
-import com.bank.signaturemanagement.service.EmployeeRequestService;
-import com.bank.signaturemanagement.service.ApprovedSignaturePdfService;
+import com.bank.signaturemanagement.service.*;
 import com.bank.signaturemanagement.repository.EmployeeMediaVersionRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -21,17 +19,27 @@ public class PdController {
     private final EmployeeRequestService requestService;
     private final EmployeeService employeeService;
     private final ApprovedSignaturePdfService pdfService;
+    private final DesignationService designationService;
+    private final DepartmentService departmentService;
+    private final BranchService branchService;
     private final EmployeeMediaVersionRepository mediaVersionRepository;
+
 
     public PdController(EmployeeRequestService requestService,
                         EmployeeService employeeService,
                         ApprovedSignaturePdfService pdfService,
-                        EmployeeMediaVersionRepository mediaVersionRepository) {
+                        EmployeeMediaVersionRepository mediaVersionRepository,
+                        DesignationService designationService,
+                        DepartmentService departmentService,
+                        BranchService branchService) {
 
         this.requestService = requestService;
         this.employeeService = employeeService;
         this.pdfService = pdfService;
         this.mediaVersionRepository = mediaVersionRepository;
+        this.designationService = designationService;
+        this.departmentService = departmentService;
+        this.branchService = branchService;
     }
 
     @GetMapping("/dashboard")
@@ -41,15 +49,23 @@ public class PdController {
 
     @GetMapping("/employees/new")
     public String createForm(Model model) {
-        if (!model.containsAttribute("employeeRequestForm"))
+
+        if (!model.containsAttribute("employeeRequestForm")) {
             model.addAttribute("employeeRequestForm", new EmployeeRequestForm());
+        }
+
+        model.addAttribute("designations", designationService.findAll());
+        model.addAttribute("departments", departmentService.findAll());
+        model.addAttribute("branches", branchService.findAll());
+
         return "pd/create-employee";
     }
 
     @PostMapping("/employees")
     public String create(@Valid @ModelAttribute EmployeeRequestForm employeeRequestForm,
                          BindingResult result, Authentication authentication,
-                         RedirectAttributes redirectAttributes) {
+                         RedirectAttributes redirectAttributes,
+                         Model model) {
         if (!result.hasErrors()) {
             try {
                 requestService.createRequest(employeeRequestForm, authentication.getName());
@@ -59,6 +75,9 @@ public class PdController {
                 result.reject("request", exception.getMessage());
             }
         }
+        model.addAttribute("designations", designationService.findAll());
+        model.addAttribute("departments", departmentService.findAll());
+        model.addAttribute("branches", branchService.findAll());
         return "pd/create-employee";
     }
 
@@ -115,6 +134,10 @@ public class PdController {
     public String editEmployeeForm(@PathVariable Long id, Model model) {
         model.addAttribute("employee", employeeService.getEmployee(id));
         model.addAttribute("employeeUpdateForm", employeeService.getUpdateForm(id));
+
+        model.addAttribute("designations", designationService.findAll());
+        model.addAttribute("departments", departmentService.findAll());
+        model.addAttribute("branches", branchService.findAll());
         return "pd/edit-employee";
     }
 

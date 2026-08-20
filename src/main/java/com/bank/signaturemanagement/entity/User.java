@@ -24,7 +24,7 @@ public class User {
     @Column(nullable = false, unique = true, length = 100)
     private String email;
 
-    @Column(name = "branchId", nullable = false, length = 100)
+    @Column(name = "branch_id", nullable = false, length = 100)
     private String branchId;
 
     public String getBranchId() {

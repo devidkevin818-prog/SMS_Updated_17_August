@@ -27,15 +27,15 @@
                          th:text="'Employee name: ' + ${error}">
                     </div>
 
-                    <div th:each="error : ${#fields.errors('designation')}"
+                    <div th:each="error : ${#fields.errors('designationId')}"
                          th:text="'Designation: ' + ${error}">
                     </div>
 
-                    <div th:each="error : ${#fields.errors('department')}"
+                    <div th:each="error : ${#fields.errors('departmentId')}"
                          th:text="'Department: ' + ${error}">
                     </div>
 
-                    <div th:each="error : ${#fields.errors('branch')}"
+                    <div th:each="error : ${#fields.errors('branchId')}"
                          th:text="'Branch: ' + ${error}">
                     </div>
 
@@ -85,29 +85,50 @@
                                     <label class="form-label" for="designation">
                                         Designation
                                     </label>
-                                    <input class="form-control"
-                                           id="designation"
-                                           th:field="*{designation}"
-                                           required>
+
+                                    <select class="form-select" id="designation" th:field="*{designationId}" required>
+
+                                        <option value="">-- Select Designation --</option>
+
+                                        <option th:each="designation : ${designations}"
+                                                th:value="${designation.designationId}"
+                                                th:text="${designation.designationName}">
+                                        </option>
+
+                                    </select>
                                 </div>
 
                                 <div class="col-md-6">
                                     <label class="form-label" for="department">
                                         Department
                                     </label>
-                                    <input class="form-control"
-                                           id="department"
-                                           th:field="*{department}"
-                                           required>
+
+                                    <select class="form-select" id="department" th:field="*{departmentId}" required>
+
+                                        <option value="">-- Select Department --</option>
+
+                                        <option th:each="department : ${departments}"
+                                                th:value="${department.departmentId}"
+                                                th:text="${department.departmentName}">
+                                        </option>
+
+                                    </select>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label" for="branch">
                                         Branch
                                     </label>
-                                    <input class="form-control"
-                                           id="branch"
-                                           th:field="*{branch}"
-                                           required>
+
+                                    <select class="form-select" id="branch" th:field="*{branchId}" required>
+
+                                        <option value="">-- Select Branch --</option>
+
+                                        <option th:each="branch : ${branches}"
+                                                th:value="${branch.branchId}"
+                                                th:text="${branch.branchName}">
+                                        </option>
+
+                                    </select>
                                 </div>
 
                                 <!-- VALID FROM -->

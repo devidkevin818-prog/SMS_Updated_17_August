@@ -54,7 +54,7 @@
                                  alt="Approved employee photo"></td>
                         <td><img class="approved-signature-thumbnail" th:src="@{'/uploads/'+${employee.signaturePath}}"
                                  alt="Approved employee signature"></td>
-                        <td th:text="${employee.branchCode}"></td>
+                        <td th:text="${employee.branch.branchName}"></td>
                         <td class="text-end"><a class="btn btn-sm btn-soft"
                                                 th:href="@{/pd/approved-signatures/{id}(id=${employee.id})}">View
                             profile</a></td>
