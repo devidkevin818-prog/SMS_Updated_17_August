@@ -27,23 +27,32 @@ public class ApprovedSignaturePdfService {
     private final EmployeeRepository employeeRepository;
 
     // =========================================================
-    // Upload Root
+    // File Storage Configuration
     // =========================================================
     //
-    // Database path example:
+    // application.properties:
     //
-    // profile/6/photo.jpg
-    // signature/6/signature.png
+    // app.upload.root=E:/images
+    // app.profile-photo.root=E:/images/employee-photo
+    // app.signature.root=E:/images/employee-signature
     //
-    // Actual file:
+    // Database:
     //
-    // uploads/profile/6/photo.jpg
-    // uploads/signature/6/signature.png
+    // profile/1/2a84ed3b-4145-424a-9fae-2e3cdc9fbc0a.jpg
+    // signature/1/bbb7c067-c104-4cc4-89db-b0a6f0a09aaf.png
+    //
+    // Actual files:
+    //
+    // E:/images/employee-photo/1/2a84ed3b-4145-424a-9fae-2e3cdc9fbc0a.jpg
+    // E:/images/employee-signature/1/bbb7c067-c104-4cc4-89db-b0a6f0a09aaf.png
     //
     // =========================================================
 
-    @Value("${app.upload.root}")
-    private String uploadRoot;
+    @Value("${app.profile-photo.root}")
+    private String profilePhotoRoot;
+
+    @Value("${app.signature.root}")
+    private String signatureRoot;
 
     public ApprovedSignaturePdfService(
             EmployeeRepository employeeRepository
@@ -104,24 +113,12 @@ public class ApprovedSignaturePdfService {
 
         document.add(title);
 
-        // Space below title
         Paragraph titleSpace = new Paragraph(" ");
         titleSpace.setSpacingAfter(20f);
         document.add(titleSpace);
 
         // =====================================================
         // Table
-        //
-        // 1. SL
-        // 2. Code
-        // 3. Name
-        // 4. Designation
-        // 5. Department
-        // 6. Branch
-        // 7. Signature Validity
-        // 8. Photo
-        // 9. Signature
-        //
         // =====================================================
 
         PdfPTable table =
@@ -130,15 +127,15 @@ public class ApprovedSignaturePdfService {
         table.setWidthPercentage(100);
 
         table.setWidths(new float[]{
-                1.0f,   // SL
-                1.5f,   // Code
-                2.5f,   // Name
-                2.5f,   // Designation
-                2.5f,   // Department
-                2.5f,   // Branch
-                2.5f,   // Signature Validity
-                2.5f,   // Photo
-                3.0f    // Signature
+                1.0f,
+                1.5f,
+                2.5f,
+                2.5f,
+                2.5f,
+                2.5f,
+                2.5f,
+                2.5f,
+                3.0f
         });
 
         // =====================================================
@@ -154,15 +151,6 @@ public class ApprovedSignaturePdfService {
         addHeader(table, "Signature Validity");
         addHeader(table, "Photo");
         addHeader(table, "Signature");
-
-        // =====================================================
-        // Upload Root
-        // =====================================================
-
-        Path root = Paths
-                .get(uploadRoot)
-                .toAbsolutePath()
-                .normalize();
 
         // =====================================================
         // Employee Rows
@@ -230,13 +218,6 @@ public class ApprovedSignaturePdfService {
 
             // =================================================
             // Signature Validity
-            //
-            // Three lines:
-            //
-            // 2026-08-18
-            // to
-            // 2026-09-30
-            //
             // =================================================
 
             String validity =
@@ -278,25 +259,8 @@ public class ApprovedSignaturePdfService {
             if (photoDbPath != null &&
                     !photoDbPath.isBlank()) {
 
-                /*
-                 * Example DB path:
-                 *
-                 * profile/6/f35d....jpg
-                 *
-                 * Actual:
-                 *
-                 * uploads/profile/6/f35d....jpg
-                 */
-
                 Path photoPath =
-                        root.resolve(
-                                photoDbPath
-                        ).normalize();
-
-//                System.out.println(
-//                        "PDF PHOTO: "
-//                                + photoPath.toAbsolutePath()
-//                );
+                        resolvePhotoPath(photoDbPath);
 
                 if (Files.exists(photoPath)
                         && Files.isRegularFile(photoPath)) {
@@ -308,7 +272,6 @@ public class ApprovedSignaturePdfService {
                                             .toString()
                             );
 
-                    // Bigger photo
                     photo.scaleToFit(
                             100,
                             100
@@ -361,25 +324,10 @@ public class ApprovedSignaturePdfService {
             if (signatureDbPath != null &&
                     !signatureDbPath.isBlank()) {
 
-                /*
-                 * Example DB path:
-                 *
-                 * signature/6/e8c....png
-                 *
-                 * Actual:
-                 *
-                 * uploads/signature/6/e8c....png
-                 */
-
                 Path signaturePath =
-                        root.resolve(
+                        resolveSignaturePath(
                                 signatureDbPath
-                        ).normalize();
-
-//                System.out.println(
-//                        "PDF SIGNATURE: "
-//                                + signaturePath.toAbsolutePath()
-//                );
+                        );
 
                 if (Files.exists(signaturePath)
                         && Files.isRegularFile(signaturePath)) {
@@ -391,7 +339,6 @@ public class ApprovedSignaturePdfService {
                                             .toString()
                             );
 
-                    // Bigger signature
                     signature.scaleToFit(
                             160,
                             80
@@ -433,6 +380,82 @@ public class ApprovedSignaturePdfService {
         // =====================================================
 
         document.close();
+    }
+
+    // =========================================================
+    // Resolve Photo Path
+    // =========================================================
+    //
+    // DB:
+    //
+    // profile/1/photo.jpg
+    //
+    // Becomes:
+    //
+    // E:/images/employee-photo/1/photo.jpg
+    //
+    // =========================================================
+
+    private Path resolvePhotoPath(
+            String dbPath
+    ) {
+
+        String relativePath = dbPath;
+
+        if (relativePath.startsWith("profile/")) {
+
+            relativePath =
+                    relativePath.substring(
+                            "profile/".length()
+                    );
+        }
+
+        Path root = Paths
+                .get(profilePhotoRoot)
+                .toAbsolutePath()
+                .normalize();
+
+        return root
+                .resolve(relativePath)
+                .normalize();
+    }
+
+    // =========================================================
+    // Resolve Signature Path
+    // =========================================================
+    //
+    // DB:
+    //
+    // signature/1/signature.png
+    //
+    // Becomes:
+    //
+    // E:/images/employee-signature/1/signature.png
+    //
+    // =========================================================
+
+    private Path resolveSignaturePath(
+            String dbPath
+    ) {
+
+        String relativePath = dbPath;
+
+        if (relativePath.startsWith("signature/")) {
+
+            relativePath =
+                    relativePath.substring(
+                            "signature/".length()
+                    );
+        }
+
+        Path root = Paths
+                .get(signatureRoot)
+                .toAbsolutePath()
+                .normalize();
+
+        return root
+                .resolve(relativePath)
+                .normalize();
     }
 
     // =========================================================
@@ -496,12 +519,10 @@ public class ApprovedSignaturePdfService {
                         )
                 );
 
-        // Horizontal center
         cell.setHorizontalAlignment(
                 Element.ALIGN_CENTER
         );
 
-        // Vertical center
         cell.setVerticalAlignment(
                 Element.ALIGN_MIDDLE
         );

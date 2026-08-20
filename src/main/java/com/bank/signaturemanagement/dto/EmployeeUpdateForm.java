@@ -15,6 +15,15 @@ public class EmployeeUpdateForm {
     @NotBlank private String remark;
     private MultipartFile photo;
     private MultipartFile signature;
+    private MultipartFile foreignSignature;
+
+    public MultipartFile getForeignSignature() {
+        return foreignSignature;
+    }
+
+    public void setForeignSignature(MultipartFile foreignSignature) {
+        this.foreignSignature = foreignSignature;
+    }
 
 
     private LocalDate signatureValidFrom;
