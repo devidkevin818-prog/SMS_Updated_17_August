@@ -62,6 +62,17 @@ public class Employee {
     private LocalDate signatureValidUntil;
 
 
+    @Column(name = "update_request_status")
+    private Boolean updateRequestStatus = false;
+
+    public Boolean getUpdateRequestStatus() { return updateRequestStatus; }
+    public void setUpdateRequestStatus(Boolean updateRequestStatus) {
+        this.updateRequestStatus = updateRequestStatus;
+    }
+
+
+
+
     public Employee() {
     }
 

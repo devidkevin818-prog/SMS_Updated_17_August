@@ -18,9 +18,23 @@ public class EmployeeService {
     }
 
 
-    // =========================================================
-    // SEARCH EMPLOYEE
-    // =========================================================
+    @Transactional
+    public void requestUpdate(Long id) {
+        Employee employee = employeeRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Employee not found"));
+        employee.setUpdateRequestStatus(true);
+        employeeRepository.save(employee);
+    }
+
+    @Transactional
+    public void updateRequestStatus(Long id, boolean status) {
+        Employee employee = employeeRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Employee not found"));
+        employee.setUpdateRequestStatus(status);
+        employeeRepository.save(employee);
+    }
+
+
 
     @Transactional(readOnly = true)
     public Page<Employee> search(String query, int page) {

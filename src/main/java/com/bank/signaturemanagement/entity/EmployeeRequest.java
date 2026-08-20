@@ -22,6 +22,18 @@ public class EmployeeRequest {
     @Column(name = "employee_name", nullable = false, length = 100)
     private String employeeName;
 
+    @Column(name = "update_request_status", nullable = false)
+    private boolean updateRequestStatus = false;
+
+    @Column(name = "updated_after_rejection", nullable = false)
+    private boolean updatedAfterRejection = false;
+
+    public boolean isUpdateRequestStatus() { return updateRequestStatus; }
+    public void setUpdateRequestStatus(boolean updateRequestStatus) { this.updateRequestStatus = updateRequestStatus; }
+
+    public boolean isUpdatedAfterRejection() { return updatedAfterRejection; }
+    public void setUpdatedAfterRejection(boolean updatedAfterRejection) { this.updatedAfterRejection = updatedAfterRejection; }
+
     // @Column(nullable = false, length = 100)
     // private String designation;
 

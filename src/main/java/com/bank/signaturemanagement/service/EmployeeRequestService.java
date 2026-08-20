@@ -5,6 +5,7 @@ import com.bank.signaturemanagement.dto.EmployeeUpdateForm;
 import com.bank.signaturemanagement.entity.*;
 import com.bank.signaturemanagement.repository.*;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -97,17 +98,15 @@ public class EmployeeRequestService {
                         .orElseThrow();
 
 
-        // =====================================================
-        // Validate Images
-        // =====================================================
-
         fileStorageService.validateImage(form.getPhoto());
         fileStorageService.validateImage(form.getSignature());
 
 
-        // =====================================================
-        // Find Designation / Department / Branch
-        // =====================================================
+        // -----------------------------------------------------
+        // EmployeeRequestForm still carries names, not ids.
+        // If you switch that form to ids too, replace these
+        // three lookups with findById(...) like createUpdateRequest.
+        // -----------------------------------------------------
 
         Designation designation =
                 designationRepository
@@ -145,13 +144,7 @@ public class EmployeeRequestService {
                         );
 
 
-        // =====================================================
-        // Create Request
-        // =====================================================
-
-        EmployeeRequest request =
-                new EmployeeRequest();
-
+        EmployeeRequest request = new EmployeeRequest();
 
         request.setEmployeeCode(code);
 
@@ -159,22 +152,13 @@ public class EmployeeRequestService {
                 form.getEmployeeName().trim()
         );
 
-
         request.setDesignation(designation);
-
         request.setDepartment(department);
-
         request.setBranch(branch);
-
 
         request.setRemark(
                 form.getRemark().trim()
         );
-
-
-        // =====================================================
-        // Store Images
-        // =====================================================
 
         request.setPhotoPath(
                 fileStorageService.storeImage(
@@ -183,18 +167,12 @@ public class EmployeeRequestService {
                 )
         );
 
-
         request.setSignaturePath(
                 fileStorageService.storeImage(
                         form.getSignature(),
                         "employee-signature"
                 )
         );
-
-
-        // =====================================================
-        // Signature Validity
-        // =====================================================
 
         request.setSignatureValidFrom(
                 form.getSignatureValidFrom()
@@ -204,17 +182,7 @@ public class EmployeeRequestService {
                 form.getSignatureValidUntil()
         );
 
-
-        // =====================================================
-        // Requested By
-        // =====================================================
-
         request.setRequestedBy(requester);
-
-
-        // =====================================================
-        // Save
-        // =====================================================
 
         requestRepository.save(request);
     }
@@ -249,10 +217,6 @@ public class EmployeeRequestService {
         }
 
 
-        // =====================================================
-        // Find Employee
-        // =====================================================
-
         Employee employee =
                 employeeRepository.findById(employeeId)
                         .orElseThrow(() ->
@@ -281,12 +245,7 @@ public class EmployeeRequestService {
         }
 
 
-        // =====================================================
-        // Employee Code Validation
-        // =====================================================
-
-        String code =
-                form.getEmployeeCode().trim();
+        String code = form.getEmployeeCode().trim();
 
 
         if (employeeRepository
@@ -313,29 +272,14 @@ public class EmployeeRequestService {
         }
 
 
-        // =====================================================
-        // Requester
-        // =====================================================
-
         User requester =
                 userRepository.findByUsername(username)
                         .orElseThrow();
 
 
-        // =====================================================
-        // Existing Images
-        // =====================================================
+        String photoPath = employee.getPhotoPath();
+        String signaturePath = employee.getSignaturePath();
 
-        String photoPath =
-                employee.getPhotoPath();
-
-        String signaturePath =
-                employee.getSignaturePath();
-
-
-        // =====================================================
-        // New Photo
-        // =====================================================
 
         if (form.getPhoto() != null &&
                 !form.getPhoto().isEmpty()) {
@@ -352,10 +296,6 @@ public class EmployeeRequestService {
         }
 
 
-        // =====================================================
-        // New Signature
-        // =====================================================
-
         if (form.getSignature() != null &&
                 !form.getSignature().isEmpty()) {
 
@@ -371,58 +311,60 @@ public class EmployeeRequestService {
         }
 
 
-        // =====================================================
-        // Find Designation / Department / Branch
-        // =====================================================
+        // -----------------------------------------------------
+        // Lookup by id (the form now carries ids, not names)
+        // -----------------------------------------------------
 
-        Designation designation = designationRepository
-                .findById(form.getDesignationId())
-                .orElseThrow(() -> new IllegalArgumentException("Designation not found"));
-
-        Department department = departmentRepository
-                .findById(form.getDepartmentId())
-                .orElseThrow(() -> new IllegalArgumentException("Department not found"));
-
-        Branch branch = branchRepository
-                .findById(form.getBranchId())
-                .orElseThrow(() -> new IllegalArgumentException("Branch not found"));
+        Designation designation =
+                designationRepository
+                        .findById(form.getDesignationId())
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(
+                                        "Designation not found"
+                                )
+                        );
 
 
-        // =====================================================
-        // Create Update Request
-        // =====================================================
+        Department department =
+                departmentRepository
+                        .findById(form.getDepartmentId())
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(
+                                        "Department not found"
+                                )
+                        );
 
-        EmployeeRequest request =
-                new EmployeeRequest();
 
+        Branch branch =
+                branchRepository
+                        .findById(form.getBranchId())
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(
+                                        "Branch not found"
+                                )
+                        );
+
+
+        EmployeeRequest request = new EmployeeRequest();
 
         request.setRequestedBy(requester);
-
         request.setTargetEmployee(employee);
-
         request.setEmployeeCode(code);
 
         request.setEmployeeName(
                 form.getEmployeeName().trim()
         );
 
-
         request.setDesignation(designation);
-
         request.setDepartment(department);
-
         request.setBranch(branch);
 
-
         request.setPhotoPath(photoPath);
-
         request.setSignaturePath(signaturePath);
-
 
         request.setRemark(
                 form.getRemark().trim()
         );
-
 
         request.setSignatureValidFrom(
                 form.getSignatureValidFrom()
@@ -431,11 +373,6 @@ public class EmployeeRequestService {
         request.setSignatureValidUntil(
                 form.getSignatureValidUntil()
         );
-
-
-        // =====================================================
-        // Save
-        // =====================================================
 
         requestRepository.save(request);
     }
@@ -496,6 +433,61 @@ public class EmployeeRequestService {
                                 "Request not found"
                         )
                 );
+    }
+
+
+    // =========================================================
+    // SEARCH EMPLOYEES WITHOUT PENDING REQUEST
+    // (from origin/main)
+    // =========================================================
+
+    @Transactional(readOnly = true)
+    public Page<Employee> searchEmployeesWithoutPendingRequest(
+            String query,
+            int page
+    ) {
+
+        String text = query == null ? "" : query.trim();
+
+
+        List<RequestStatus> pendingStatuses = List.of(
+                RequestStatus.PENDING_DGM,
+                RequestStatus.PENDING_GM
+        );
+
+
+        List<EmployeeRequest> pendingRequests =
+                requestRepository.findByStatusIn(pendingStatuses);
+
+
+        List<Long> pendingEmployeeIds = pendingRequests.stream()
+                .map(EmployeeRequest::getTargetEmployee)
+                .filter(employee -> employee != null)
+                .map(Employee::getId)
+                .toList();
+
+
+        Page<Employee> employees =
+                employeeRepository
+                        .findByEmployeeNumberContainingIgnoreCaseOrFullNameContainingIgnoreCase(
+                                text,
+                                text,
+                                PageRequest.of(page, 20)
+                        );
+
+
+        List<Employee> filtered = employees.getContent()
+                .stream()
+                .filter(employee ->
+                        !pendingEmployeeIds.contains(employee.getId()))
+                .toList();
+
+
+        return new PageImpl<>(
+                filtered,
+                employees.getPageable(),
+                filtered.size()
+        );
     }
 
 
@@ -600,10 +592,6 @@ public class EmployeeRequestService {
                     request.getTargetEmployee();
 
 
-            // =================================================
-            // New Employee
-            // =================================================
-
             if (employee == null) {
 
                 if (employeeRepository
@@ -618,13 +606,7 @@ public class EmployeeRequestService {
 
                 employee = new Employee();
 
-            }
-
-            // =================================================
-            // Existing Employee
-            // =================================================
-
-            else if (
+            } else if (
                     employeeRepository
                             .existsByEmployeeNumberAndIdNot(
                                     request.getEmployeeCode(),
@@ -638,80 +620,48 @@ public class EmployeeRequestService {
             }
 
 
-            // =================================================
-            // Employee Basic Information
-            // =================================================
-
             employee.setEmployeeNumber(
                     request.getEmployeeCode()
             );
-
 
             employee.setFullName(
                     request.getEmployeeName()
             );
 
-
-            // =================================================
-            // Designation / Department / Branch
-            // =================================================
-
             employee.setDesignation(
                     request.getDesignation()
             );
-
 
             employee.setDepartment(
                     request.getDepartment()
             );
 
-
             employee.setBranch(
                     request.getBranch()
             );
-
-
-            // =================================================
-            // Images
-            // =================================================
 
             employee.setPhotoPath(
                     request.getPhotoPath()
             );
 
-
             employee.setSignaturePath(
                     request.getSignaturePath()
             );
 
-
-            // =================================================
-            // Signature Validity
-            // =================================================
-
             employee.setSignatureValidFrom(
                     request.getSignatureValidFrom()
             );
-
 
             employee.setSignatureValidUntil(
                     request.getSignatureValidUntil()
             );
 
 
-            // =================================================
-            // Save Employee
-            // =================================================
-
             employee =
                     employeeRepository.saveAndFlush(
                             employee
                     );
 
-
-            // =================================================
-            // Organize Approved Images
-            // =================================================
 
             String approvedPhotoPath =
                     fileStorageService.organizeEmployeeImage(
@@ -729,24 +679,17 @@ public class EmployeeRequestService {
                     );
 
 
-            // =================================================
-            // Update Employee Paths
-            // =================================================
-
             employee.setPhotoPath(
                     approvedPhotoPath
             );
-
 
             employee.setSignaturePath(
                     approvedSignaturePath
             );
 
-
             request.setPhotoPath(
                     approvedPhotoPath
             );
-
 
             request.setSignaturePath(
                     approvedSignaturePath
@@ -756,18 +699,12 @@ public class EmployeeRequestService {
             employeeRepository.save(employee);
 
 
-            // =================================================
-            // Media Version
-            // =================================================
-
             EmployeeMediaVersion mediaVersion =
                     new EmployeeMediaVersion();
-
 
             mediaVersion.setEmployee(employee);
 
             mediaVersion.setRequest(request);
-
 
             mediaVersion.setVersionNumber(
                     (int) mediaVersionRepository
@@ -776,35 +713,24 @@ public class EmployeeRequestService {
                             ) + 1
             );
 
-
             mediaVersion.setPhotoPath(
                     approvedPhotoPath
             );
 
-
             mediaVersion.setSignaturePath(
                     approvedSignaturePath
             );
-
 
             mediaVersionRepository.save(
                     mediaVersion
             );
 
 
-            // =================================================
-            // Request Approved
-            // =================================================
-
             request.setStatus(
                     RequestStatus.APPROVED
             );
 
         } else {
-
-            // =================================================
-            // GM Rejected
-            // =================================================
 
             deleteRejectedPendingImages(request);
 
@@ -860,16 +786,12 @@ public class EmployeeRequestService {
     ) {
 
         if ("approve".equals(action)) {
-
             return ApprovalAction.APPROVED;
         }
 
-
         if ("reject".equals(action)) {
-
             return ApprovalAction.REJECTED;
         }
-
 
         throw new IllegalArgumentException(
                 "Invalid approval action"
@@ -888,7 +810,6 @@ public class EmployeeRequestService {
         fileStorageService.deletePendingImage(
                 request.getPhotoPath()
         );
-
 
         fileStorageService.deletePendingImage(
                 request.getSignaturePath()
@@ -920,7 +841,6 @@ public class EmployeeRequestService {
         ApprovalHistory history =
                 new ApprovalHistory();
 
-
         history.setRequest(request);
 
         history.setActedBy(actor);
@@ -932,7 +852,6 @@ public class EmployeeRequestService {
         history.setRemark(
                 remark.trim()
         );
-
 
         approvalRepository.save(history);
     }

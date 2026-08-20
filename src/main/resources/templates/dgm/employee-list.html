@@ -55,8 +55,8 @@
                             <strong th:text="${employee.employeeNumber}"></strong>
                         </td>
                         <td th:text="${employee.fullName}"></td>
-                        <td th:text="${employee.designation}"></td>
-                        <td th:text="${employee.branchCode}"></td>
+                        <td th:text="${employee.designation.designationName}"></td>
+                        <td th:text="${employee.branch.branchName}"></td>
                         <td class="text-end">
                             <button th:if="${employee.updateRequestStatus}"
                                     type="button"
