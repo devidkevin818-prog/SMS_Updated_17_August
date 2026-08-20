@@ -36,7 +36,16 @@
                         <td th:text="${#temporals.format(request.requestedAt,'dd MMM yyyy, HH:mm')}"></td>
                         <td><span class="status-badge"
                                   th:classappend="${request.status.name() == 'APPROVED' ? ' status-approved' : (request.status.name() == 'REJECTED' ? ' status-rejected' : ' status-pending')}"
-                                  th:text="${#strings.replace(request.status.name(),'_',' ')}"></span></td>
+                                  th:text="${#strings.replace(request.status.name(),'_',' ')}"></span>
+                            <a th:if="${request.updateRequestStatus}"
+                               th:href="@{/pd/requests/{id}/update(id=${request.id})}"
+                               class="btn btn-sm btn-warning ms-2"
+                               style="padding: 2px 8px; font-size: 11px;">
+                                <i class="bi bi-pencil-square me-1"></i>
+                                Update
+                            </a>
+                        </td>
+
                     </tr>
                     <tr th:if="${requests.empty}">
                         <td class="empty-state" colspan="4"><i class="bi bi-file-earmark-text"></i>No requests submitted

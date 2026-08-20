@@ -57,7 +57,7 @@
                         <td th:text="${employee.branch.branchName}"></td>
                         <td class="text-end"><a class="btn btn-sm btn-soft"
                                                 th:href="@{/pd/approved-signatures/{id}(id=${employee.id})}">View
-                            profile</a></td>
+                            Versions</a></td>
                     </tr>
                     <tr th:if="${employees.empty}">
                         <td class="empty-state" colspan="5"><i class="bi bi-person-x"></i>No approved employee found.

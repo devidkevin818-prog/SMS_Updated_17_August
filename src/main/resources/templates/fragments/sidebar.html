@@ -19,6 +19,13 @@
         <a th:if="${role == 'DGM'}" th:href="@{/dgm/dashboard}" th:classappend="${activePage == 'approval'} ? ' active'" class="sidebar-link"><i class="bi bi-clipboard2-check-fill"></i><span>Pending Approval</span></a>
         <a th:if="${role == 'DGM'}" th:href="@{/dgm/approvals}" th:classappend="${activePage == 'history'} ? ' active'" class="sidebar-link"><i class="bi bi-clock-history"></i><span>My Decisions</span></a>
         <a th:if="${role == 'DGM'}" th:href="@{/employees}" th:classappend="${activePage == 'directory'} ? ' active'" class="sidebar-link"><i class="bi bi-person-vcard-fill"></i><span>Employee Directory</span></a>
+        <a th:if="${role == 'DGM'}"
+           th:href="@{/dgm/employees}"
+           th:classappend="${activePage == 'update'} ? ' active'"
+           class="sidebar-link">
+            <i class="bi bi-pencil-square"></i>
+            <span>Update Employee</span>
+        </a>
 
         <a th:if="${role == 'GM'}" th:href="@{/gm/dashboard}" th:classappend="${activePage == 'dashboard'} ? ' active'" class="sidebar-link"><i class="bi bi-grid-1x2-fill"></i><span>Dashboard</span></a>
         <a th:if="${role == 'GM'}" th:href="@{/gm/dashboard}" th:classappend="${activePage == 'approval'} ? ' active'" class="sidebar-link"><i class="bi bi-patch-check-fill"></i><span>Pending Approval</span></a>
