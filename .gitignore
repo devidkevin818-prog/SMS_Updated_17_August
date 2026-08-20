@@ -39,5 +39,7 @@ uploads/
 .env
 application.properties
 password.txt
+login.html
+
 
 
