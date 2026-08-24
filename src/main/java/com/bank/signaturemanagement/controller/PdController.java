@@ -16,6 +16,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
@@ -283,34 +284,67 @@ public class PdController {
                 com.bank.signaturemanagement.service.EmployeeNumberFormat.editablePart(request.getEmployeeCode())
         );
 
-        Employee employee = employeeService.getEmployee(id);
+        if (!request.getRequestedBy().getUsername()
+                .equals(authentication.getName())) {
 
-        if (!request.getRequestedBy().getUsername().equals(authentication.getName())) {
-            throw new IllegalArgumentException("You are not authorized to update this request");
+            throw new IllegalArgumentException(
+                    "You are not authorized to update this request"
+            );
         }
 
+        // The request ID and employee ID are different.
+        Employee employee = request.getTargetEmployee();
 
+        if (employee == null) {
+            throw new IllegalStateException(
+                    "This request is not linked to an existing employee"
+            );
+        }
+
+        request.setRemark("");
 
         model.addAttribute("request", request);
-        model.addAttribute("employee",employee);
+        model.addAttribute("employee", employee);
 
         return "pd/update-request";
     }
+
     @PostMapping("/requests/{id}/update")
     public String updateRejectedRequest(
             @PathVariable Long id,
             @Valid @ModelAttribute("request") EmployeeRequest updatedRequest,
             BindingResult result,
+            @RequestParam(value = "foreignSignature", required = false)
+            MultipartFile foreignSignature,
             Authentication authentication,
             Model model,
             RedirectAttributes redirectAttributes) {
 
-        EmployeeRequest request = requestService.getRequest(id);
-
-        // Keep the original request available when validation fails
-        model.addAttribute("request", request);
+        EmployeeRequest existingRequest =
+                requestService.getRequest(id);
 
         if (result.hasErrors()) {
+            model.addAttribute("request", updatedRequest);
+
+            // Preserve existing file paths
+            if (updatedRequest.getPhotoPath() == null) {
+                updatedRequest.setPhotoPath(
+                        existingRequest.getPhotoPath()
+                );
+            }
+
+            if (updatedRequest.getSignaturePath() == null) {
+                updatedRequest.setSignaturePath(
+                        existingRequest.getSignaturePath()
+                );
+            }
+
+            if (updatedRequest.getForeignSignaturePath() == null) {
+                updatedRequest.setForeignSignaturePath(
+                        existingRequest.getForeignSignaturePath()
+                );
+            }
+
             return "pd/update-request";
         }
 
@@ -327,6 +361,7 @@ public class PdController {
                     "Rejected request updated and resubmitted to DGM"
             );
 
+            existingRequest.setUpdatedAfterRejection(true);
             return "redirect:/pd/requests";
 
         } catch (IllegalArgumentException | IllegalStateException exception) {
@@ -336,7 +371,22 @@ public class PdController {
                     exception.getMessage()
             );
 
+            model.addAttribute("request", updatedRequest);
+
             return "pd/update-request";
         }
     }
+
+    @GetMapping("/request/{id}/edit")
+    public String editEmployeeRequest(
+            @PathVariable("id") Long id,
+            Model model) {
+
+        EmployeeRequest request = requestService.getRequest(id);
+
+        model.addAttribute("request", request);
+
+        return "pd/update-request";
+    }
+
 }
