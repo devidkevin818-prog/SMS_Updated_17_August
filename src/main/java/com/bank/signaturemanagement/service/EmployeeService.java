@@ -39,7 +39,7 @@ public class EmployeeService {
 
         EmployeeUpdateForm form = new EmployeeUpdateForm();
 
-        form.setEmployeeCode(employee.getEmployeeNumber());
+        form.setEmployeeCode(EmployeeNumberFormat.editablePart(employee.getEmployeeNumber()));
         form.setEmployeeName(employee.getFullName());
         form.setDesignation(employee.getDesignation());
         form.setDepartment(employee.getDepartment());

@@ -2,6 +2,7 @@ package com.bank.signaturemanagement.controller;
 
 import com.bank.signaturemanagement.dto.UserForm;
 import com.bank.signaturemanagement.dto.UserUpdateForm;
+import com.bank.signaturemanagement.dto.AdminPasswordResetForm;
 import com.bank.signaturemanagement.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
@@ -9,6 +10,9 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import jakarta.servlet.http.HttpServletResponse;
+
+import java.util.stream.IntStream;
 
 @Controller
 @RequestMapping("/admin")
@@ -25,39 +29,46 @@ public class AdminController {
     }
 
     @GetMapping("/users")
-    public String users(@RequestParam(defaultValue = "0") int page, Model model) {
-        model.addAttribute("users", userService.getUsers(page));
+    public String users(@RequestParam(defaultValue = "") String query,
+                        @RequestParam(defaultValue = "") String role,
+                        @RequestParam(defaultValue = "") String branch,
+                        @RequestParam(defaultValue = "") String status,
+                        @RequestParam(defaultValue = "0") int page, Model model) {
+        Boolean active = "active".equalsIgnoreCase(status) ? Boolean.TRUE
+                : "inactive".equalsIgnoreCase(status) ? Boolean.FALSE : null;
+        var users = userService.searchUsers(query, role, branch, active, page);
+        model.addAttribute("users", users);
+        model.addAttribute("roles", userService.getRoles());
+        model.addAttribute("branches", userService.getBranches());
+        model.addAttribute("branchNames", userService.getBranchNamesById());
+        model.addAttribute("duplicateEmployeeNumbers", userService.getDuplicateEmployeeNumbers());
+        model.addAttribute("totalEmployees", userService.getTotalUserCount());
+        model.addAttribute("activeEmployees", userService.getActiveUserCount());
+        model.addAttribute("inactiveEmployees", userService.getInactiveUserCount());
+        model.addAttribute("query", query);
+        model.addAttribute("selectedRole", role);
+        model.addAttribute("selectedBranch", branch);
+        model.addAttribute("selectedStatus", status);
+        int firstPage = Math.max(0, users.getNumber() - 2);
+        int lastPage = Math.min(users.getTotalPages() - 1, firstPage + 4);
+        firstPage = Math.max(0, lastPage - 4);
+        model.addAttribute("pageNumbers", users.getTotalPages() == 0
+                ? java.util.List.of()
+                : IntStream.rangeClosed(firstPage, lastPage).boxed().toList());
+        return "admin/users";
+    }
+
+    @GetMapping("/users/new")
+    public String createForm(Model model) {
+        if (!model.containsAttribute("userForm")) model.addAttribute("userForm", new UserForm());
         model.addAttribute("branches", userService.getBranches());
         model.addAttribute("roles", userService.getRoles());
-        if (!model.containsAttribute("userForm")) model.addAttribute("userForm", new UserForm());
-        return "admin/users";
+        return "admin/create-user";
     }
 
     @PostMapping("/users")
     public String create(@Valid @ModelAttribute UserForm userForm, BindingResult result,
                          Model model, RedirectAttributes redirectAttributes) {
-
-
-        // For checking error
-//        if (result.hasErrors()) {
-//
-//            result.getFieldErrors().forEach(error -> {
-//                System.out.println(
-//                        "FIELD = " + error.getField()
-//                                + " | VALUE = " + error.getRejectedValue()
-//                                + " | MESSAGE = " + error.getDefaultMessage()
-//                );
-//            });
-//
-//            System.out.println("===== USER FORM =====");
-//            System.out.println("username = " + userForm.getUsername());
-//            System.out.println("fullName = " + userForm.getFullName());
-//            System.out.println("email = " + userForm.getEmail());
-//            System.out.println("branch = " + userForm.getBranchId());
-//            System.out.println("roleName = " + userForm.getRoleName());
-//        }
-
-
         if (!result.hasErrors()) {
             try {
                 userService.createUser(userForm);
@@ -67,10 +78,9 @@ public class AdminController {
                 result.reject("user", exception.getMessage());
             }
         }
-        model.addAttribute("users", userService.getUsers(0));
         model.addAttribute("branches", userService.getBranches());
         model.addAttribute("roles", userService.getRoles());
-        return "admin/users";
+        return "admin/create-user";
     }
 
     @PostMapping("/users/{id}/toggle")
@@ -107,5 +117,64 @@ public class AdminController {
         model.addAttribute("roles", userService.getRoles());
         model.addAttribute("branches", userService.getBranches());
         return "admin/edit-user";
+    }
+
+    @GetMapping("/users/{id}/reset-password")
+    public String resetPasswordForm(@PathVariable Long id, Model model,
+                                    HttpServletResponse response) {
+        preventSensitivePageCaching(response);
+        try {
+            var user = userService.getUser(id);
+            AdminPasswordResetForm form = new AdminPasswordResetForm();
+            form.setGeneratedPassword(userService.generateTemporaryPassword());
+            model.addAttribute("user", user);
+            model.addAttribute("branchName", userService.getBranchName(user.getBranchId()));
+            model.addAttribute("adminPasswordResetForm", form);
+            return "admin/reset-password";
+        } catch (IllegalArgumentException exception) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            model.addAttribute("errorTitle", "Employee not found");
+            model.addAttribute("errorMessage",
+                    "The employee account may have been removed or is no longer available.");
+            return "admin/reset-password-error";
+        }
+    }
+
+    @PostMapping("/users/{id}/reset-password")
+    public String resetPassword(@PathVariable Long id,
+                                @Valid @ModelAttribute AdminPasswordResetForm adminPasswordResetForm,
+                                BindingResult result, Model model,
+                                HttpServletResponse response) {
+        preventSensitivePageCaching(response);
+        if (!result.hasErrors()) {
+            try {
+                var user = userService.getUser(id);
+                String password = userService.resetPasswordSecure(id, adminPasswordResetForm);
+                model.addAttribute("user", user);
+                model.addAttribute("temporaryPassword",
+                        "generate".equals(adminPasswordResetForm.getResetMethod()) ? password : null);
+                model.addAttribute("passwordChangeRequired", adminPasswordResetForm.isRequirePasswordChange());
+                return "admin/reset-password-success";
+            } catch (IllegalArgumentException exception) {
+                result.reject("passwordReset", exception.getMessage());
+            }
+        }
+        try {
+            var user = userService.getUser(id);
+            model.addAttribute("user", user);
+            model.addAttribute("branchName", userService.getBranchName(user.getBranchId()));
+            return "admin/reset-password";
+        } catch (IllegalArgumentException exception) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            model.addAttribute("errorTitle", "Employee not found");
+            model.addAttribute("errorMessage",
+                    "The employee account may have been removed or is no longer available.");
+            return "admin/reset-password-error";
+        }
+    }
+
+    private void preventSensitivePageCaching(HttpServletResponse response) {
+        response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+        response.setHeader("Pragma", "no-cache");
     }
 }

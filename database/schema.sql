@@ -232,12 +232,14 @@ CREATE TABLE dbo.users
     username             VARCHAR(50)  NOT NULL,
     password_hash        VARCHAR(255) NOT NULL,
     full_name            VARCHAR(100) NOT NULL,
+    employee_number      VARCHAR(30)  NULL,
     email                VARCHAR(100) NOT NULL,
     role_id              BIGINT       NOT NULL,
     active               BIT NOT NULL
         CONSTRAINT df_users_active DEFAULT (1),
     must_change_password BIT NOT NULL
         CONSTRAINT df_users_must_change_password DEFAULT (1),
+    last_login_at        DATETIME2 NULL,
     branch_id            NVARCHAR(100) NULL,
     created_at           DATETIME2 NOT NULL
         CONSTRAINT df_users_created_at DEFAULT (SYSDATETIME()),
@@ -249,6 +251,46 @@ CREATE TABLE dbo.users
         REFERENCES dbo.roles (id)
 );
 END;
+GO
+
+/* Last successful authentication; null means the account has never logged in. */
+IF COL_LENGTH(N'dbo.users', N'last_login_at') IS NULL
+BEGIN
+ALTER TABLE dbo.users ADD last_login_at DATETIME2 NULL;
+END;
+GO
+
+/* Upgrade older users table: employee ID is optional for existing accounts. */
+IF COL_LENGTH(N'dbo.users', N'employee_number') IS NULL
+BEGIN
+ALTER TABLE dbo.users ADD employee_number VARCHAR(30) NULL;
+END;
+GO
+
+IF EXISTS (
+    SELECT employee_number FROM dbo.users
+    WHERE employee_number IS NOT NULL
+    GROUP BY employee_number HAVING COUNT(*) > 1
+)
+THROW 51000, 'Duplicate users.employee_number values must be corrected before applying the unique index.', 1;
+GO
+
+IF EXISTS (
+    SELECT 1 FROM sys.indexes
+    WHERE name = N'ix_users_employee_number'
+      AND object_id = OBJECT_ID(N'dbo.users')
+      AND is_unique = 0
+)
+DROP INDEX ix_users_employee_number ON dbo.users;
+GO
+
+IF NOT EXISTS (
+    SELECT 1 FROM sys.indexes
+    WHERE name = N'ux_users_employee_number'
+      AND object_id = OBJECT_ID(N'dbo.users')
+)
+CREATE UNIQUE INDEX ux_users_employee_number ON dbo.users (employee_number)
+WHERE employee_number IS NOT NULL;
 GO
 
 /* Upgrade older users table: add first-login password flag when missing. */
