@@ -9,11 +9,14 @@
 <aside th:replace="~{fragments/sidebar :: sidebar('ADMIN','users')}"></aside>
 <main class="app-main">
     <div class="content-wrap">
+        <div th:replace="~{fragments/layout :: messages}"></div>
         <div class="page-header">
             <div><span class="page-eyebrow">Access Control</span>
                 <h1 class="page-title" th:text="'Edit user: ' + ${user.username}">Edit user</h1>
-                <p class="page-subtitle">Update account details, role, status, or password.</p></div>
-            <a class="btn btn-soft" th:href="@{/admin/users}"><i class="bi bi-x-lg me-2"></i>Cancel</a></div>
+                <p class="page-subtitle">Update account details, role, status, or branch assignment.</p></div>
+            <div class="d-flex gap-2"><a class="btn btn-outline-warning" th:href="@{/admin/users/{id}/reset-password(id=${user.id})}">
+                <i class="bi bi-key-fill me-2"></i>Reset password</a>
+                <a class="btn btn-soft" th:href="@{/admin/users}"><i class="bi bi-arrow-left me-2"></i>Employees</a></div></div>
         <div class="surface-card mx-auto form-card-narrow">
             <div class="card-header"><h2 class="h5 mb-1"><i class="bi bi-person-gear text-success me-2"></i>Account
                 information</h2>
@@ -28,6 +31,11 @@
                         <input class="form-control"
                                th:value="${user.username}"
                                disabled></div>
+                    <div class="mb-3"><label class="form-label" for="employeeNumber">Employee ID</label>
+                        <div class="input-group"><span class="input-group-text">UB_PLC</span><input
+                                class="form-control" id="employeeNumber" th:field="*{employeeNumber}"
+                                inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6"
+                                placeholder="000001" title="Enter exactly 6 digits"></div></div>
                     <div class="mb-3"><label class="form-label" for="fullName">Full name</label><input
                             class="form-control" id="fullName" th:field="*{fullName}" required></div>
 
@@ -57,26 +65,6 @@
                                                                                                    required>
                         <option th:each="role:${roles}" th:value="${role.name}" th:text="${role.name}"></option>
                     </select></div>
-                    <div class="mb-3">
-                        <label class="form-label" for="password">New password</label>
-                        <div class="position-relative">
-                            <input class="form-control pe-5"
-                                   id="password"
-                                   type="password"
-                                   th:field="*{password}"
-                                   placeholder="Leave empty to keep current password">
-
-                            <button type="button"
-                                    class="position-absolute top-50 end-0 translate-middle-y
-                       border-0 bg-transparent px-3"
-                                    onclick="togglePassword('password', 'passwordIcon')">
-                                <i class="bi bi-eye" id="passwordIcon"></i>
-                            </button>
-                        </div>
-                        <small class="form-hint">If entered, use at least 8 characters.</small>
-                    </div>
-
-
                     <div class="form-check form-switch mb-4"><input class="form-check-input" id="active" type="checkbox"
                                                                     th:field="*{active}"><label class="form-check-label"
                                                                                                 for="active">Account is
@@ -90,6 +78,5 @@
 </main>
 <footer th:replace="~{fragments/layout :: footer}"></footer>
 <div th:replace="~{fragments/layout :: scripts}"></div>
-<script th:src="@{/js/password-toggle.js}"></script>
 </body>
 </html>

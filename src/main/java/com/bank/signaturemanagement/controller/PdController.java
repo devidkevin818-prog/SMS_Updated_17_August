@@ -215,19 +215,6 @@ public class PdController {
             Authentication authentication,
             RedirectAttributes redirectAttributes) {
 
-        if (result.hasErrors()) {
-
-            System.out.println("========== VALIDATION ERRORS ==========");
-
-            result.getFieldErrors().forEach(error ->
-                    System.out.println(
-                            "FIELD: " + error.getField()
-                                    + " | VALUE: [" + error.getRejectedValue() + "]"
-                                    + " | MESSAGE: " + error.getDefaultMessage()
-                    )
-            );
-        }
-
         if (!result.hasErrors()) {
             try {
 
@@ -258,11 +245,6 @@ public class PdController {
                 return "redirect:/pd/requests";
 
             } catch (IllegalArgumentException | IllegalStateException exception) {
-
-                System.out.println("========== UPDATE ERROR ==========");
-                System.out.println("ERROR: " + exception.getMessage());
-
-                exception.printStackTrace();
 
                 result.reject(
                         "employee",
@@ -297,6 +279,10 @@ public class PdController {
             Model model) {
 
         EmployeeRequest request = requestService.getRequest(id);
+        request.setRemark("");
+        request.setEmployeeCode(
+                com.bank.signaturemanagement.service.EmployeeNumberFormat.editablePart(request.getEmployeeCode())
+        );
 
         if (!request.getRequestedBy().getUsername()
                 .equals(authentication.getName())) {

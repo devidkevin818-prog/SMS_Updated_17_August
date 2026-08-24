@@ -1,142 +1,121 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/head :: head('User Management')}">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-</head>
+<head th:replace="~{fragments/head :: head('Employees')}"></head>
 <body>
 <header th:replace="~{fragments/navbar :: navbar('ADMIN')}"></header>
 <aside th:replace="~{fragments/sidebar :: sidebar('ADMIN','users')}"></aside>
 <main class="app-main">
-    <div class="content-wrap">
+    <div class="content-wrap employee-management-page">
         <div class="page-header">
-            <div><span class="page-eyebrow">Access Control</span>
-                <h1 class="page-title">User management</h1>
-                <p class="page-subtitle">Create authorized accounts and control active access.</p></div>
-            <span class="status-badge status-active"><i class="bi bi-people-fill me-1"></i><span
-                    th:text="${users.totalElements} + ' users'">0 users</span></span></div>
-        <div th:replace="~{fragments/layout :: messages}"></div>
-        <div class="row g-4">
-            <section class="col-xl-4">
-                <div class="surface-card">
-                    <div class="card-header"><h2 class="h5 mb-1"><i
-                            class="bi bi-person-plus-fill text-success me-2"></i>Create user</h2>
-                        <p class="page-subtitle mb-0">Assign one role per account</p></div>
-                    <div class="card-body">
-                        <form th:action="@{/admin/users}" th:object="${userForm}" method="post">
-                            <div class="alert alert-danger app-alert" th:if="${#fields.hasAnyErrors()}"><i
-                                    class="bi bi-exclamation-triangle-fill"></i>
-                                <div>
-                                    <div th:each="error:${#fields.allErrors()}" th:text="${error}"></div>
-                                </div>
-                            </div>
-                            <div class="mb-3"><label class="form-label" for="username">Username</label><input
-                                    class="form-control" id="username" th:field="*{username}" placeholder="e.g. pd01"
-                                    required></div>
-                            <div class="mb-3"><label class="form-label" for="fullName">Full name</label><input
-                                    class="form-control" id="fullName" th:field="*{fullName}"
-                                    placeholder="Employee full name" required></div>
-                            <div class="mb-3"><label class="form-label" for="email">Email address</label><input
-                                    class="form-control" id="email" type="email" th:field="*{email}"
-                                    placeholder="name@uttarabank-bd.com" required></div>
-                            <div class="mb-3">
-                                <label class="form-label" for="branchId">Branch name</label>
-
-                                <select  th:field="*{branchId}" id="branchId" class="form-select">
-                                    <option value="">Select Branch</option>
-
-                                    <option th:each="branch : ${branches}"
-                                            th:value="${branch.branchId}"
-                                            th:text="${branch.branchName}">
-                                    </option>
-                                </select>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label" for="newPassword">
-                                    Temporary password
-                                </label>
-
-                                <div class="position-relative">
-                                    <input class="form-control pe-5"
-                                           id="newPassword"
-                                           type="password"
-                                           th:field="*{password}"
-                                           placeholder="Minimum 8 characters"
-                                           required>
-
-                                    <button type="button"
-                                            class="position-absolute top-50 end-0 translate-middle-y
-                       border-0 bg-transparent px-3"
-                                            onclick="togglePassword('newPassword', 'passwordIcon')">
-                                        <i class="bi bi-eye" id="passwordIcon"></i>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div class="mb-4"><label class="form-label" for="roleName">System role</label><select
-                                    class="form-select" id="roleName" th:field="*{roleName}" required>
-                                <option value="">Select a role</option>
-                                <option th:each="role:${roles}" th:value="${role.name}" th:text="${role.name}"></option>
-                            </select></div>
-                            <button class="btn btn-bank w-100" type="submit"><i
-                                    class="bi bi-person-check-fill me-2"></i>Create user
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </section>
-            <section class="col-xl-8">
-                <div class="surface-card table-card">
-                    <div class="card-header"><h2 class="h5 mb-1">Authorized accounts</h2>
-                        <p class="page-subtitle mb-0">Edit details or control system access</p></div>
-                    <div class="table-responsive">
-                        <table class="table app-table table-hover">
-                            <thead>
-                            <tr>
-                                <th>Username</th>
-                                <th>Name</th>
-                                <th>Role</th>
-                                <th>Status</th>
-                                <th class="text-end">Action</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr th:each="user:${users.content}">
-                                <td><strong th:text="${user.username}"></strong></td>
-                                <td><span th:text="${user.fullName}"></span><small class="d-block text-secondary"
-                                                                                   th:text="${user.email}"></small></td>
-                                <td><span class="status-badge status-pending" th:text="${user.role.name}"></span></td>
-                                <td><span class="status-badge"
-                                          th:classappend="${user.active ? ' status-active':' status-inactive'}"
-                                          th:text="${user.active ? 'Active':'Inactive'}"></span></td>
-                                <td class="text-end">
-                                    <div class="d-flex justify-content-end gap-2"><a
-                                            class="btn btn-sm btn-outline-warning"
-                                            th:href="@{/admin/users/{id}/edit(id=${user.id})}"><i
-                                            class="bi bi-pencil-fill me-1"></i>Edit</a>
-                                        <form th:action="@{/admin/users/{id}/toggle(id=${user.id})}" method="post">
-                                            <button class="btn btn-sm"
-                                                    th:classappend="${user.active ? ' btn-outline-danger':' btn-bank'}"
-                                                    type="submit"><i class="bi me-1"
-                                                                     th:classappend="${user.active ? 'bi-person-x-fill':'bi-person-check-fill'}"></i><span
-                                                    th:text="${user.active ? 'Deactivate':'Activate'}"></span></button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr th:if="${users.empty}">
-                                <td class="empty-state" colspan="5"><i class="bi bi-people"></i>No users available.</td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
+            <div><span class="page-eyebrow">Access Control</span><h1 class="page-title">Employees</h1>
+                <p class="page-subtitle">Manage employee accounts, roles and branch assignments</p></div>
+            <a class="btn btn-bank" th:href="@{/admin/users/new}"><i class="bi bi-person-plus-fill me-2"></i>Add employee</a>
         </div>
+        <div th:replace="~{fragments/layout :: messages}"></div>
+
+        <section class="row g-3 mb-4" aria-label="Employee account summary">
+            <div class="col-6 col-xl-3"><article class="surface-card summary-card h-100">
+                <div class="summary-icon summary-total"><i class="bi bi-people-fill"></i></div>
+                <div><span>Total Employees</span><strong th:text="${totalEmployees}">0</strong></div>
+            </article></div>
+            <div class="col-6 col-xl-3"><article class="surface-card summary-card h-100">
+                <div class="summary-icon summary-active"><i class="bi bi-person-check-fill"></i></div>
+                <div><span>Active</span><strong th:text="${activeEmployees}">0</strong></div>
+            </article></div>
+            <div class="col-6 col-xl-3"><article class="surface-card summary-card h-100">
+                <div class="summary-icon summary-inactive"><i class="bi bi-person-dash-fill"></i></div>
+                <div><span>Inactive</span><strong th:text="${inactiveEmployees}">0</strong></div>
+            </article></div>
+            <div class="col-6 col-xl-3"><article class="surface-card summary-card h-100">
+                <div class="summary-icon summary-locked"><i class="bi bi-lock-fill"></i></div>
+                <div><span>Locked</span><strong class="summary-unavailable">Not tracked</strong></div>
+            </article></div>
+        </section>
+
+        <section class="surface-card mb-4 filter-card">
+            <div class="card-body"><form class="row g-3 align-items-end" method="get" th:action="@{/admin/users}">
+                <div class="col-12 col-xl-4"><label class="form-label" for="query">Search</label>
+                    <div class="input-group"><span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input class="form-control" id="query" name="query" th:value="${query}"
+                               placeholder="Search employee ID, user ID, name or email..."></div></div>
+                <div class="col-6 col-md-3 col-xl-2"><label class="form-label" for="role">Role</label>
+                    <select class="form-select" id="role" name="role"><option value="">All roles</option>
+                        <option th:each="item:${roles}" th:value="${item.name}" th:text="${item.name}"
+                                th:selected="${item.name == selectedRole}"></option></select></div>
+                <div class="col-6 col-md-3 col-xl-2"><label class="form-label" for="branch">Branch</label>
+                    <select class="form-select" id="branch" name="branch"><option value="">All branches</option>
+                        <option th:each="item:${branches}" th:value="${item.branchId}" th:text="${item.branchName}"
+                                th:selected="${item.branchId.toString() == selectedBranch}"></option></select></div>
+                <div class="col-6 col-md-3 col-xl-2"><label class="form-label" for="status">Status</label>
+                    <select class="form-select" id="status" name="status"><option value="">All statuses</option>
+                        <option value="active" th:selected="${selectedStatus == 'active'}">Active</option>
+                        <option value="inactive" th:selected="${selectedStatus == 'inactive'}">Inactive</option></select></div>
+                <div class="col-6 col-md-3 col-xl-2 d-flex gap-2">
+                    <button class="btn btn-bank flex-grow-1" type="submit">Apply</button>
+                    <a class="btn btn-soft" th:href="@{/admin/users}">Reset</a></div>
+            </form></div>
+        </section>
+
+        <section class="surface-card table-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div><h2 class="h5 mb-1">Employee accounts</h2><p class="page-subtitle mb-0">Authorized application users</p></div>
+                <span class="status-badge status-active" th:text="${users.totalElements} + ' result(s)'">0 results</span>
+            </div>
+            <div class="table-responsive employee-table-wrap">
+                <table class="table app-table table-hover align-middle employee-table">
+                    <thead><tr><th>Employee ID</th><th>User ID</th><th>User Name</th><th>Role</th><th>Branch</th><th>Status</th><th>Last Login</th><th class="text-end">Actions</th></tr></thead>
+                    <tbody>
+                    <tr th:each="user:${users.content}">
+                        <td class="employee-id-cell"><strong th:text="${user.employeeNumber != null ? user.employeeNumber : 'Not assigned'}"></strong>
+                            <span class="duplicate-warning" th:if="${user.employeeNumber != null and duplicateEmployeeNumbers.contains(user.employeeNumber.toUpperCase())}">
+                                <i class="bi bi-exclamation-triangle-fill"></i> Duplicate</span></td>
+                        <td><code class="user-id" th:text="${user.username}">user</code></td>
+                        <td><strong class="user-name" th:text="${user.fullName}">Name</strong>
+                            <small class="d-block text-secondary" th:text="${user.email}">email</small></td>
+                        <td><span class="status-badge status-pending" th:text="${user.role.name}">ROLE</span></td>
+                        <td th:text="${branchNames[user.branchId] != null ? branchNames[user.branchId] : 'Not assigned'}">Branch</td>
+                        <td><span class="status-badge" th:classappend="${user.active ? ' status-active':' status-inactive'}">
+                            <i class="bi me-1" th:classappend="${user.active ? 'bi-circle-fill':'bi-circle'}"></i><span th:text="${user.active ? 'Active':'Inactive'}"></span></span></td>
+                        <td class="last-login">
+                            <span class="last-login-time" th:if="${user.lastLoginAt != null}"
+                                  th:text="${#temporals.format(user.lastLoginAt, 'hh:mm a')}"></span>
+                            <small class="last-login-date text-secondary" th:if="${user.lastLoginAt != null}"
+                                   th:text="${#temporals.format(user.lastLoginAt, 'dd MMM yyyy')}"></small>
+                            <span class="text-secondary" th:unless="${user.lastLoginAt != null}">Never</span>
+                        </td>
+                        <td class="text-end action-cell"><div class="dropdown">
+                            <button class="btn btn-sm btn-soft action-menu-button" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Employee actions">
+                                <i class="bi bi-three-dots-vertical"></i></button>
+                            <ul class="dropdown-menu dropdown-menu-end app-dropdown">
+                                <li><a class="dropdown-item" th:href="@{/admin/users/{id}/edit(id=${user.id})}"><i class="bi bi-pencil-square me-2"></i>Edit employee</a></li>
+                                <li><a class="dropdown-item" th:href="@{/admin/users/{id}/reset-password(id=${user.id})}"><i class="bi bi-key-fill me-2"></i>Reset password</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><form th:action="@{/admin/users/{id}/toggle(id=${user.id})}" method="post">
+                                    <button class="dropdown-item" th:classappend="${user.active ? ' text-danger':''}" type="submit">
+                                        <i class="bi me-2" th:classappend="${user.active ? 'bi-person-x-fill':'bi-person-check-fill'}"></i><span th:text="${user.active ? 'Deactivate':'Activate'}"></span></button>
+                                </form></li>
+                            </ul>
+                        </div></td>
+                    </tr>
+                    <tr th:if="${users.empty}"><td class="empty-state" colspan="8"><i class="bi bi-people"></i>
+                        <span th:text="${totalEmployees == 0 ? 'No employees found' : 'No employees match your search or filters.'}"></span>
+                        <a class="btn btn-soft btn-sm mt-3" th:if="${totalEmployees > 0}" th:href="@{/admin/users}">Reset Filters</a></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="card-body border-top employee-pagination" th:if="${!users.empty}">
+                <span class="text-secondary" th:text="${'Showing ' + (users.number * users.size + 1) + '–' + (users.number * users.size + users.numberOfElements) + ' of ' + users.totalElements}"></span>
+                <nav th:if="${users.totalPages > 1}" aria-label="Employee pages"><ul class="pagination mb-0">
+                    <li class="page-item" th:classappend="${users.first ? ' disabled':''}"><a class="page-link" aria-label="Previous"
+                        th:href="@{/admin/users(page=${users.number - 1},query=${query},role=${selectedRole},branch=${selectedBranch},status=${selectedStatus})}">&larr;</a></li>
+                    <li class="page-item" th:each="number:${pageNumbers}" th:classappend="${number == users.number ? ' active':''}"><a class="page-link"
+                        th:href="@{/admin/users(page=${number},query=${query},role=${selectedRole},branch=${selectedBranch},status=${selectedStatus})}" th:text="${number + 1}"></a></li>
+                    <li class="page-item" th:classappend="${users.last ? ' disabled':''}"><a class="page-link" aria-label="Next"
+                        th:href="@{/admin/users(page=${users.number + 1},query=${query},role=${selectedRole},branch=${selectedBranch},status=${selectedStatus})}">&rarr;</a></li>
+                </ul></nav>
+            </div>
+        </section>
     </div>
 </main>
-<footer th:replace="~{fragments/layout :: footer}"></footer>
-<div th:replace="~{fragments/layout :: scripts}"></div>
-<script th:src="@{/js/password-toggle.js}"></script>
-</body>
-</html>
+<footer th:replace="~{fragments/layout :: footer}"></footer><div th:replace="~{fragments/layout :: scripts}"></div>
+</body></html>
