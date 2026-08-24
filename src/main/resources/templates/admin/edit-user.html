@@ -13,8 +13,10 @@
         <div class="page-header">
             <div><span class="page-eyebrow">Access Control</span>
                 <h1 class="page-title" th:text="'Edit user: ' + ${user.username}">Edit user</h1>
-                <p class="page-subtitle">Update account details, role, status, or password.</p></div>
-            <a class="btn btn-soft" th:href="@{/admin/users}"><i class="bi bi-x-lg me-2"></i>Cancel</a></div>
+                <p class="page-subtitle">Update account details, role, status, or branch assignment.</p></div>
+            <div class="d-flex gap-2"><a class="btn btn-outline-warning" th:href="@{/admin/users/{id}/reset-password(id=${user.id})}">
+                <i class="bi bi-key-fill me-2"></i>Reset password</a>
+                <a class="btn btn-soft" th:href="@{/admin/users}"><i class="bi bi-arrow-left me-2"></i>Employees</a></div></div>
         <div class="surface-card mx-auto form-card-narrow">
             <div class="card-header"><h2 class="h5 mb-1"><i class="bi bi-person-gear text-success me-2"></i>Account
                 information</h2>
@@ -29,6 +31,11 @@
                         <input class="form-control"
                                th:value="${user.username}"
                                disabled></div>
+                    <div class="mb-3"><label class="form-label" for="employeeNumber">Employee ID</label>
+                        <div class="input-group"><span class="input-group-text">UB_PLC</span><input
+                                class="form-control" id="employeeNumber" th:field="*{employeeNumber}"
+                                inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6"
+                                placeholder="000001" title="Enter exactly 6 digits"></div></div>
                     <div class="mb-3"><label class="form-label" for="fullName">Full name</label><input
                             class="form-control" id="fullName" th:field="*{fullName}" required></div>
 
@@ -67,38 +74,9 @@
                 </form>
             </div>
         </div>
-        <div class="surface-card mx-auto form-card-narrow mt-4">
-            <div class="card-header">
-                <h2 class="h5 mb-1"><i class="bi bi-key-fill text-warning me-2"></i>Reset password</h2>
-                <p class="page-subtitle mb-0">Set a temporary password. The user will be required to replace it.</p>
-            </div>
-            <div class="card-body">
-                <form th:action="@{/admin/users/{id}/reset-password(id=${user.id})}"
-                      th:object="${adminPasswordResetForm}" method="post">
-                    <div class="alert alert-danger app-alert" th:if="${#fields.hasAnyErrors()}">
-                        <i class="bi bi-exclamation-triangle-fill"></i>
-                        <div th:each="error:${#fields.allErrors()}" th:text="${error}"></div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label" for="resetPassword">Temporary password</label>
-                        <input class="form-control" id="resetPassword" type="password"
-                               th:field="*{newPassword}" minlength="8" autocomplete="new-password" required>
-                    </div>
-                    <div class="mb-4">
-                        <label class="form-label" for="resetPasswordConfirmation">Confirm temporary password</label>
-                        <input class="form-control" id="resetPasswordConfirmation" type="password"
-                               th:field="*{confirmPassword}" minlength="8" autocomplete="new-password" required>
-                    </div>
-                    <button class="btn btn-outline-warning" type="submit">
-                        <i class="bi bi-key-fill me-2"></i>Reset password
-                    </button>
-                </form>
-            </div>
-        </div>
     </div>
 </main>
 <footer th:replace="~{fragments/layout :: footer}"></footer>
 <div th:replace="~{fragments/layout :: scripts}"></div>
-<script th:src="@{/js/password-toggle.js}"></script>
 </body>
 </html>

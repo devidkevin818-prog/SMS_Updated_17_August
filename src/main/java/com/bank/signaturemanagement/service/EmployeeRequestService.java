@@ -43,7 +43,7 @@ public class EmployeeRequestService {
                     "Signature valid-until date must be on or after the valid-from date."
             );
         }
-        String code = form.getEmployeeCode().trim();
+        String code = EmployeeNumberFormat.normalize(form.getEmployeeCode());
         if (employeeRepository.existsByEmployeeNumber(code)) throw new IllegalArgumentException("Employee code already exists");
         if (requestRepository.existsByEmployeeCodeAndStatusIn(code,
                 List.of(RequestStatus.PENDING_DGM, RequestStatus.PENDING_GM))) {
@@ -101,7 +101,7 @@ public class EmployeeRequestService {
         if (requestRepository.existsByTargetEmployeeIdAndStatusIn(employeeId, pendingStatuses)) {
             throw new IllegalArgumentException("A pending update request already exists for this employee");
         }
-        String code = form.getEmployeeCode().trim();
+        String code = EmployeeNumberFormat.normalize(form.getEmployeeCode());
         if (employeeRepository.existsByEmployeeNumberAndIdNot(code, employeeId)) {
             throw new IllegalArgumentException("Employee code already exists");
         }
@@ -374,7 +374,7 @@ public class EmployeeRequestService {
             );
         }
 
-        String code = updatedRequest.getEmployeeCode().trim();
+        String code = EmployeeNumberFormat.normalize(updatedRequest.getEmployeeCode());
 
         /*
          * If this request belongs to an existing employee,

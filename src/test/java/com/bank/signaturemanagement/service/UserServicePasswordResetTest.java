@@ -54,6 +54,20 @@ class UserServicePasswordResetTest {
         verify(passwordEncoder, never()).encode(anyString());
     }
 
+    @Test
+    void secureManualResetCanLeaveNextLoginChangeDisabled() {
+        AdminPasswordResetForm form = form("temporary-password", "temporary-password");
+        form.setResetMethod("manual");
+        form.setRequirePasswordChange(false);
+        when(passwordEncoder.matches("temporary-password", "old-hash")).thenReturn(false);
+        when(passwordEncoder.encode("temporary-password")).thenReturn("temporary-hash");
+
+        service.resetPasswordSecure(7L, form);
+
+        assertEquals("temporary-hash", user.getPasswordHash());
+        assertFalse(user.isMustChangePassword());
+    }
+
     private AdminPasswordResetForm form(String password, String confirmation) {
         AdminPasswordResetForm form = new AdminPasswordResetForm();
         form.setNewPassword(password);
