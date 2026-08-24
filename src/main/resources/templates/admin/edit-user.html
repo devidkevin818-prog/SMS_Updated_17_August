@@ -9,6 +9,7 @@
 <aside th:replace="~{fragments/sidebar :: sidebar('ADMIN','users')}"></aside>
 <main class="app-main">
     <div class="content-wrap">
+        <div th:replace="~{fragments/layout :: messages}"></div>
         <div class="page-header">
             <div><span class="page-eyebrow">Access Control</span>
                 <h1 class="page-title" th:text="'Edit user: ' + ${user.username}">Edit user</h1>
@@ -57,31 +58,39 @@
                                                                                                    required>
                         <option th:each="role:${roles}" th:value="${role.name}" th:text="${role.name}"></option>
                     </select></div>
-                    <div class="mb-3">
-                        <label class="form-label" for="password">New password</label>
-                        <div class="position-relative">
-                            <input class="form-control pe-5"
-                                   id="password"
-                                   type="password"
-                                   th:field="*{password}"
-                                   placeholder="Leave empty to keep current password">
-
-                            <button type="button"
-                                    class="position-absolute top-50 end-0 translate-middle-y
-                       border-0 bg-transparent px-3"
-                                    onclick="togglePassword('password', 'passwordIcon')">
-                                <i class="bi bi-eye" id="passwordIcon"></i>
-                            </button>
-                        </div>
-                        <small class="form-hint">If entered, use at least 8 characters.</small>
-                    </div>
-
-
                     <div class="form-check form-switch mb-4"><input class="form-check-input" id="active" type="checkbox"
                                                                     th:field="*{active}"><label class="form-check-label"
                                                                                                 for="active">Account is
                         active</label></div>
                     <button class="btn btn-bank" type="submit"><i class="bi bi-check-lg me-2"></i>Save user changes
+                    </button>
+                </form>
+            </div>
+        </div>
+        <div class="surface-card mx-auto form-card-narrow mt-4">
+            <div class="card-header">
+                <h2 class="h5 mb-1"><i class="bi bi-key-fill text-warning me-2"></i>Reset password</h2>
+                <p class="page-subtitle mb-0">Set a temporary password. The user will be required to replace it.</p>
+            </div>
+            <div class="card-body">
+                <form th:action="@{/admin/users/{id}/reset-password(id=${user.id})}"
+                      th:object="${adminPasswordResetForm}" method="post">
+                    <div class="alert alert-danger app-alert" th:if="${#fields.hasAnyErrors()}">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <div th:each="error:${#fields.allErrors()}" th:text="${error}"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="resetPassword">Temporary password</label>
+                        <input class="form-control" id="resetPassword" type="password"
+                               th:field="*{newPassword}" minlength="8" autocomplete="new-password" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label" for="resetPasswordConfirmation">Confirm temporary password</label>
+                        <input class="form-control" id="resetPasswordConfirmation" type="password"
+                               th:field="*{confirmPassword}" minlength="8" autocomplete="new-password" required>
+                    </div>
+                    <button class="btn btn-outline-warning" type="submit">
+                        <i class="bi bi-key-fill me-2"></i>Reset password
                     </button>
                 </form>
             </div>

@@ -2,6 +2,7 @@ package com.bank.signaturemanagement.service;
 
 import com.bank.signaturemanagement.dto.UserForm;
 import com.bank.signaturemanagement.dto.UserUpdateForm;
+import com.bank.signaturemanagement.dto.AdminPasswordResetForm;
 import com.bank.signaturemanagement.entity.Branch;
 import com.bank.signaturemanagement.entity.Role;
 import com.bank.signaturemanagement.entity.User;
@@ -108,5 +109,19 @@ public class UserService {
         if (form.getPassword() != null && !form.getPassword().isBlank()) {
             user.setPasswordHash(passwordEncoder.encode(form.getPassword()));
         }
+    }
+
+    @Transactional
+    public void resetPassword(Long id, AdminPasswordResetForm form) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        if (!form.getNewPassword().equals(form.getConfirmPassword())) {
+            throw new IllegalArgumentException("Temporary password and confirmation do not match");
+        }
+        if (passwordEncoder.matches(form.getNewPassword(), user.getPasswordHash())) {
+            throw new IllegalArgumentException("Temporary password must be different from the current password");
+        }
+        user.setPasswordHash(passwordEncoder.encode(form.getNewPassword()));
+        user.setMustChangePassword(true);
     }
 }

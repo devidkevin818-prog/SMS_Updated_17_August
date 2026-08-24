@@ -2,6 +2,7 @@ package com.bank.signaturemanagement.controller;
 
 import com.bank.signaturemanagement.dto.UserForm;
 import com.bank.signaturemanagement.dto.UserUpdateForm;
+import com.bank.signaturemanagement.dto.AdminPasswordResetForm;
 import com.bank.signaturemanagement.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
@@ -86,6 +87,9 @@ public class AdminController {
         model.addAttribute("userUpdateForm", userService.getUpdateForm(id));
         model.addAttribute("roles", userService.getRoles());
         model.addAttribute("branches", userService.getBranches());
+        if (!model.containsAttribute("adminPasswordResetForm")) {
+            model.addAttribute("adminPasswordResetForm", new AdminPasswordResetForm());
+        }
         return "admin/edit-user";
     }
 
@@ -104,6 +108,29 @@ public class AdminController {
             }
         }
         model.addAttribute("user", userService.getUser(id));
+        model.addAttribute("roles", userService.getRoles());
+        model.addAttribute("branches", userService.getBranches());
+        model.addAttribute("adminPasswordResetForm", new AdminPasswordResetForm());
+        return "admin/edit-user";
+    }
+
+    @PostMapping("/users/{id}/reset-password")
+    public String resetPassword(@PathVariable Long id,
+                                @Valid @ModelAttribute AdminPasswordResetForm adminPasswordResetForm,
+                                BindingResult result, Model model,
+                                RedirectAttributes redirectAttributes) {
+        if (!result.hasErrors()) {
+            try {
+                userService.resetPassword(id, adminPasswordResetForm);
+                redirectAttributes.addFlashAttribute("success",
+                        "Password reset successfully. The user must change it at the next login.");
+                return "redirect:/admin/users/{id}/edit";
+            } catch (IllegalArgumentException exception) {
+                result.reject("passwordReset", exception.getMessage());
+            }
+        }
+        model.addAttribute("user", userService.getUser(id));
+        model.addAttribute("userUpdateForm", userService.getUpdateForm(id));
         model.addAttribute("roles", userService.getRoles());
         model.addAttribute("branches", userService.getBranches());
         return "admin/edit-user";

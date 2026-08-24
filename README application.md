@@ -15,3 +15,5 @@ app.foreign-signature.root=E:/images/foreign-signatures
 
 
 app.initial-admin-password=Admin@123
+
+app.first-login.exempt-users=${FIRST_LOGIN_EXEMPT_USERS:admin,pd01,dgm,gm,branch,test}
