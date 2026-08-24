@@ -10,38 +10,51 @@
 <aside th:replace="~{fragments/sidebar :: sidebar(${currentRole},'directory')}"></aside>
 
 <main class="app-main">
+
     <div class="content-wrap">
 
         <!-- Page Header -->
         <div class="page-header">
+
             <div>
-                <span class="page-eyebrow">Verified Employee</span>
+
+                <span class="page-eyebrow">
+                    Verified Employee
+                </span>
 
                 <h1 class="page-title">
                     Official employee profile
                 </h1>
 
                 <p class="page-subtitle">
-                    GM-approved information and specimen signature.
+                    GM-approved information and specimen signatures.
                 </p>
+
             </div>
+
 
             <div class="d-flex gap-2">
 
                 <a class="btn btn-outline-warning"
                    th:if="${currentRole == 'PD'}"
                    th:href="@{/pd/employees/{id}/edit(id=${employee.id})}">
+
                     <i class="bi bi-pencil-fill me-2"></i>
                     Edit employee
+
                 </a>
+
 
                 <a class="btn btn-soft"
                    th:href="@{/employees}">
+
                     <i class="bi bi-arrow-left me-2"></i>
                     Back to directory
+
                 </a>
 
             </div>
+
         </div>
 
 
@@ -52,13 +65,18 @@
             <header class="id-card-header">
 
                 <div class="id-bank-brand">
+
                     <img th:src="@{/css/images/uttara-bank-limited-seeklogo.png}"
                          alt="Uttara Bank Limited">
+
                 </div>
 
+
                 <span class="id-card-mark">
+
                     <i class="bi bi-patch-check-fill me-1"></i>
                     Verified profile
+
                 </span>
 
             </header>
@@ -108,28 +126,86 @@
 
                         <tr>
                             <th>Signature valid from</th>
-                            <td th:text="${#temporals.format(employee.signatureValidFrom, 'dd-MMM-yyyy')}">
+
+                            <td th:text="${#temporals.format(
+                                employee.signatureValidFrom,
+                                'dd-MMM-yyyy'
+                            )}">
                             </td>
+
                         </tr>
 
                         <tr>
                             <th>Signature valid until</th>
-                            <td th:text="${#temporals.format(employee.signatureValidUntil, 'dd-MMM-yyyy')}">
+
+                            <td th:text="${#temporals.format(
+                                employee.signatureValidUntil,
+                                'dd-MMM-yyyy'
+                            )}">
                             </td>
+
                         </tr>
 
                     </table>
 
 
-                    <!-- Current Signature -->
-                    <div class="signature-panel">
+                    <!-- ================================================= -->
+                    <!-- SIGNATURES -->
+                    <!-- ================================================= -->
 
-                        <span>
-                            Approved specimen signature
-                        </span>
+                    <div class="employee-signatures">
 
-                        <img th:src="@{'/uploads/' + ${employee.signaturePath}}"
-                             alt="Approved signature">
+                        <!-- Current Signature -->
+                        <div class="signature-panel">
+
+                            <span>
+                                Approved specimen signature
+                            </span>
+
+                            <img th:src="@{'/uploads/' + ${employee.signaturePath}}"
+                                 alt="Approved signature">
+
+                        </div>
+
+
+                        <!-- Foreign Signature -->
+                        <div class="signature-panel"
+                             th:if="${employee.foreignSignaturePath != null
+                                     and !#strings.isEmpty(employee.foreignSignaturePath)}">
+
+                            <span>
+                                Approved foreign signature
+                            </span>
+
+                            <!-- IMPORTANT:
+                                 foreignSignaturePath already contains
+                                 foreign-signature/... -->
+                            <img th:src="@{'/uploads/' + ${employee.foreignSignaturePath}}"
+                                 alt="Approved foreign signature">
+
+                        </div>
+
+
+                        <!-- No Foreign Signature -->
+                        <div class="signature-panel signature-panel-empty"
+                             th:unless="${employee.foreignSignaturePath != null
+                                         and !#strings.isEmpty(employee.foreignSignaturePath)}">
+
+                            <span>
+                                Foreign signature
+                            </span>
+
+                            <div class="foreign-signature-empty">
+
+                                <i class="bi bi-pen"></i>
+
+                                <small>
+                                    No foreign signature available
+                                </small>
+
+                            </div>
+
+                        </div>
 
                     </div>
 
@@ -154,6 +230,7 @@
         </article>
 
     </div>
+
 </main>
 
 
@@ -165,6 +242,65 @@
 
 <!-- Version Styling -->
 <style>
+
+    .employee-signatures {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+        margin-top: 20px;
+    }
+
+    .signature-panel {
+        min-height: 170px;
+        padding: 16px;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        background: #fff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+    }
+
+    .signature-panel > span {
+        display: block;
+        width: 100%;
+        color: #64748b;
+        font-size: 13px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        text-align: center;
+    }
+
+    .signature-panel img {
+        display: block;
+        max-width: 100%;
+        max-height: 120px;
+        object-fit: contain;
+    }
+
+    .signature-panel-empty {
+        background: #f8fafc;
+    }
+
+    .foreign-signature-empty {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        color: #94a3b8;
+        min-height: 100px;
+    }
+
+    .foreign-signature-empty i {
+        font-size: 30px;
+    }
+
+
+    /* Version Styling */
 
     .media-version-section {
         margin-bottom: 40px;
@@ -277,7 +413,12 @@
         border-top: 1px solid #e5e7eb;
     }
 
+
     @media (max-width: 768px) {
+
+        .employee-signatures {
+            grid-template-columns: 1fr;
+        }
 
         .version-card-header {
             align-items: flex-start;

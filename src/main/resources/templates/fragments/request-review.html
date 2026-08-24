@@ -66,6 +66,20 @@
                                                           th:src="@{'/uploads/'+${request.signaturePath}}"
                                                           alt="Employee signature"></div>
                         </div>
+                        <div th:if="${request.foreignSignaturePath != null
+                 and !#strings.isEmpty(request.foreignSignaturePath)}">
+
+                            <p class="form-label">
+                                Foreign Signature
+                            </p>
+
+                            <div class="media-panel">
+                                <img class="signature-image"
+                                     th:src="@{'/uploads/' + ${request.foreignSignaturePath}}"
+                                     alt="Foreign signature">
+                            </div>
+
+                        </div>
                     </div>
                 </div>
             </article>

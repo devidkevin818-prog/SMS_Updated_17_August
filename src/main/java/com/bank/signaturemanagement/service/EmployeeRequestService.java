@@ -52,6 +52,11 @@ public class EmployeeRequestService {
         User requester = userRepository.findByUsername(username).orElseThrow();
         fileStorageService.validateImage(form.getPhoto());
         fileStorageService.validateImage(form.getSignature());
+        if (form.getForeignSignature() != null
+                && !form.getForeignSignature().isEmpty()) {
+
+            fileStorageService.validateImage(form.getForeignSignature());
+        }
         EmployeeRequest request = new EmployeeRequest();
         request.setEmployeeCode(code);
         request.setEmployeeName(form.getEmployeeName().trim());
@@ -61,6 +66,16 @@ public class EmployeeRequestService {
         request.setRemark(form.getRemark().trim());
         request.setPhotoPath(fileStorageService.storeImage(form.getPhoto(), "employee-photo"));
         request.setSignaturePath(fileStorageService.storeImage(form.getSignature(), "employee-signature"));
+        if (form.getForeignSignature() != null
+                && !form.getForeignSignature().isEmpty()) {
+
+            request.setForeignSignaturePath(
+                    fileStorageService.storeImage(
+                            form.getForeignSignature(),
+                            "pending-foreign-signature"
+                    )
+            );
+        }
 
         request.setSignatureValidFrom(form.getSignatureValidFrom());
         request.setSignatureValidUntil(form.getSignatureValidUntil());
@@ -97,6 +112,8 @@ public class EmployeeRequestService {
         User requester = userRepository.findByUsername(username).orElseThrow();
         String photoPath = employee.getPhotoPath();
         String signaturePath = employee.getSignaturePath();
+        String foreignSignaturePath = employee.getForeignSignaturePath();
+
         if (form.getPhoto() != null && !form.getPhoto().isEmpty()) {
             fileStorageService.validateImage(form.getPhoto());
             photoPath = fileStorageService.storeImage(form.getPhoto(), "pending-photo");
@@ -104,6 +121,17 @@ public class EmployeeRequestService {
         if (form.getSignature() != null && !form.getSignature().isEmpty()) {
             fileStorageService.validateImage(form.getSignature());
             signaturePath = fileStorageService.storeImage(form.getSignature(), "pending-signature");
+        }
+        if (form.getForeignSignature() != null
+                && !form.getForeignSignature().isEmpty()) {
+
+            fileStorageService.validateImage(form.getForeignSignature());
+
+            foreignSignaturePath =
+                    fileStorageService.storeImage(
+                            form.getForeignSignature(),
+                            "pending-foreign-signature"
+                    );
         }
 
         EmployeeRequest request = new EmployeeRequest();
@@ -119,6 +147,7 @@ public class EmployeeRequestService {
         request.setRemark(form.getRemark().trim());
         request.setSignatureValidFrom(form.getSignatureValidFrom());
         request.setSignatureValidUntil(form.getSignatureValidUntil());
+        request.setForeignSignaturePath(foreignSignaturePath);
 
         requestRepository.save(request);
     }
@@ -188,6 +217,9 @@ public class EmployeeRequestService {
             employee.setSignaturePath(request.getSignaturePath());
             employee.setSignatureValidFrom(request.getSignatureValidFrom());
             employee.setSignatureValidUntil(request.getSignatureValidUntil());
+            employee.setForeignSignaturePath(
+                    request.getForeignSignaturePath()
+            );
 
             employee = employeeRepository.saveAndFlush(employee);
 
@@ -196,12 +228,26 @@ public class EmployeeRequestService {
 
             String approvedSignaturePath = fileStorageService.organizeEmployeeImage(
                     request.getSignaturePath(), "signature", employee.getId());
+            String approvedForeignSignaturePath = null;
 
+            if (request.getForeignSignaturePath() != null
+                    && !request.getForeignSignaturePath().isBlank()) {
+
+                approvedForeignSignaturePath =
+                        fileStorageService.organizeEmployeeImage(
+                                request.getForeignSignaturePath(),
+                                "foreign-signature",
+                                employee.getId()
+                        );
+            }
             employee.setPhotoPath(approvedPhotoPath);
             employee.setSignaturePath(approvedSignaturePath);
+            employee.setForeignSignaturePath(approvedForeignSignaturePath);
 
             request.setPhotoPath(approvedPhotoPath);
             request.setSignaturePath(approvedSignaturePath);
+            request.setForeignSignaturePath(approvedForeignSignaturePath);
+
 
             employeeRepository.save(employee);
 
@@ -213,7 +259,9 @@ public class EmployeeRequestService {
             );
             mediaVersion.setPhotoPath(approvedPhotoPath);
             mediaVersion.setSignaturePath(approvedSignaturePath);
-
+            mediaVersion.setForeignSignaturePath(
+                    approvedForeignSignaturePath
+            );
             mediaVersionRepository.save(mediaVersion);
 
             request.setStatus(RequestStatus.APPROVED);
