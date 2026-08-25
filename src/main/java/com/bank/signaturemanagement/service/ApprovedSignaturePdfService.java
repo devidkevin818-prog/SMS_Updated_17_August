@@ -35,16 +35,19 @@ public class ApprovedSignaturePdfService {
     // app.upload.root=E:/images
     // app.profile-photo.root=E:/images/employee-photo
     // app.signature.root=E:/images/employee-signature
+    // app.foreign-signature.root=E:/images/foreign-signatures
     //
-    // Database:
+    // Database examples:
     //
-    // profile/1/2a84ed3b-4145-424a-9fae-2e3cdc9fbc0a.jpg
-    // signature/1/bbb7c067-c104-4cc4-89db-b0a6f0a09aaf.png
+    // profile/1/photo.jpg
+    // signature/1/signature.png
+    // foreign-signature/1/foreign-signature.png
     //
     // Actual files:
     //
-    // E:/images/employee-photo/1/2a84ed3b-4145-424a-9fae-2e3cdc9fbc0a.jpg
-    // E:/images/employee-signature/1/bbb7c067-c104-4cc4-89db-b0a6f0a09aaf.png
+    // E:/images/employee-photo/1/photo.jpg
+    // E:/images/employee-signature/1/signature.png
+    // E:/images/foreign-signatures/1/foreign-signature.png
     //
     // =========================================================
 
@@ -53,6 +56,9 @@ public class ApprovedSignaturePdfService {
 
     @Value("${app.signature.root}")
     private String signatureRoot;
+
+    @Value("${app.foreign-signature.root}")
+    private String foreignSignatureRoot;
 
     public ApprovedSignaturePdfService(
             EmployeeRepository employeeRepository
@@ -68,7 +74,10 @@ public class ApprovedSignaturePdfService {
             OutputStream outputStream
     ) throws Exception {
 
-        // Get employees
+        // =====================================================
+        // Get Employees
+        // =====================================================
+
         List<Employee> employees =
                 employeeRepository.findAll();
 
@@ -113,16 +122,34 @@ public class ApprovedSignaturePdfService {
 
         document.add(title);
 
-        Paragraph titleSpace = new Paragraph(" ");
+        Paragraph titleSpace =
+                new Paragraph(" ");
+
         titleSpace.setSpacingAfter(20f);
+
         document.add(titleSpace);
 
         // =====================================================
         // Table
         // =====================================================
+        //
+        // 10 columns:
+        //
+        // 1. SL
+        // 2. Code
+        // 3. Name
+        // 4. Designation
+        // 5. Department
+        // 6. Branch
+        // 7. Signature Validity
+        // 8. Photo
+        // 9. Signature
+        // 10. Foreign Signature
+        //
+        // =====================================================
 
         PdfPTable table =
-                new PdfPTable(9);
+                new PdfPTable(10);
 
         table.setWidthPercentage(100);
 
@@ -135,6 +162,7 @@ public class ApprovedSignaturePdfService {
                 2.5f,
                 2.5f,
                 2.5f,
+                3.0f,
                 3.0f
         });
 
@@ -151,6 +179,7 @@ public class ApprovedSignaturePdfService {
         addHeader(table, "Signature Validity");
         addHeader(table, "Photo");
         addHeader(table, "Signature");
+        addHeader(table, "Foreign Signature");
 
         // =====================================================
         // Employee Rows
@@ -367,6 +396,73 @@ public class ApprovedSignaturePdfService {
             }
 
             table.addCell(signatureCell);
+
+            // =================================================
+            // FOREIGN SIGNATURE
+            // =================================================
+
+            PdfPCell foreignSignatureCell =
+                    new PdfPCell();
+
+            foreignSignatureCell.setHorizontalAlignment(
+                    Element.ALIGN_CENTER
+            );
+
+            foreignSignatureCell.setVerticalAlignment(
+                    Element.ALIGN_MIDDLE
+            );
+
+            foreignSignatureCell.setPadding(8);
+
+            String foreignSignatureDbPath =
+                    employee.getForeignSignaturePath();
+
+            if (foreignSignatureDbPath != null &&
+                    !foreignSignatureDbPath.isBlank()) {
+
+                Path foreignSignaturePath =
+                        resolveForeignSignaturePath(
+                                foreignSignatureDbPath
+                        );
+
+                if (Files.exists(foreignSignaturePath)
+                        && Files.isRegularFile(foreignSignaturePath)) {
+
+                    Image foreignSignature =
+                            Image.getInstance(
+                                    foreignSignaturePath
+                                            .toAbsolutePath()
+                                            .toString()
+                            );
+
+                    foreignSignature.scaleToFit(
+                            160,
+                            80
+                    );
+
+                    foreignSignatureCell.addElement(
+                            foreignSignature
+                    );
+
+                } else {
+
+                    foreignSignatureCell.addElement(
+                            new Paragraph(
+                                    "Foreign signature not found"
+                            )
+                    );
+                }
+
+            } else {
+
+                foreignSignatureCell.addElement(
+                        new Paragraph(
+                                "Foreign signature not found"
+                        )
+                );
+            }
+
+            table.addCell(foreignSignatureCell);
         }
 
         // =====================================================
@@ -450,6 +546,44 @@ public class ApprovedSignaturePdfService {
 
         Path root = Paths
                 .get(signatureRoot)
+                .toAbsolutePath()
+                .normalize();
+
+        return root
+                .resolve(relativePath)
+                .normalize();
+    }
+
+    // =========================================================
+    // Resolve Foreign Signature Path
+    // =========================================================
+    //
+    // DB:
+    //
+    // foreign-signature/1/foreign-signature.png
+    //
+    // Becomes:
+    //
+    // E:/images/foreign-signatures/1/foreign-signature.png
+    //
+    // =========================================================
+
+    private Path resolveForeignSignaturePath(
+            String dbPath
+    ) {
+
+        String relativePath = dbPath;
+
+        if (relativePath.startsWith("foreign-signature/")) {
+
+            relativePath =
+                    relativePath.substring(
+                            "foreign-signature/".length()
+                    );
+        }
+
+        Path root = Paths
+                .get(foreignSignatureRoot)
                 .toAbsolutePath()
                 .normalize();
 
