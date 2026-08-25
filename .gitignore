@@ -40,6 +40,6 @@ uploads/
 application.properties
 password.txt
 login.html
-
+src/main/resources/templates/login.html
 
 

@@ -18,6 +18,8 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import com.bank.signaturemanagement.repository.EmployeeStatusRepository;
+
 
 @Controller
 @RequestMapping("/pd")
@@ -27,16 +29,20 @@ public class PdController {
     private final EmployeeService employeeService;
     private final ApprovedSignaturePdfService pdfService;
     private final EmployeeMediaVersionRepository mediaVersionRepository;
+    private final EmployeeStatusRepository employeeStatusRepository;
+
 
     public PdController(EmployeeRequestService requestService,
                         EmployeeService employeeService,
                         ApprovedSignaturePdfService pdfService,
-                        EmployeeMediaVersionRepository mediaVersionRepository) {
+                        EmployeeMediaVersionRepository mediaVersionRepository,
+                        EmployeeStatusRepository employeeStatusRepository) {
 
         this.requestService = requestService;
         this.employeeService = employeeService;
         this.pdfService = pdfService;
         this.mediaVersionRepository = mediaVersionRepository;
+        this.employeeStatusRepository = employeeStatusRepository;
     }
 
     @GetMapping("/dashboard")
@@ -46,20 +52,37 @@ public class PdController {
 
     @GetMapping("/employees/new")
     public String createForm(Model model) {
+
         if (!model.containsAttribute("employeeRequestForm")) {
-            model.addAttribute("employeeRequestForm", new EmployeeRequestForm());
+
+            EmployeeRequestForm form = new EmployeeRequestForm();
+            // Active is the default status for a new employee
+            form.setStatusId(1);
+            model.addAttribute(
+                    "employeeRequestForm",
+                    form
+            );
         }
+
+        model.addAttribute(
+                "employeeStatuses",
+                employeeStatusRepository.findAllByOrderByStatusIdAsc()
+        );
         return "pd/create-employee";
     }
 
+
     @PostMapping("/employees")
-    public String create(@Valid @ModelAttribute EmployeeRequestForm employeeRequestForm,
-                         BindingResult result,
-                         Authentication authentication,
-                         RedirectAttributes redirectAttributes) {
+    public String create(
+            @Valid @ModelAttribute EmployeeRequestForm employeeRequestForm,
+            BindingResult result,
+            Authentication authentication,
+            Model model,
+            RedirectAttributes redirectAttributes) {
 
         if (!result.hasErrors()) {
             try {
+
                 requestService.createRequest(
                         employeeRequestForm,
                         authentication.getName()
@@ -73,12 +96,23 @@ public class PdController {
                 return "redirect:/pd/requests";
 
             } catch (IllegalArgumentException | IllegalStateException exception) {
-                result.reject("request", exception.getMessage());
+
+                result.reject(
+                        "request",
+                        exception.getMessage()
+                );
             }
         }
 
+        // Required when returning to the form after validation error
+        model.addAttribute(
+                "employeeStatuses",
+                employeeStatusRepository.findAllByOrderByStatusIdAsc()
+        );
+
         return "pd/create-employee";
     }
+
 
     @GetMapping("/requests")
     public String requests(@RequestParam(defaultValue = "0") int page,
@@ -177,10 +211,14 @@ public class PdController {
                 employeeService.getUpdateForm(id)
         );
 
+        // Load activity statuses from database
+        model.addAttribute(
+                "employeeStatuses",
+                employeeStatusRepository.findAllByOrderByStatusIdAsc()
+        );
+
         if (rejectedRequestId != null) {
 
-            // Validate that this rejected request belongs to
-            // the logged-in PD user and is available for update.
             Long targetEmployeeId =
                     requestService.getTargetEmployeeIdForUpdate(
                             rejectedRequestId,
@@ -201,6 +239,7 @@ public class PdController {
 
         return "pd/edit-employee";
     }
+
 
     /**
      * Submit employee update.

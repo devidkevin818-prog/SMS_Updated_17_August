@@ -35,6 +35,9 @@ public class EmployeeRequest {
     @Column(nullable = false, length = 100)
     private String branch;
 
+    @Column(nullable = true, length = 100)
+    private int statusId;
+
     @Column(name = "photo_path", nullable = false, length = 500)
     private String photoPath;
 
@@ -141,5 +144,11 @@ public class EmployeeRequest {
     public LocalDateTime getCompletedAt() { return completedAt; }
     public void setCompletedAt(LocalDateTime completedAt) { this.completedAt = completedAt; }
 
+    public int getStatusId() {
+        return statusId;
+    }
 
+    public void setStatusId(int statusId) {
+        this.statusId = statusId;
+    }
 }

@@ -79,6 +79,9 @@ public class EmployeeRequestService {
 
         request.setSignatureValidFrom(form.getSignatureValidFrom());
         request.setSignatureValidUntil(form.getSignatureValidUntil());
+        request.setStatusId(
+                form.getStatusId()
+        );
 
         request.setRequestedBy(requester);
         requestRepository.save(request);
