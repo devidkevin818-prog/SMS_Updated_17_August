@@ -3,13 +3,27 @@ package com.bank.signaturemanagement.repository;
 import com.bank.signaturemanagement.entity.Employee;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 public interface EmployeeRepository extends JpaRepository<Employee, Long> {
+
+    @Override
+    @EntityGraph(attributePaths = {"designation", "department", "branch"})
+    Optional<Employee> findById(Long id);
+
+    @EntityGraph(attributePaths = {"designation", "department", "branch"})
     Optional<Employee> findByEmployeeNumber(String employeeNumber);
+
     boolean existsByEmployeeNumber(String employeeNumber);
     boolean existsByEmployeeNumberAndIdNot(String employeeNumber, Long id);
+
+    @Override
+    @EntityGraph(attributePaths = {"designation", "department", "branch"})
+    Page<Employee> findAll(Pageable pageable);
+
+    @EntityGraph(attributePaths = {"designation", "department", "branch"})
     Page<Employee> findByEmployeeNumberContainingIgnoreCaseOrFullNameContainingIgnoreCase(
             String employeeNumber, String fullName, Pageable pageable);
 }

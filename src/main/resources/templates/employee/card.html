@@ -1,20 +1,22 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-
 <head th:replace="~{fragments/head :: head('Employee Card')}"></head>
-
 <body>
-
 <header th:replace="~{fragments/navbar :: navbar(${currentRole})}"></header>
-
 <aside th:replace="~{fragments/sidebar :: sidebar(${currentRole},'directory')}"></aside>
-
 <main class="app-main">
 
     <div class="content-wrap">
-
-        <!-- Page Header -->
         <div class="page-header">
+<<<<<<< HEAD
+            <div><span class="page-eyebrow">Verified Employee</span>
+                <h1 class="page-title">Official employee profile</h1>
+                <p class="page-subtitle">GM-approved information and specimen signature.</p></div>
+            <div class="d-flex gap-2"><a class="btn btn-outline-warning" th:if="${currentRole == 'PD'}"
+                                         th:href="@{/pd/employees/{id}/edit(id=${employee.id})}"><i
+                    class="bi bi-pencil-fill me-2"></i>Edit employee</a><a class="btn btn-soft" th:href="@{/employees}"><i
+                    class="bi bi-arrow-left me-2"></i>Back to directory</a></div>
+=======
 
             <div>
 
@@ -55,14 +57,15 @@
 
             </div>
 
+>>>>>>> 902a0ff191f065118ce7dffba299f0b0c67231a8
         </div>
-
-
-        <!-- Current Employee Card -->
         <article class="employee-id-card">
-
-            <!-- Card Header -->
             <header class="id-card-header">
+<<<<<<< HEAD
+                <div class="id-bank-brand"><img th:src="@{/css/images/uttara-bank-limited-seeklogo.png}"
+                                                alt="Uttara Bank Limited"></div>
+                <span class="id-card-mark"><i class="bi bi-patch-check-fill me-1"></i>Verified profile</span></header>
+=======
 
                 <div class="id-bank-brand">
 
@@ -83,49 +86,31 @@
 
 
             <!-- Card Body -->
+>>>>>>> 902a0ff191f065118ce7dffba299f0b0c67231a8
             <div class="id-card-body">
-
-                <!-- Employee Photo -->
-                <div class="employee-photo-wrap">
-
-                    <img class="employee-photo"
-                         th:src="@{'/uploads/' + ${employee.photoPath}}"
-                         alt="Employee photo">
-
-                </div>
-
-
-                <!-- Employee Information -->
-                <section>
-
-                    <h2 class="employee-name"
-                        th:text="${employee.fullName}">
-                    </h2>
-
-                    <div class="employee-designation"
-                         th:text="${employee.designation}">
-                    </div>
-
-
+                <div class="employee-photo-wrap"><img class="employee-photo"
+                                                      th:src="@{'/uploads/'+${employee.photoPath}}"
+                                                      alt="Employee photo"></div>
+                <section><h2 class="employee-name" th:text="${employee.fullName}"></h2>
+                    <div class="employee-designation" th:text="${employee.designation.designationName}"></div>
                     <table class="id-details">
-
                         <tr>
                             <th>Employee code</th>
                             <td th:text="${employee.employeeNumber}"></td>
                         </tr>
-
                         <tr>
                             <th>Department</th>
-                            <td th:text="${employee.department}"></td>
+                            <td th:text="${employee.department.departmentName}"></td>
                         </tr>
-
                         <tr>
                             <th>Branch</th>
-                            <td th:text="${employee.branchCode}"></td>
+                            <td th:text="${employee.branch.branchName}"></td>
                         </tr>
-
                         <tr>
                             <th>Signature valid from</th>
+<<<<<<< HEAD
+                            <td th:text="${#temporals.format(employee.signatureValidFrom, 'dd-MMM-yyyy')}"></td>
+=======
 
                             <td th:text="${#temporals.format(
                                 employee.signatureValidFrom,
@@ -133,10 +118,18 @@
                             )}">
                             </td>
 
+>>>>>>> 902a0ff191f065118ce7dffba299f0b0c67231a8
                         </tr>
-
                         <tr>
                             <th>Signature valid until</th>
+<<<<<<< HEAD
+                            <td th:text="${#temporals.format(employee.signatureValidUntil, 'dd-MMM-yyyy')}"></td>
+                        </tr>
+
+                    </table>
+                    <div class="signature-panel"><span>Approved specimen signature</span><img
+                            th:src="@{'/uploads/'+${employee.signaturePath}}" alt="Approved signature"></div>
+=======
 
                             <td th:text="${#temporals.format(
                                 employee.signatureValidUntil,
@@ -209,35 +202,19 @@
 
                     </div>
 
+>>>>>>> 902a0ff191f065118ce7dffba299f0b0c67231a8
                 </section>
-
             </div>
-
-
-            <!-- Card Footer -->
-            <footer class="id-card-footer">
-
-                <span>
-                    Employee Signature Management System
-                </span>
-
-                <span>
-                    Authorized internal use only
-                </span>
-
+            <footer class="id-card-footer"><span>Employee Signature Management System</span><span>Authorized internal use only</span>
             </footer>
-
         </article>
-
     </div>
 
 </main>
-
-
-<!-- Footer -->
 <footer th:replace="~{fragments/layout :: footer}"></footer>
-
 <div th:replace="~{fragments/layout :: scripts}"></div>
+<<<<<<< HEAD
+=======
 
 
 <!-- Version Styling -->
@@ -443,5 +420,6 @@
 
 </style>
 
+>>>>>>> 902a0ff191f065118ce7dffba299f0b0c67231a8
 </body>
 </html>

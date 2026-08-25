@@ -146,6 +146,16 @@
                             </div>
 
                         </td>
+<<<<<<< HEAD
+                        <td><img class="approved-photo-thumbnail" th:src="@{'/uploads/'+${employee.photoPath}}"
+                                 alt="Approved employee photo"></td>
+                        <td><img class="approved-signature-thumbnail" th:src="@{'/uploads/'+${employee.signaturePath}}"
+                                 alt="Approved employee signature"></td>
+                        <td th:text="${employee.branch.branchName}"></td>
+                        <td class="text-end"><a class="btn btn-sm btn-soft"
+                                                th:href="@{/pd/approved-signatures/{id}(id=${employee.id})}">View
+                            Versions</a></td>
+=======
 
 
                         <!-- ================================================= -->
@@ -226,6 +236,7 @@
                         </td>
 
 
+>>>>>>> 902a0ff191f065118ce7dffba299f0b0c67231a8
                     </tr>
 
 

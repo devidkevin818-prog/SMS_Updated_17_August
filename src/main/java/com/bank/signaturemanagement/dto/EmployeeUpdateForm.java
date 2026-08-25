@@ -12,9 +12,9 @@ public class EmployeeUpdateForm {
     @Pattern(regexp = "\\d{6}", message = "Employee number must contain exactly 6 digits")
     private String employeeCode;
     @NotBlank private String employeeName;
-    @NotBlank private String designation;
-    @NotBlank private String department;
-    @NotBlank private String branch;
+    @NotNull private Long designationId;
+    @NotNull private Long departmentId;
+    @NotNull private Long branchId;
     @NotBlank private String remark;
     private MultipartFile photo;
     private MultipartFile signature;
@@ -37,12 +37,14 @@ public class EmployeeUpdateForm {
     public void setEmployeeCode(String employeeCode) { this.employeeCode = employeeCode; }
     public String getEmployeeName() { return employeeName; }
     public void setEmployeeName(String employeeName) { this.employeeName = employeeName; }
-    public String getDesignation() { return designation; }
-    public void setDesignation(String designation) { this.designation = designation; }
-    public String getDepartment() { return department; }
-    public void setDepartment(String department) { this.department = department; }
-    public String getBranch() { return branch; }
-    public void setBranch(String branch) { this.branch = branch; }
+    public Long getDesignationId() { return designationId; }
+    public void setDesignationId(Long designationId) { this.designationId = designationId; }
+
+    public Long getDepartmentId() { return departmentId; }
+    public void setDepartmentId(Long departmentId) { this.departmentId = departmentId; }
+
+    public Long getBranchId() { return branchId; }
+    public void setBranchId(Long branchId) { this.branchId = branchId; }
     public String getRemark() { return remark; }
     public void setRemark(String remark) { this.remark = remark; }
     public MultipartFile getPhoto() { return photo; }

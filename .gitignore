@@ -40,6 +40,6 @@ uploads/
 application.properties
 password.txt
 login.html
-
+database/schema.sql
 
 

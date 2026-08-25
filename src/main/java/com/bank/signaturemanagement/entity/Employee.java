@@ -19,18 +19,29 @@ public class Employee {
     @Column(name = "full_name", nullable = false, length = 100)
     private String fullName;
 
-    @Column(nullable = false, length = 100)
-    private String designation;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "designation",
+            referencedColumnName = "DesignationId",
+            nullable = false
+    )
+    private Designation designation;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "department",
+            referencedColumnName = "DepartmentId",
+            nullable = false
+    )
+    private Department department;
 
-    @Column(name = "update_request_status", nullable = false)
-    private boolean updateRequestStatus = false;
-
-    @Column(nullable = false, length = 100)
-    private String department;
-
-    @Column(name = "branch_code", nullable = false, length = 100)
-    private String branchCode;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "branch_code",
+            referencedColumnName = "branch_id",
+            nullable = false
+    )
+    private Branch branch;
 
     @Column(name = "photo_path", nullable = false, length = 500)
     private String photoPath;
@@ -63,6 +74,17 @@ public class Employee {
     private LocalDate signatureValidUntil;
 
 
+    @Column(name = "update_request_status")
+    private Boolean updateRequestStatus = false;
+
+    public Boolean getUpdateRequestStatus() { return updateRequestStatus; }
+    public void setUpdateRequestStatus(Boolean updateRequestStatus) {
+        this.updateRequestStatus = updateRequestStatus;
+    }
+
+
+
+
     public Employee() {
     }
 
@@ -74,12 +96,32 @@ public class Employee {
     public void setEmployeeNumber(String employeeNumber) { this.employeeNumber = employeeNumber; }
     public String getFullName() { return fullName; }
     public void setFullName(String fullName) { this.fullName = fullName; }
-    public String getDesignation() { return designation; }
-    public void setDesignation(String designation) { this.designation = designation; }
-    public String getDepartment() { return department; }
-    public void setDepartment(String department) { this.department = department; }
-    public String getBranchCode() { return branchCode; }
-    public void setBranchCode(String branchCode) { this.branchCode = branchCode; }
+
+
+    public Designation getDesignation() {
+        return designation;
+    }
+
+    public void setDesignation(Designation designation) {
+        this.designation = designation;
+    }
+
+    public Department getDepartment() {
+        return department;
+    }
+
+    public void setDepartment(Department department) {
+        this.department = department;
+    }
+
+    public Branch getBranch() {
+        return branch;
+    }
+
+    public void setBranch(Branch branch) {
+        this.branch = branch;
+    }
+
     public String getPhotoPath() { return photoPath; }
     public void setPhotoPath(String photoPath) { this.photoPath = photoPath; }
     public String getSignaturePath() { return signaturePath; }
@@ -100,13 +142,6 @@ public class Employee {
 
     public void setSignatureValidUntil(LocalDate signatureValidUntil) {
         this.signatureValidUntil = signatureValidUntil;
-    }
-    public boolean isUpdateRequestStatus() {
-        return updateRequestStatus;
-    }
-
-    public void setUpdateRequestStatus(boolean updateRequestStatus) {
-        this.updateRequestStatus = updateRequestStatus;
     }
 
 }
