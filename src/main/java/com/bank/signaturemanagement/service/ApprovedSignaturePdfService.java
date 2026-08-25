@@ -60,6 +60,7 @@ public class ApprovedSignaturePdfService {
         this.employeeRepository = employeeRepository;
     }
 
+
     // =========================================================
     // Generate PDF
     // =========================================================
@@ -68,13 +69,16 @@ public class ApprovedSignaturePdfService {
             OutputStream outputStream
     ) throws Exception {
 
-        // Get employees
+        // =====================================================
+        // Get Employees
+        // =====================================================
+
         List<Employee> employees =
                 employeeRepository.findAll();
 
+
         // =====================================================
         // PDF Document
-        // A3 Landscape gives more horizontal space
         // =====================================================
 
         Document document = new Document(
@@ -85,12 +89,15 @@ public class ApprovedSignaturePdfService {
                 30
         );
 
+
         PdfWriter.getInstance(
                 document,
                 outputStream
         );
 
+
         document.open();
+
 
         // =====================================================
         // Title
@@ -102,20 +109,26 @@ public class ApprovedSignaturePdfService {
                 Font.BOLD
         );
 
+
         Paragraph title = new Paragraph(
                 "Approved Employee Photos and Signatures",
                 titleFont
         );
 
+
         title.setAlignment(
                 Element.ALIGN_CENTER
         );
+
 
         document.add(title);
 
         Paragraph titleSpace = new Paragraph(" ");
         titleSpace.setSpacingAfter(20f);
+
+
         document.add(titleSpace);
+
 
         // =====================================================
         // Table
@@ -124,7 +137,9 @@ public class ApprovedSignaturePdfService {
         PdfPTable table =
                 new PdfPTable(9);
 
+
         table.setWidthPercentage(100);
+
 
         table.setWidths(new float[]{
                 1.0f,
@@ -138,8 +153,9 @@ public class ApprovedSignaturePdfService {
                 3.0f
         });
 
+
         // =====================================================
-        // Table Headers
+        // Headers
         // =====================================================
 
         addHeader(table, "SL");
@@ -152,11 +168,13 @@ public class ApprovedSignaturePdfService {
         addHeader(table, "Photo");
         addHeader(table, "Signature");
 
+
         // =====================================================
         // Employee Rows
         // =====================================================
 
         int serial = 1;
+
 
         for (Employee employee : employees) {
 
@@ -171,6 +189,7 @@ public class ApprovedSignaturePdfService {
 
             serial++;
 
+
             // =================================================
             // Employee Code
             // =================================================
@@ -179,6 +198,7 @@ public class ApprovedSignaturePdfService {
                     table,
                     employee.getEmployeeNumber()
             );
+
 
             // =================================================
             // Employee Name
@@ -189,32 +209,66 @@ public class ApprovedSignaturePdfService {
                     employee.getFullName()
             );
 
+
             // =================================================
             // Designation
             // =================================================
 
+            String designationName = "";
+
+            if (employee.getDesignation() != null) {
+
+                designationName =
+                        employee.getDesignation()
+                                .getDesignationName();
+            }
+
+
             addCell(
                     table,
-                    employee.getDesignation()
+                    designationName
             );
+
 
             // =================================================
             // Department
             // =================================================
 
+            String departmentName = "";
+
+            if (employee.getDepartment() != null) {
+
+                departmentName =
+                        employee.getDepartment()
+                                .getDepartmentName();
+            }
+
+
             addCell(
                     table,
-                    employee.getDepartment()
+                    departmentName
             );
+
 
             // =================================================
             // Branch
             // =================================================
 
+            String branchCode = "";
+
+            if (employee.getBranch() != null) {
+
+                branchCode =
+                        employee.getBranch()
+                                .getBranchName();
+            }
+
+
             addCell(
                     table,
-                    employee.getBranchCode()
+                    branchCode
             );
+
 
             // =================================================
             // Signature Validity
@@ -231,10 +285,12 @@ public class ApprovedSignaturePdfService {
                             employee.getSignatureValidUntil()
                     );
 
+
             addCenteredCell(
                     table,
                     validity
             );
+
 
             // =================================================
             // PHOTO
@@ -243,18 +299,23 @@ public class ApprovedSignaturePdfService {
             PdfPCell photoCell =
                     new PdfPCell();
 
+
             photoCell.setHorizontalAlignment(
                     Element.ALIGN_CENTER
             );
+
 
             photoCell.setVerticalAlignment(
                     Element.ALIGN_MIDDLE
             );
 
+
             photoCell.setPadding(8);
+
 
             String photoDbPath =
                     employee.getPhotoPath();
+
 
             if (photoDbPath != null &&
                     !photoDbPath.isBlank()) {
@@ -264,6 +325,7 @@ public class ApprovedSignaturePdfService {
 
                 if (Files.exists(photoPath)
                         && Files.isRegularFile(photoPath)) {
+
 
                     Image photo =
                             Image.getInstance(
@@ -277,9 +339,11 @@ public class ApprovedSignaturePdfService {
                             100
                     );
 
+
                     photoCell.addElement(
                             photo
                     );
+
 
                 } else {
 
@@ -290,6 +354,7 @@ public class ApprovedSignaturePdfService {
                     );
                 }
 
+
             } else {
 
                 photoCell.addElement(
@@ -299,7 +364,9 @@ public class ApprovedSignaturePdfService {
                 );
             }
 
+
             table.addCell(photoCell);
+
 
             // =================================================
             // SIGNATURE
@@ -308,18 +375,23 @@ public class ApprovedSignaturePdfService {
             PdfPCell signatureCell =
                     new PdfPCell();
 
+
             signatureCell.setHorizontalAlignment(
                     Element.ALIGN_CENTER
             );
+
 
             signatureCell.setVerticalAlignment(
                     Element.ALIGN_MIDDLE
             );
 
+
             signatureCell.setPadding(8);
+
 
             String signatureDbPath =
                     employee.getSignaturePath();
+
 
             if (signatureDbPath != null &&
                     !signatureDbPath.isBlank()) {
@@ -331,6 +403,7 @@ public class ApprovedSignaturePdfService {
 
                 if (Files.exists(signaturePath)
                         && Files.isRegularFile(signaturePath)) {
+
 
                     Image signature =
                             Image.getInstance(
@@ -344,9 +417,11 @@ public class ApprovedSignaturePdfService {
                             80
                     );
 
+
                     signatureCell.addElement(
                             signature
                     );
+
 
                 } else {
 
@@ -357,6 +432,7 @@ public class ApprovedSignaturePdfService {
                     );
                 }
 
+
             } else {
 
                 signatureCell.addElement(
@@ -366,8 +442,10 @@ public class ApprovedSignaturePdfService {
                 );
             }
 
+
             table.addCell(signatureCell);
         }
+
 
         // =====================================================
         // Add Table
@@ -375,12 +453,14 @@ public class ApprovedSignaturePdfService {
 
         document.add(table);
 
+
         // =====================================================
         // Close PDF
         // =====================================================
 
         document.close();
     }
+
 
     // =========================================================
     // Resolve Photo Path
@@ -474,6 +554,7 @@ public class ApprovedSignaturePdfService {
                         Font.BOLD
                 );
 
+
         PdfPCell cell =
                 new PdfPCell(
                         new Phrase(
@@ -482,18 +563,23 @@ public class ApprovedSignaturePdfService {
                         )
                 );
 
+
         cell.setHorizontalAlignment(
                 Element.ALIGN_CENTER
         );
+
 
         cell.setVerticalAlignment(
                 Element.ALIGN_MIDDLE
         );
 
+
         cell.setPadding(8);
+
 
         table.addCell(cell);
     }
+
 
     // =========================================================
     // Normal Cell
@@ -511,42 +597,6 @@ public class ApprovedSignaturePdfService {
                         Font.NORMAL
                 );
 
-        PdfPCell cell =
-                new PdfPCell(
-                        new Phrase(
-                                text == null ? "" : text,
-                                cellFont
-                        )
-                );
-
-        cell.setHorizontalAlignment(
-                Element.ALIGN_CENTER
-        );
-
-        cell.setVerticalAlignment(
-                Element.ALIGN_MIDDLE
-        );
-
-        cell.setPadding(8);
-
-        table.addCell(cell);
-    }
-
-    // =========================================================
-    // Centered Cell
-    // =========================================================
-
-    private void addCenteredCell(
-            PdfPTable table,
-            String text
-    ) {
-
-        Font cellFont =
-                new Font(
-                        Font.HELVETICA,
-                        16,
-                        Font.NORMAL
-                );
 
         PdfPCell cell =
                 new PdfPCell(
@@ -566,7 +616,54 @@ public class ApprovedSignaturePdfService {
                 Element.ALIGN_MIDDLE
         );
 
+
         cell.setPadding(8);
+
+
+        table.addCell(cell);
+    }
+
+
+    // =========================================================
+    // Centered Cell
+    // =========================================================
+
+    private void addCenteredCell(
+            PdfPTable table,
+            String text
+    ) {
+
+        Font cellFont =
+                new Font(
+                        Font.HELVETICA,
+                        16,
+                        Font.NORMAL
+                );
+
+
+        PdfPCell cell =
+                new PdfPCell(
+                        new Phrase(
+                                text == null
+                                        ? ""
+                                        : text,
+                                cellFont
+                        )
+                );
+
+
+        cell.setHorizontalAlignment(
+                Element.ALIGN_CENTER
+        );
+
+
+        cell.setVerticalAlignment(
+                Element.ALIGN_MIDDLE
+        );
+
+
+        cell.setPadding(8);
+
 
         table.addCell(cell);
     }

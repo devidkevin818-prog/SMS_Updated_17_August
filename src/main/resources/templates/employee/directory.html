@@ -47,9 +47,9 @@
                     <tr th:each="employee:${employees.content}">
                         <td><strong th:text="${employee.employeeNumber}"></strong></td>
                         <td th:text="${employee.fullName}"></td>
-                        <td th:text="${employee.designation}"></td>
-                        <td th:text="${employee.department}"></td>
-                        <td th:text="${employee.branchCode}"></td>
+                        <td th:text="${employee.designation.designationName}"></td>
+                        <td th:text="${employee.department.departmentName}"></td>
+                        <td th:text="${employee.branch.branchName}"></td>
                         <td class="text-end"><a class="btn btn-sm btn-primary"
                                                 th:href="@{/employees/{id}(id=${employee.id})}"><i
                                 class="bi bi-person-vcard-fill me-1"></i>View card</a></td>

@@ -73,7 +73,6 @@ public class DgmController {
     public String requestEmployeeUpdate(@PathVariable Long id,
                                         RedirectAttributes redirectAttributes) {
 
-        System.out.println("This is id "+id);
 
         try {
             employeeService.requestUpdate(id);

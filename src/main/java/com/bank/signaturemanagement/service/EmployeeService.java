@@ -1,15 +1,12 @@
 package com.bank.signaturemanagement.service;
 
-import com.bank.signaturemanagement.entity.Employee;
 import com.bank.signaturemanagement.dto.EmployeeUpdateForm;
-import com.bank.signaturemanagement.entity.RequestStatus;
+import com.bank.signaturemanagement.entity.Employee;
 import com.bank.signaturemanagement.repository.EmployeeRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 public class EmployeeService {
@@ -28,48 +25,41 @@ public class EmployeeService {
 
     @Transactional(readOnly = true)
     public Employee getEmployee(Long id) {
-        return employeeRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Employee not found"));
+        return employeeRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Employee not found"));
     }
 
     @Transactional(readOnly = true)
     public EmployeeUpdateForm getUpdateForm(Long id) {
-
-        Employee employee = employeeRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Employee not found"));
-
+        Employee employee = getEmployee(id);
         EmployeeUpdateForm form = new EmployeeUpdateForm();
-
         form.setEmployeeCode(EmployeeNumberFormat.editablePart(employee.getEmployeeNumber()));
         form.setEmployeeName(employee.getFullName());
-        form.setDesignation(employee.getDesignation());
-        form.setDepartment(employee.getDepartment());
-        form.setBranch(employee.getBranchCode());
-
+        if (employee.getDesignation() != null) {
+            form.setDesignationId(employee.getDesignation().getDesignationId());
+        }
+        if (employee.getDepartment() != null) {
+            form.setDepartmentId(employee.getDepartment().getDepartmentId());
+        }
+        if (employee.getBranch() != null) {
+            form.setBranchId(employee.getBranch().getBranchId());
+        }
         form.setSignatureValidFrom(employee.getSignatureValidFrom());
         form.setSignatureValidUntil(employee.getSignatureValidUntil());
-
         return form;
     }
+
     @Transactional
     public void requestUpdate(Long id) {
-        Employee employee = employeeRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Employee not found"));
-
+        Employee employee = getEmployee(id);
         employee.setUpdateRequestStatus(true);
         employeeRepository.save(employee);
     }
 
     @Transactional
     public void updateRequestStatus(Long id, boolean status) {
-        Employee employee = employeeRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Employee not found"));
-
+        Employee employee = getEmployee(id);
         employee.setUpdateRequestStatus(status);
         employeeRepository.save(employee);
     }
-
-
-
-
-
 }

@@ -30,15 +30,15 @@
                         </div>
                         <div class="detail-item">
                             <dt>Designation</dt>
-                            <dd th:text="${request.designation}"></dd>
+                            <dd th:text="${request.designation.designationName}"></dd>
                         </div>
                         <div class="detail-item">
                             <dt>Department</dt>
-                            <dd th:text="${request.department}"></dd>
+                            <dd th:text="${request.department.departmentName}"></dd>
                         </div>
                         <div class="detail-item">
                             <dt>Branch</dt>
-                            <dd th:text="${request.branch}"></dd>
+                            <dd th:text="${request.branch.branchName}"></dd>
                         </div>
                         <div class="detail-item">
                             <dt>Status</dt>
@@ -50,11 +50,11 @@
                         </div>
                         <div class="detail-item">
                             <dt>Signature Valid From</dt>
-                            <dd th:text="${request.SignatureValidFrom}"></dd>
+                            <dd th:text="${#temporals.format(request.signatureValidFrom, 'dd-MMM-yyyy')}"></dd>
                         </div>
                         <div class="detail-item">
                             <dt>Signature Valid Until</dt>
-                            <dd th:text="${request.SignatureValidUntil}"></dd>
+                            <dd th:text="${#temporals.format(request.signatureValidUntil, 'dd-MMM-yyyy')}"></dd>
                         </div>
 
                     </dl>

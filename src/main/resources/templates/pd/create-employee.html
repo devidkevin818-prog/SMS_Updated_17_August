@@ -62,66 +62,73 @@
                         <div class="card-body">
 
                             <div class="row g-3">
+                                <div class="col-md-6"><label class="form-label" for="employeeCode">Employee code</label><input
+                                        class="form-control" id="employeeCode" th:field="*{employeeCode}"
+                                        placeholder="e.g. EMP001" required></div>
+                                <div class="col-md-6"><label class="form-label" for="employeeName">Employee name</label><input
+                                        class="form-control" id="employeeName" th:field="*{employeeName}"
+                                        placeholder="Full legal name" required></div>
 
-                                <div class="col-md-6">
-                                    <label class="form-label" for="employeeCode">
-                                        Employee code
-                                    </label>
 
-                                    <div class="input-group">
-                                        <span class="input-group-text">UB_PLC</span>
-                                        <input class="form-control" id="employeeCode" th:field="*{employeeCode}"
-                                               inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6"
-                                               placeholder="000001" title="Enter exactly 6 digits" required>
-                                    </div>
-                                </div>
-
-                                <div class="col-md-6">
-                                    <label class="form-label" for="employeeName">
-                                        Employee name
-                                    </label>
-
-                                    <input class="form-control"
-                                           id="employeeName"
-                                           th:field="*{employeeName}"
-                                           placeholder="Full legal name"
-                                           required>
-                                </div>
 
                                 <div class="col-md-6">
                                     <label class="form-label" for="designation">
                                         Designation
                                     </label>
 
-                                    <input class="form-control"
-                                           id="designation"
-                                           th:field="*{designation}"
-                                           placeholder="Current job title"
-                                           required>
+                                    <select class="form-select"
+                                            id="designation"
+                                            th:field="*{designation}"
+                                            required>
+
+                                        <option value="">Select Designation</option>
+
+                                        <option th:each="designation : ${designations}"
+                                                th:value="${designation.designationId}"
+                                                th:text="${designation.designationName}">
+                                        </option>
+
+                                    </select>
                                 </div>
+
 
                                 <div class="col-md-6">
                                     <label class="form-label" for="department">
                                         Department
                                     </label>
 
-                                    <input class="form-control"
-                                           id="department"
-                                           th:field="*{department}"
-                                           placeholder="Department name"
-                                           required>
+                                    <select class="form-select"
+                                            id="department"
+                                            th:field="*{department}"
+                                            required>
+
+                                        <option value="">Select Department</option>
+
+                                        <option th:each="department : ${departments}"
+                                                th:value="${department.departmentId}"
+                                                th:text="${department.departmentName}">
+                                        </option>
+
+                                    </select>
                                 </div>
 
-                                <div class="col-md-6">
-                                    <label class="form-label" for="branch">
-                                        Branch
-                                    </label>
 
-                                    <input class="form-control"
-                                           id="branch"
-                                           th:field="*{branch}"
-                                           placeholder="Branch name or code"
-                                           required>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="branch">Branch</label>
+
+                                    <select class="form-select"
+                                            id="branch"
+                                            th:field="*{branch}"
+                                            required>
+
+                                        <option value="">Select Branch</option>
+
+                                        <option th:each="branch : ${branches}"
+                                                th:value="${branch.branchId}"
+                                                th:text="${branch.branchName}">
+                                        </option>
+
+                                    </select>
                                 </div>
                                 <!-- Activity Status -->
                                 <div class="col-md-6">
@@ -145,18 +152,11 @@
                                 </div>
 
 
-                                <div class="col-md-6">
-                                    <label class="form-label" for="remark">
-                                        Submission remark
-                                    </label>
 
-                                    <input class="form-control"
-                                           id="remark"
-                                           th:field="*{remark}"
-                                           placeholder="Reason for this request"
-                                           required>
-                                </div>
 
+                                <div class="col-md-6"><label class="form-label" for="remark">Submission
+                                    remark</label><input class="form-control" id="remark" th:field="*{remark}"
+                                                         placeholder="Reason for this request" required></div>
                             </div>
                         </div>
                     </div>
