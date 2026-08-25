@@ -18,6 +18,33 @@ public class EmployeeService {
     }
 
 
+<<<<<<< HEAD
+=======
+    @Transactional(readOnly = true)
+    public Employee getEmployee(Long id) {
+        return employeeRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Employee not found"));
+    }
+
+    @Transactional(readOnly = true)
+    public EmployeeUpdateForm getUpdateForm(Long id) {
+
+        Employee employee = employeeRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Employee not found"));
+
+        EmployeeUpdateForm form = new EmployeeUpdateForm();
+
+        form.setEmployeeCode(EmployeeNumberFormat.editablePart(employee.getEmployeeNumber()));
+        form.setEmployeeName(employee.getFullName());
+        form.setDesignation(employee.getDesignation());
+        form.setDepartment(employee.getDepartment());
+        form.setBranch(employee.getBranchCode());
+
+        form.setSignatureValidFrom(employee.getSignatureValidFrom());
+        form.setSignatureValidUntil(employee.getSignatureValidUntil());
+
+        return form;
+    }
+>>>>>>> 902a0ff191f065118ce7dffba299f0b0c67231a8
     @Transactional
     public void requestUpdate(Long id) {
         Employee employee = employeeRepository.findById(id)

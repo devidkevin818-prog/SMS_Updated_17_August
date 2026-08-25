@@ -2,12 +2,15 @@ package com.bank.signaturemanagement.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 
 public class EmployeeRequestForm {
-    @NotBlank private String employeeCode;
+    @NotBlank
+    @Pattern(regexp = "\\d{6}", message = "Employee number must contain exactly 6 digits")
+    private String employeeCode;
     @NotBlank private String employeeName;
     @NotBlank private String designation;
     @NotBlank private String department;
@@ -15,6 +18,16 @@ public class EmployeeRequestForm {
     @NotBlank private String remark;
     private MultipartFile photo;
     private MultipartFile signature;
+    private MultipartFile foreignSignature;
+
+    public MultipartFile getForeignSignature() {
+        return foreignSignature;
+    }
+
+    public void setForeignSignature(MultipartFile foreignSignature) {
+        this.foreignSignature = foreignSignature;
+    }
+
 
     @NotNull(message = "Signature valid-from date is required")
     private LocalDate signatureValidFrom;

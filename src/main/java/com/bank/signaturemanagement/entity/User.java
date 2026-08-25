@@ -21,6 +21,9 @@ public class User {
     @Column(name = "full_name", nullable = false, length = 100)
     private String fullName;
 
+    @Column(name = "employee_number", length = 30)
+    private String employeeNumber;
+
     @Column(nullable = false, unique = true, length = 100)
     private String email;
 
@@ -44,6 +47,9 @@ public class User {
 
     @Column(name = "must_change_password", nullable = false)
     private boolean mustChangePassword = true;
+
+    @Column(name = "last_login_at")
+    private LocalDateTime lastLoginAt;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
@@ -79,6 +85,9 @@ public class User {
         this.fullName = fullName;
     }
 
+    public String getEmployeeNumber() { return employeeNumber; }
+    public void setEmployeeNumber(String employeeNumber) { this.employeeNumber = employeeNumber; }
+
     public String getEmail() {
         return email;
     }
@@ -110,6 +119,9 @@ public class User {
     public void setMustChangePassword(boolean mustChangePassword) {
         this.mustChangePassword = mustChangePassword;
     }
+
+    public LocalDateTime getLastLoginAt() { return lastLoginAt; }
+    public void setLastLoginAt(LocalDateTime lastLoginAt) { this.lastLoginAt = lastLoginAt; }
 
     public LocalDateTime getCreatedAt() {
         return createdAt;

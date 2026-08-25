@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
+<<<<<<< HEAD
 <head th:replace="~{fragments/head :: head('Employee Card')}"></head>
 <body>
 <header th:replace="~{fragments/navbar :: navbar('BRANCH')}"></header>
@@ -24,10 +25,106 @@
                 <section><h2 class="employee-name" th:text="${employee.fullName}"></h2>
                     <div class="employee-designation" th:text="${employee.designation.designationName}"></div>
                     <table class="id-details">
+=======
+
+<head th:replace="~{fragments/head :: head('Employee Card')}"></head>
+
+<body>
+
+<header th:replace="~{fragments/navbar :: navbar('BRANCH')}"></header>
+
+<aside th:replace="~{fragments/sidebar :: sidebar('BRANCH','search')}"></aside>
+
+<main class="app-main">
+
+    <div class="content-wrap">
+
+        <!-- Page Header -->
+        <div class="page-header">
+
+            <div>
+
+                <span class="page-eyebrow">
+                    Verified Employee
+                </span>
+
+                <h1 class="page-title">
+                    Official employee profile
+                </h1>
+
+                <p class="page-subtitle">
+                    GM-approved information and specimen signatures.
+                </p>
+
+            </div>
+
+            <a class="btn btn-soft"
+               th:href="@{/branch/dashboard}">
+
+                <i class="bi bi-arrow-left me-2"></i>
+                Back to search
+
+            </a>
+
+        </div>
+
+
+        <!-- Employee Card -->
+        <article class="employee-id-card">
+
+            <!-- Card Header -->
+            <header class="id-card-header">
+
+                <div class="id-bank-brand">
+
+                    <img th:src="@{/css/images/uttara-bank-limited-seeklogo.png}"
+                         alt="Uttara Bank Limited">
+
+                </div>
+
+                <span class="id-card-mark">
+
+                    <i class="bi bi-patch-check-fill me-1"></i>
+                    Verified profile
+
+                </span>
+
+            </header>
+
+
+            <!-- Card Body -->
+            <div class="id-card-body">
+
+                <!-- Employee Photo -->
+                <div class="employee-photo-wrap">
+
+                    <img class="employee-photo"
+                         th:src="@{'/uploads/' + ${employee.photoPath}}"
+                         alt="Employee photo">
+
+                </div>
+
+
+                <!-- Employee Information -->
+                <section>
+
+                    <h2 class="employee-name"
+                        th:text="${employee.fullName}">
+                    </h2>
+
+                    <div class="employee-designation"
+                         th:text="${employee.designation}">
+                    </div>
+
+
+                    <table class="id-details">
+
+>>>>>>> 902a0ff191f065118ce7dffba299f0b0c67231a8
                         <tr>
                             <th>Employee code</th>
                             <td th:text="${employee.employeeNumber}"></td>
                         </tr>
+<<<<<<< HEAD
                         <tr>
                             <th>Department</th>
                             <td th:text="${employee.department.departmentName}"></td>
@@ -48,5 +145,185 @@
 </main>
 <footer th:replace="~{fragments/layout :: footer}"></footer>
 <div th:replace="~{fragments/layout :: scripts}"></div>
+=======
+
+                        <tr>
+                            <th>Department</th>
+                            <td th:text="${employee.department}"></td>
+                        </tr>
+
+                        <tr>
+                            <th>Branch</th>
+                            <td th:text="${employee.branchCode}"></td>
+                        </tr>
+
+                    </table>
+
+
+                    <!-- Signatures -->
+                    <div class="employee-signatures">
+
+                        <!-- Approved Employee Signature -->
+                        <div class="signature-panel">
+
+                            <span>
+                                Approved specimen signature
+                            </span>
+
+                            <img th:src="@{'/uploads/' + ${employee.signaturePath}}"
+                                 alt="Approved signature">
+
+                        </div>
+
+
+                        <!-- Approved Foreign Signature -->
+                        <div class="signature-panel"
+                             th:if="${employee.foreignSignaturePath != null
+                                     and !#strings.isEmpty(employee.foreignSignaturePath)}">
+
+                            <span>
+                                Approved foreign signature
+                            </span>
+
+                            <!-- foreignSignaturePath already contains
+                                 foreign-signature/... -->
+                            <img th:src="@{'/uploads/' + ${employee.foreignSignaturePath}}"
+                                 alt="Approved foreign signature">
+
+                        </div>
+
+
+                        <!-- No Foreign Signature -->
+                        <div class="signature-panel signature-panel-empty"
+                             th:unless="${employee.foreignSignaturePath != null
+                                         and !#strings.isEmpty(employee.foreignSignaturePath)}">
+
+                            <span>
+                                Foreign signature
+                            </span>
+
+                            <div class="foreign-signature-empty">
+
+                                <i class="bi bi-pen"></i>
+
+                                <small>
+                                    No foreign signature available
+                                </small>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+            </div>
+
+
+            <!-- Card Footer -->
+            <footer class="id-card-footer">
+
+                <span>
+                    Employee Signature Management System
+                </span>
+
+                <span>
+                    Authorized internal use only
+                </span>
+
+            </footer>
+
+        </article>
+
+    </div>
+
+</main>
+
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+
+<div th:replace="~{fragments/layout :: scripts}"></div>
+
+
+<style>
+
+    .employee-signatures {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+        margin-top: 20px;
+    }
+
+    .signature-panel {
+        min-height: 170px;
+        padding: 16px;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        background: #fff;
+
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+
+        gap: 12px;
+    }
+
+    .signature-panel > span {
+        display: block;
+        width: 100%;
+
+        color: #64748b;
+        font-size: 13px;
+        font-weight: 600;
+
+        text-transform: uppercase;
+        letter-spacing: .04em;
+
+        text-align: center;
+    }
+
+    .signature-panel img {
+        display: block;
+        max-width: 100%;
+        max-height: 120px;
+        object-fit: contain;
+    }
+
+    .signature-panel-empty {
+        background: #f8fafc;
+    }
+
+    .foreign-signature-empty {
+        min-height: 100px;
+
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+
+        gap: 8px;
+
+        color: #94a3b8;
+    }
+
+    .foreign-signature-empty i {
+        font-size: 30px;
+    }
+
+
+    @media (max-width: 768px) {
+
+        .employee-signatures {
+            grid-template-columns: 1fr;
+        }
+
+    }
+
+</style>
+
+
+>>>>>>> 902a0ff191f065118ce7dffba299f0b0c67231a8
 </body>
 </html>

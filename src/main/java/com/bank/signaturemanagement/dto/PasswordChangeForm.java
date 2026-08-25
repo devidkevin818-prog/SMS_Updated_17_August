@@ -4,10 +4,10 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public class PasswordChangeForm {
-    @NotBlank private String currentPassword;
+    @NotBlank(message = "Current password is required") private String currentPassword;
     @NotBlank @Size(min = 8, message = "New password must contain at least 8 characters")
     private String newPassword;
-    @NotBlank private String confirmPassword;
+    @NotBlank(message = "Password confirmation is required") private String confirmPassword;
 
     public String getCurrentPassword() { return currentPassword; }
     public void setCurrentPassword(String currentPassword) { this.currentPassword = currentPassword; }

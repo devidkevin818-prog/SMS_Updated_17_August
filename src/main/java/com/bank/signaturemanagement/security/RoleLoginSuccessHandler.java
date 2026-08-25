@@ -1,5 +1,6 @@
 package com.bank.signaturemanagement.security;
 
+import com.bank.signaturemanagement.service.UserService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -11,9 +12,16 @@ import java.io.IOException;
 
 @Component
 public class RoleLoginSuccessHandler implements AuthenticationSuccessHandler {
+    private final UserService userService;
+
+    public RoleLoginSuccessHandler(UserService userService) {
+        this.userService = userService;
+    }
+
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException, ServletException {
+        userService.recordSuccessfulLogin(authentication.getName());
         String role = authentication.getAuthorities().iterator().next().getAuthority();
         String target = switch (role) {
             case "ROLE_ADMIN" -> "/admin/dashboard";

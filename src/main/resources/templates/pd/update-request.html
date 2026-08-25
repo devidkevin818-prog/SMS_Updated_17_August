@@ -45,7 +45,7 @@
         <!-- UPDATE FORM - ONLY SHOW WHEN updateRequestStatus = TRUE -->
         <!-- ========================================================= -->
 
-        <div th:if="${!request.updatedAfterRejection}">
+        <div th:if="${request.updateRequestStatus}">
 
             <form th:action="@{/pd/requests/{id}/update(id=${request.id})}"
                   th:object="${request}"
@@ -66,7 +66,7 @@
 
                         <div class="row g-3">
 
-                            <!-- Request ID - READ ONLY -->
+                            <!-- Request ID -->
                             <div class="col-md-4">
 
                                 <label class="form-label">
@@ -89,11 +89,13 @@
                                     Employee Code
                                 </label>
 
-                                <input type="text"
-                                       id="employeeCode"
-                                       class="form-control"
-                                       th:field="*{employeeCode}"
-                                       required>
+                                <div class="input-group">
+                                    <span class="input-group-text">UB_PLC</span>
+                                    <input type="text" id="employeeCode" class="form-control"
+                                           th:field="*{employeeCode}" inputmode="numeric" pattern="[0-9]{6}"
+                                           minlength="6" maxlength="6" placeholder="000001"
+                                           title="Enter exactly 6 digits" required>
+                                </div>
 
                                 <div class="text-danger small"
                                      th:if="${#fields.hasErrors('employeeCode')}"
@@ -103,7 +105,7 @@
                             </div>
 
 
-                            <!-- Status - READ ONLY -->
+                            <!-- Status -->
                             <div class="col-md-4">
 
                                 <label class="form-label">
@@ -310,6 +312,86 @@
                             </div>
 
 
+                            <!-- Foreign Signature -->
+                            <div class="col-md-6">
+
+                                <label class="form-label">
+                                    Foreign Signature
+                                    <span class="text-muted">(Optional)</span>
+                                </label>
+
+                                <div class="border rounded p-3 bg-light text-center"
+                                     style="min-height: 250px;">
+
+                                    <!-- Show existing foreign signature -->
+                                    <img th:if="${request.foreignSignaturePath != null
+                                                 and !#strings.isEmpty(request.foreignSignaturePath)}"
+                                         th:src="@{'/uploads/' + ${request.foreignSignaturePath}}"
+                                         alt="Foreign Signature"
+                                         class="img-fluid"
+                                         style="max-height: 220px;
+                                                max-width: 100%;
+                                                object-fit: contain;"
+                                         onerror="this.style.display='none';">
+
+                                    <!-- Show when no foreign signature exists -->
+                                    <div th:unless="${request.foreignSignaturePath != null
+                                                     and !#strings.isEmpty(request.foreignSignaturePath)}"
+                                         class="text-muted py-5">
+
+                                        <i class="bi bi-pen"
+                                           style="font-size: 2rem;">
+                                        </i>
+
+                                        <div class="mt-2">
+                                            No foreign signature available
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <small class="text-muted">
+                                    Existing foreign signature will be retained
+                                    if no new file is uploaded.
+                                </small>
+
+                                <!-- New Foreign Signature -->
+                                <label for="foreignSignature"
+                                       class="form-label mt-3">
+                                    New Foreign Signature
+                                    <span class="text-muted">(Optional)</span>
+                                </label>
+
+                                <input type="file"
+                                       id="foreignSignature"
+                                       name="foreignSignature"
+                                       class="form-control image-preview-input"
+                                       accept="image/jpeg,image/png"
+                                       data-preview-target="foreignSignaturePreview"
+                                       data-error-target="foreignSignatureError">
+
+
+                                <small class="form-hint">
+                                    Optional. JPG or PNG.
+                                </small>
+
+                                <small class="upload-error"
+                                       id="foreignSignatureError"
+                                       role="alert">
+                                </small>
+
+                                <div class="upload-preview upload-preview-signature mt-2"
+                                     id="foreignSignaturePreview"
+                                     hidden>
+
+                                    <img alt="New foreign signature preview">
+
+                                </div>
+
+                            </div>
+
+
                             <!-- New Remark -->
                             <div class="col-12">
 
@@ -363,7 +445,6 @@
 
                         <div class="d-flex justify-content-end gap-2">
 
-                            <!-- Cancel -->
                             <a class="btn btn-soft"
                                th:href="@{/pd/requests}">
 
@@ -373,7 +454,6 @@
                             </a>
 
 
-                            <!-- Submit -->
                             <button type="submit"
                                     class="btn btn-bank">
 

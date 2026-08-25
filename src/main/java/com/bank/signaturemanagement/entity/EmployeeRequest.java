@@ -22,6 +22,46 @@ public class EmployeeRequest {
     @Column(name = "employee_name", nullable = false, length = 100)
     private String employeeName;
 
+<<<<<<< HEAD
+=======
+    @Column(nullable = false, length = 100)
+    private String designation;
+
+    @Column(nullable = false, length = 100)
+    private String department;
+
+    @Column(nullable = false, length = 100)
+    private String branch;
+
+    @Column(name = "photo_path", nullable = false, length = 500)
+    private String photoPath;
+
+    @Column(name = "signature_path", nullable = false, length = 500)
+    private String signaturePath;
+
+    @Column(name = "foreign_signature_path", nullable = true,length = 500)
+    private String foreignSignaturePath;
+
+    public String getForeignSignaturePath() {
+        return foreignSignaturePath;
+    }
+
+    public void setForeignSignaturePath(String foreignSignaturePath) {
+        this.foreignSignaturePath = foreignSignaturePath;
+    }
+
+
+    @Column(name = "signature_valid_from", nullable = false)
+    private LocalDate signatureValidFrom;
+
+    @Column(name = "signature_valid_until", nullable = false)
+    private LocalDate signatureValidUntil;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 30)
+    private RequestStatus status = RequestStatus.PENDING_DGM;
+
+>>>>>>> 902a0ff191f065118ce7dffba299f0b0c67231a8
     @Column(name = "update_request_status", nullable = false)
     private boolean updateRequestStatus = false;
 
@@ -197,6 +237,7 @@ public class EmployeeRequest {
     public void setRemark(String remark) {
         this.remark = remark;
     }
+<<<<<<< HEAD
 
     public LocalDateTime getRequestedAt() {
         return requestedAt;
@@ -210,3 +251,15 @@ public class EmployeeRequest {
         this.completedAt = completedAt;
     }
 }
+=======
+    public RequestStatus getStatus() { return status; }
+    public void setStatus(RequestStatus status) { this.status = status; }
+    public String getRemark() { return remark; }
+    public void setRemark(String remark) { this.remark = remark; }
+    public LocalDateTime getRequestedAt() { return requestedAt; }
+    public LocalDateTime getCompletedAt() { return completedAt; }
+    public void setCompletedAt(LocalDateTime completedAt) { this.completedAt = completedAt; }
+
+
+}
+>>>>>>> 902a0ff191f065118ce7dffba299f0b0c67231a8

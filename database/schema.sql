@@ -1,9 +1,36 @@
 /*
  Employee Signature Management System - Microsoft SQL Server schema
 
+<<<<<<< HEAD
  Run this complete file in SQL Server Management Studio or IntelliJ's SQL console.
  It creates the database when necessary, creates the application tables, adds indexes,
  and inserts the application roles. Existing tables and roles are left unchanged.
+=======
+ PURPOSE
+ -------
+ This script creates or upgrades EmployeeSignatureDB without deleting existing
+ business data. It is designed to be safe to run more than once.
+
+ WHAT "SAFE TO RE-RUN" MEANS HERE
+ ---------------------------------
+ 1. The database is created only when it does not already exist.
+ 2. Tables are created only when they do not already exist.
+ 3. Columns are added only when they do not already exist.
+ 4. Indexes and constraints are created only when missing.
+ 5. Seed/master data is inserted only when the value does not already exist.
+ 6. Existing non-NULL business values are not overwritten.
+ 7. No DROP TABLE, DELETE, TRUNCATE, or destructive reset is performed.
+
+ IMPORTANT COMPATIBILITY NOTE
+ ----------------------------
+ The schema intentionally keeps legacy text columns such as designation,
+ department, branch/branch_code and signature_path because the existing
+ application may still use them. Lookup tables are retained alongside them.
+
+ Run this complete file in SQL Server Management Studio (SSMS) or a SQL Server
+ console that supports GO batch separators.
+===============================================================================
+>>>>>>> 902a0ff191f065118ce7dffba299f0b0c67231a8
 */
 
 USE
@@ -42,11 +69,23 @@ CREATE TABLE dbo.users
     username             VARCHAR(50)  NOT NULL,
     password_hash        VARCHAR(255) NOT NULL,
     full_name            VARCHAR(100) NOT NULL,
+    employee_number      VARCHAR(30)  NULL,
     email                VARCHAR(100) NOT NULL,
     role_id              BIGINT       NOT NULL,
+<<<<<<< HEAD
     active               BIT          NOT NULL CONSTRAINT df_users_active DEFAULT (1),
     must_change_password BIT          NOT NULL CONSTRAINT df_users_must_change_password DEFAULT (1),
     created_at           DATETIME2    NOT NULL CONSTRAINT df_users_created_at DEFAULT (SYSDATETIME()),
+=======
+    active               BIT NOT NULL
+        CONSTRAINT df_users_active DEFAULT (1),
+    must_change_password BIT NOT NULL
+        CONSTRAINT df_users_must_change_password DEFAULT (1),
+    last_login_at        DATETIME2 NULL,
+    branch_id            NVARCHAR(100) NULL,
+    created_at           DATETIME2 NOT NULL
+        CONSTRAINT df_users_created_at DEFAULT (SYSDATETIME()),
+>>>>>>> 902a0ff191f065118ce7dffba299f0b0c67231a8
 
     CONSTRAINT pk_users PRIMARY KEY (id),
     CONSTRAINT uq_users_username UNIQUE (username),
@@ -56,8 +95,53 @@ CREATE TABLE dbo.users
 END;
 GO
 
+<<<<<<< HEAD
 -- Upgrade databases created before first-login password changes were introduced.
 IF COL_LENGTH('dbo.users', 'must_change_password') IS NULL
+=======
+/* Last successful authentication; null means the account has never logged in. */
+IF COL_LENGTH(N'dbo.users', N'last_login_at') IS NULL
+BEGIN
+ALTER TABLE dbo.users ADD last_login_at DATETIME2 NULL;
+END;
+GO
+
+/* Upgrade older users table: employee ID is optional for existing accounts. */
+IF COL_LENGTH(N'dbo.users', N'employee_number') IS NULL
+BEGIN
+ALTER TABLE dbo.users ADD employee_number VARCHAR(30) NULL;
+END;
+GO
+
+IF EXISTS (
+    SELECT employee_number FROM dbo.users
+    WHERE employee_number IS NOT NULL
+    GROUP BY employee_number HAVING COUNT(*) > 1
+)
+THROW 51000, 'Duplicate users.employee_number values must be corrected before applying the unique index.', 1;
+GO
+
+IF EXISTS (
+    SELECT 1 FROM sys.indexes
+    WHERE name = N'ix_users_employee_number'
+      AND object_id = OBJECT_ID(N'dbo.users')
+      AND is_unique = 0
+)
+DROP INDEX ix_users_employee_number ON dbo.users;
+GO
+
+IF NOT EXISTS (
+    SELECT 1 FROM sys.indexes
+    WHERE name = N'ux_users_employee_number'
+      AND object_id = OBJECT_ID(N'dbo.users')
+)
+CREATE UNIQUE INDEX ux_users_employee_number ON dbo.users (employee_number)
+WHERE employee_number IS NOT NULL;
+GO
+
+/* Upgrade older users table: add first-login password flag when missing. */
+IF COL_LENGTH(N'dbo.users', N'must_change_password') IS NULL
+>>>>>>> 902a0ff191f065118ce7dffba299f0b0c67231a8
 BEGIN
 ALTER TABLE dbo.users
     ADD must_change_password BIT NOT NULL
@@ -65,7 +149,167 @@ ALTER TABLE dbo.users
 END;
 GO
 
+<<<<<<< HEAD
 IF OBJECT_ID('dbo.employee_requests', 'U') IS NULL
+=======
+/* Upgrade older users table: add branch_id only when missing. */
+IF COL_LENGTH(N'dbo.users', N'branch_id') IS NULL
+BEGIN
+ALTER TABLE dbo.users ADD branch_id NVARCHAR(100) NULL;
+END;
+GO
+
+/*
+ Do NOT overwrite existing branch assignments.
+ For older rows that have no branch, use Head Office's ID as text if available.
+ This preserves the legacy NVARCHAR(100) column type from the existing project.
+*/
+DECLARE @HeadOfficeBranchId NVARCHAR(100);
+SELECT @HeadOfficeBranchId = CONVERT(NVARCHAR(100), branch_id)
+FROM dbo.branches
+WHERE branch_name = N'Head Office';
+
+IF @HeadOfficeBranchId IS NOT NULL
+BEGIN
+UPDATE dbo.users
+SET branch_id = @HeadOfficeBranchId
+WHERE branch_id IS NULL;
+END;
+GO
+
+/*=============================================================================
+  SECTION 4 - EMPLOYEES
+=============================================================================*/
+
+/*-----------------------------------------------------------------------------
+  employees
+  Stores the currently approved/live employee profile and signature information.
+
+  employee_number         -> unique employee identifier
+  photo_path              -> current employee photo
+  signature_path          -> legacy/current primary signature path
+  local_signature_path    -> local signature image
+  foreign_signature_path  -> foreign signature image
+  signature_valid_*       -> validity period of approved signature
+  employee_status_id      -> Active / Inactive / Resign master status
+  update_request_status   -> whether an update workflow is currently active
+-----------------------------------------------------------------------------*/
+IF OBJECT_ID(N'dbo.employees', N'U') IS NULL
+BEGIN
+CREATE TABLE dbo.employees
+(
+    id                     BIGINT IDENTITY(1,1) NOT NULL,
+    employee_number        VARCHAR(30)  NOT NULL,
+    full_name              VARCHAR(100) NOT NULL,
+    designation            VARCHAR(100) NOT NULL,
+    department             VARCHAR(100) NOT NULL,
+    branch_code            VARCHAR(100) NOT NULL,
+    photo_path             VARCHAR(500) NOT NULL,
+    signature_path         VARCHAR(500) NOT NULL,
+    local_signature_path   VARCHAR(500) NULL,
+    foreign_signature_path VARCHAR(500) NULL,
+    signature_valid_from   DATE NULL,
+    signature_valid_until  DATE NULL,
+    employee_status_id     BIGINT NULL,
+    update_request_status  BIT NOT NULL
+        CONSTRAINT DF_employees_update_request_status DEFAULT (0),
+    created_at             DATETIME2 NOT NULL
+        CONSTRAINT df_employees_created_at DEFAULT (SYSDATETIME()),
+    updated_at             DATETIME2 NOT NULL
+        CONSTRAINT df_employees_updated_at DEFAULT (SYSDATETIME()),
+
+    CONSTRAINT pk_employees PRIMARY KEY (id),
+    CONSTRAINT uq_employees_number UNIQUE (employee_number),
+    CONSTRAINT fk_employees_status FOREIGN KEY (employee_status_id)
+        REFERENCES dbo.employee_status (status_id)
+);
+END;
+GO
+
+/* Upgrade existing employees table with fields introduced later. */
+IF COL_LENGTH(N'dbo.employees', N'signature_valid_from') IS NULL
+ALTER TABLE dbo.employees ADD signature_valid_from DATE NULL;
+GO
+
+IF COL_LENGTH(N'dbo.employees', N'signature_valid_until') IS NULL
+ALTER TABLE dbo.employees ADD signature_valid_until DATE NULL;
+GO
+
+IF COL_LENGTH(N'dbo.employees', N'update_request_status') IS NULL
+BEGIN
+ALTER TABLE dbo.employees
+    ADD update_request_status BIT NOT NULL
+    CONSTRAINT DF_employees_update_request_status DEFAULT (0) WITH VALUES;
+END;
+GO
+
+IF COL_LENGTH(N'dbo.employees', N'local_signature_path') IS NULL
+ALTER TABLE dbo.employees ADD local_signature_path VARCHAR(500) NULL;
+GO
+
+IF COL_LENGTH(N'dbo.employees', N'foreign_signature_path') IS NULL
+ALTER TABLE dbo.employees ADD foreign_signature_path VARCHAR(500) NULL;
+GO
+
+IF COL_LENGTH(N'dbo.employees', N'employee_status_id') IS NULL
+ALTER TABLE dbo.employees ADD employee_status_id BIGINT NULL;
+GO
+
+/* Add the employee-status FK only if it is missing and all values are valid. */
+IF NOT EXISTS
+(
+    SELECT 1
+    FROM sys.foreign_keys
+    WHERE parent_object_id = OBJECT_ID(N'dbo.employees')
+      AND name = N'fk_employees_status'
+)
+AND NOT EXISTS
+(
+    SELECT 1
+    FROM dbo.employees e
+    LEFT JOIN dbo.employee_status s ON s.status_id = e.employee_status_id
+    WHERE e.employee_status_id IS NOT NULL
+      AND s.status_id IS NULL
+)
+BEGIN
+ALTER TABLE dbo.employees WITH CHECK
+    ADD CONSTRAINT fk_employees_status
+    FOREIGN KEY (employee_status_id)
+    REFERENCES dbo.employee_status (status_id);
+END;
+GO
+
+/*
+ Fill ONLY missing validity values. Existing validity dates remain untouched.
+ This matches the previous project's intent while avoiding repeated overwrites.
+*/
+UPDATE dbo.employees
+SET signature_valid_from = CAST(GETDATE() AS DATE)
+WHERE signature_valid_from IS NULL;
+GO
+
+UPDATE dbo.employees
+SET signature_valid_until = DATEFROMPARTS(YEAR(GETDATE()) + 1, 12, 31)
+WHERE signature_valid_until IS NULL;
+GO
+
+/*=============================================================================
+  SECTION 5 - EMPLOYEE REQUEST / APPROVAL WORKFLOW
+=============================================================================*/
+
+/*-----------------------------------------------------------------------------
+  employee_requests
+  Staging/workflow table for a new employee or an employee update submitted by
+  PD and processed through DGM -> GM approval.
+
+  requested_by             -> user who submitted the request
+  target_employee_id       -> existing employee when this is an update request
+  status                   -> PENDING_DGM / PENDING_GM / APPROVED / REJECTED
+  updated_after_rejection  -> indicates resubmission/change after rejection
+  update_request_status    -> distinguishes/flags an employee update request
+-----------------------------------------------------------------------------*/
+IF OBJECT_ID(N'dbo.employee_requests', N'U') IS NULL
+>>>>>>> 902a0ff191f065118ce7dffba299f0b0c67231a8
 BEGIN
 CREATE TABLE dbo.employee_requests
 (
@@ -243,6 +487,7 @@ VALUES (N'Head Office'),
        (N'Rajshahi Branch'),
        (N'Khulna Branch');
 
+<<<<<<< HEAD
 ALTER TABLE dbo.users
     ADD branch_id NVARCHAR(100) NULL;
 
@@ -407,3 +652,13 @@ VALUES
     ('Deputy General Manager', 'Deputy General Manager', 1, GETDATE()),
     ('Senior Officer', 'Senior Officer', 1, GETDATE()),
     ('Officer', 'Officer', 1, GETDATE());
+=======
+SELECT signature_type_id, signature_type_name, active
+FROM dbo.signature_types
+ORDER BY signature_type_id;
+GO
+
+ALTER TABLE [dbo].[employee_media_versions]
+    ADD [foreign_signature_path] NVARCHAR(500) NULL;
+GO
+>>>>>>> 902a0ff191f065118ce7dffba299f0b0c67231a8
