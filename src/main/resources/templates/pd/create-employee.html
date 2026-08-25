@@ -130,6 +130,27 @@
 
                                     </select>
                                 </div>
+                                <!-- Activity Status -->
+                                <div class="col-md-6">
+                                    <label class="form-label"
+                                           for="statusId">
+                                        Activity Status
+                                    </label>
+                                    <select class="form-select"
+                                            id="statusId"
+                                            th:field="*{statusId}"
+                                            required>
+                                        <option th:each="status : ${employeeStatuses}"
+                                                th:value="${status.statusId}"
+                                                th:text="${status.statusName}">
+                                        </option>
+                                    </select>
+                                    <div class="text-danger"
+                                         th:if="${#fields.hasErrors('statusId')}"
+                                         th:errors="*{statusId}">
+                                    </div>
+                                </div>
+
 
 
 

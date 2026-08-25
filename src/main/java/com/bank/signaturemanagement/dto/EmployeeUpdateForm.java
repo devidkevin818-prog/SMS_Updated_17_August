@@ -19,6 +19,7 @@ public class EmployeeUpdateForm {
     private MultipartFile photo;
     private MultipartFile signature;
     private MultipartFile foreignSignature;
+    private Integer statusId;
 
     public MultipartFile getForeignSignature() {
         return foreignSignature;
@@ -66,5 +67,13 @@ public class EmployeeUpdateForm {
 
     public void setSignatureValidUntil(LocalDate signatureValidUntil) {
         this.signatureValidUntil = signatureValidUntil;
+    }
+
+    public Integer getStatusId() {
+        return statusId;
+    }
+
+    public void setStatusId(Integer statusId) {
+        this.statusId = statusId;
     }
 }

@@ -26,6 +26,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import com.bank.signaturemanagement.repository.EmployeeStatusRepository;
+
 
 @Controller
 @RequestMapping("/pd")
@@ -62,12 +64,21 @@ public class PdController {
 
     @GetMapping("/employees/new")
     public String createForm(Model model) {
+
         if (!model.containsAttribute("employeeRequestForm")) {
-            model.addAttribute("employeeRequestForm", new EmployeeRequestForm());
+
+            EmployeeRequestForm form = new EmployeeRequestForm();
+            // Active is the default status for a new employee
+            form.setStatusId(1);
+            model.addAttribute(
+                    "employeeRequestForm",
+                    form
+            );
         }
         addReferenceData(model);
         return "pd/create-employee";
     }
+
 
     @PostMapping("/employees")
     public String create(
@@ -82,12 +93,17 @@ public class PdController {
                 redirectAttributes.addFlashAttribute("success", "Employee request submitted to DGM");
                 return "redirect:/pd/requests";
             } catch (IllegalArgumentException | IllegalStateException exception) {
-                result.reject("request", exception.getMessage());
+
+                result.reject(
+                        "request",
+                        exception.getMessage()
+                );
             }
         }
         addReferenceData(model);
         return "pd/create-employee";
     }
+
 
     @GetMapping("/requests")
     public String requests(
@@ -141,6 +157,12 @@ public class PdController {
         model.addAttribute("employee", employeeService.getEmployee(id));
         model.addAttribute("employeeUpdateForm", employeeService.getUpdateForm(id));
         addReferenceData(model);
+
+        // Load activity statuses from database
+        model.addAttribute(
+                "employeeStatuses",
+                employeeStatusRepository.findAllByOrderByStatusIdAsc()
+        );
 
         if (rejectedRequestId != null) {
             Long targetEmployeeId = requestService.getTargetEmployeeIdForUpdate(

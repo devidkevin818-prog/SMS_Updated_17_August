@@ -48,6 +48,9 @@ public class EmployeeRequest {
     @JoinColumn(name = "branch", referencedColumnName = "branch_id")
     private Branch branch;
 
+    @Column(nullable = true, length = 100)
+    private int statusId;
+
     @Column(name = "photo_path", nullable = false, length = 500)
     private String photoPath;
 
