@@ -1,15 +1,11 @@
 package com.bank.signaturemanagement.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "Designation")
-@Getter
-@Setter
 public class Designation {
 
     @Id
@@ -28,4 +24,18 @@ public class Designation {
 
     @Column(name = "CreatedAt")
     private LocalDateTime createdAt;
+
+    public Designation() {
+    }
+
+    public Long getDesignationId() { return designationId; }
+    public void setDesignationId(Long designationId) { this.designationId = designationId; }
+    public String getDesignationName() { return designationName; }
+    public void setDesignationName(String designationName) { this.designationName = designationName; }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+    public Boolean getIsActive() { return isActive; }
+    public void setIsActive(Boolean active) { isActive = active; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }

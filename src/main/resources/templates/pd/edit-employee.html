@@ -6,7 +6,6 @@
 <aside th:replace="~{fragments/sidebar :: sidebar('PD','update')}"></aside>
 <main class="app-main">
     <div class="content-wrap">
-<<<<<<< HEAD
         <div class="page-header">
             <div><span class="page-eyebrow">Employee Maintenance</span>
                 <h1 class="page-title" th:text="'Edit ' + ${employee.fullName}">Edit employee</h1>
@@ -16,68 +15,6 @@
         <form th:action="@{/pd/employees/{id}/edit(id=${employee.id})}" th:object="${employeeUpdateForm}" method="post"
               enctype="multipart/form-data">
             <div class="alert alert-danger app-alert" th:if="${#fields.hasAnyErrors()}">
-=======
-
-        <!-- ==================== PAGE HEADER ==================== -->
-        <div class="page-header">
-
-            <div>
-
-                <span class="page-eyebrow"
-                      th:text="${rejectedRequestId != null
-                                ? 'Rejected Request Update'
-                                : 'Employee Maintenance'}">
-                    Employee Maintenance
-                </span>
-
-                <h1 class="page-title"
-                    th:text="'Edit ' + ${employee.fullName}">
-                    Edit employee
-                </h1>
-
-                <p class="page-subtitle"
-                   th:if="${rejectedRequestId == null}">
-                    Changes are saved as a request and applied after DGM and GM approval.
-                    Leave image fields empty to keep the existing images.
-                </p>
-
-                <p class="page-subtitle"
-                   th:if="${rejectedRequestId != null}">
-                    This request was rejected. Update the required information and
-                    submit it again for DGM and GM approval.
-                </p>
-
-            </div>
-
-            <a class="btn btn-soft"
-               th:href="@{/pd/requests}">
-                <i class="bi bi-x-lg me-2"></i>
-                Cancel
-            </a>
-
-        </div>
-
-
-        <!-- ==================== FORM ==================== -->
-
-        <form th:action="@{/pd/employees/{id}/edit(id=${employee.id})}"
-              th:object="${employeeUpdateForm}"
-              method="post"
-              enctype="multipart/form-data">
-
-            <!-- Rejected request ID -->
-            <input type="hidden"
-                   name="rejectedRequestId"
-                   th:if="${rejectedRequestId != null}"
-                   th:value="${rejectedRequestId}">
-
-
-            <!-- ==================== VALIDATION ERRORS ==================== -->
-
-            <div class="alert alert-danger app-alert"
-                 th:if="${#fields.hasAnyErrors()}">
-
->>>>>>> 902a0ff191f065118ce7dffba299f0b0c67231a8
                 <i class="bi bi-exclamation-triangle-fill"></i>
                 <div>
 
@@ -123,37 +60,13 @@
             <!-- ==================== MAIN CONTENT ==================== -->
 
             <div class="row g-4">
-<<<<<<< HEAD
-=======
-
-
-                <!-- ===================================================== -->
-                <!-- EMPLOYEE INFORMATION -->
-                <!-- ===================================================== -->
-
->>>>>>> 902a0ff191f065118ce7dffba299f0b0c67231a8
                 <section class="col-xl-8">
                     <div class="surface-card">
-<<<<<<< HEAD
                         <div class="card-header"><h2 class="h5 mb-0"><i
                                 class="bi bi-pencil-square text-success me-2"></i>Employee information</h2></div>
-=======
-
-                        <div class="card-header">
-
-                            <h2 class="h5 mb-0">
-                                <i class="bi bi-pencil-square text-success me-2"></i>
-                                Employee information
-                            </h2>
-
-                        </div>
-
-
->>>>>>> 902a0ff191f065118ce7dffba299f0b0c67231a8
                         <div class="card-body">
                             <div class="row g-3">
 
-<<<<<<< HEAD
                                 <div class="col-md-6">
                                     <label class="form-label" for="employeeCode">
                                         Employee code
@@ -166,32 +79,6 @@
 
                                 <div class="col-md-6">
                                     <label class="form-label" for="employeeName">
-=======
-
-                                <!-- Employee Code -->
-                                <div class="col-md-6">
-
-                                    <label class="form-label"
-                                           for="employeeCode">
-                                        Employee code
-                                    </label>
-
-                                    <div class="input-group">
-                                        <span class="input-group-text">UB_PLC</span>
-                                        <input class="form-control" id="employeeCode" th:field="*{employeeCode}"
-                                               inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6"
-                                               placeholder="000001" title="Enter exactly 6 digits" required>
-                                    </div>
-
-                                </div>
-
-
-                                <!-- Employee Name -->
-                                <div class="col-md-6">
-
-                                    <label class="form-label"
-                                           for="employeeName">
->>>>>>> 902a0ff191f065118ce7dffba299f0b0c67231a8
                                         Employee name
                                     </label>
                                     <input class="form-control"
@@ -201,7 +88,6 @@
 
                                 </div>
 
-<<<<<<< HEAD
                                 <div class="col-md-6">
                                     <label class="form-label" for="designation">
                                         Designation
@@ -255,62 +141,6 @@
                                 <!-- VALID FROM -->
                                 <div class="col-md-6">
                                     <label class="form-label" for="signatureValidFrom">
-=======
-
-                                <!-- Designation -->
-                                <div class="col-md-6">
-
-                                    <label class="form-label"
-                                           for="designation">
-                                        Designation
-                                    </label>
-
-                                    <input class="form-control"
-                                           id="designation"
-                                           th:field="*{designation}"
-                                           required>
-
-                                </div>
-
-
-                                <!-- Department -->
-                                <div class="col-md-6">
-
-                                    <label class="form-label"
-                                           for="department">
-                                        Department
-                                    </label>
-
-                                    <input class="form-control"
-                                           id="department"
-                                           th:field="*{department}"
-                                           required>
-
-                                </div>
-
-
-                                <!-- Branch -->
-                                <div class="col-md-6">
-
-                                    <label class="form-label"
-                                           for="branch">
-                                        Branch
-                                    </label>
-
-                                    <input class="form-control"
-                                           id="branch"
-                                           th:field="*{branch}"
-                                           required>
-
-                                </div>
-
-
-                                <!-- Signature Valid From -->
-                                <div class="col-md-6">
-
-                                    <label class="form-label"
-                                           for="signatureValidFrom">
->>>>>>> 902a0ff191f065118ce7dffba299f0b0c67231a8
                                         Signature Valid From
                                     </label>
 
@@ -319,13 +149,8 @@
                                            id="signatureValidFrom"
                                            name="signatureValidFrom"
                                            th:value="${employeeUpdateForm.signatureValidFrom != null
-<<<<<<< HEAD
                           ? employeeUpdateForm.signatureValidFrom.toString()
                           : ''}"
-=======
-                                               ? employeeUpdateForm.signatureValidFrom.toString()
-                                               : ''}"
->>>>>>> 902a0ff191f065118ce7dffba299f0b0c67231a8
                                            required>
 
                                     <div class="text-danger"
@@ -335,18 +160,9 @@
 
                                 </div>
 
-<<<<<<< HEAD
                                 <!-- VALID UNTIL -->
                                 <div class="col-md-6">
                                     <label class="form-label" for="signatureValidUntil">
-=======
-
-                                <!-- Signature Valid Until -->
-                                <div class="col-md-6">
-
-                                    <label class="form-label"
-                                           for="signatureValidUntil">
->>>>>>> 902a0ff191f065118ce7dffba299f0b0c67231a8
                                         Signature Valid Until
                                     </label>
 
@@ -355,13 +171,8 @@
                                            id="signatureValidUntil"
                                            name="signatureValidUntil"
                                            th:value="${employeeUpdateForm.signatureValidUntil != null
-<<<<<<< HEAD
                           ? employeeUpdateForm.signatureValidUntil.toString()
                           : ''}"
-=======
-                                               ? employeeUpdateForm.signatureValidUntil.toString()
-                                               : ''}"
->>>>>>> 902a0ff191f065118ce7dffba299f0b0c67231a8
                                            required>
 
                                     <div class="text-danger"
@@ -371,18 +182,9 @@
 
                                 </div>
 
-<<<<<<< HEAD
                                 <!-- REMARK -->
                                 <div class="col-12">
                                     <label class="form-label" for="remark">
-=======
-
-                                <!-- Remark -->
-                                <div class="col-12">
-
-                                    <label class="form-label"
-                                           for="remark">
->>>>>>> 902a0ff191f065118ce7dffba299f0b0c67231a8
                                         Update reason
                                     </label>
 
@@ -405,7 +207,6 @@
                         </div>
 
                     </div>
-<<<<<<< HEAD
                  </section>
                  <aside class="col-xl-4">
                      <div class="surface-card">
@@ -455,280 +256,3 @@
  <div th:replace="~{fragments/layout :: scripts}"></div>
  </body>
  </html>
-=======
-
-                </section>
-
-
-                <!-- ===================================================== -->
-                <!-- IMAGES -->
-                <!-- ===================================================== -->
-
-                <aside class="col-xl-4">
-
-                    <div class="surface-card">
-
-                        <div class="card-header">
-
-                            <h2 class="h5 mb-0">
-                                <i class="bi bi-images text-success me-2"></i>
-                                Current and replacement images
-                            </h2>
-
-                        </div>
-
-
-                        <div class="card-body">
-
-
-                            <!-- ================================================= -->
-                            <!-- EMPLOYEE PHOTO -->
-                            <!-- ================================================= -->
-
-                            <div class="file-upload mb-4">
-
-                                <label class="form-label">
-                                    Current employee photo
-                                </label>
-
-                                <div class="upload-preview">
-
-                                    <img th:src="@{'/uploads/' + ${employee.photoPath}}"
-                                         alt="Current employee photo">
-
-                                </div>
-
-
-                                <label class="form-label mt-3"
-                                       for="photo">
-                                    New employee photo
-                                </label>
-
-                                <input class="form-control image-preview-input"
-                                       id="photo"
-                                       type="file"
-                                       th:field="*{photo}"
-                                       accept="image/jpeg,image/png"
-                                       data-preview-target="photoPreview"
-                                       data-error-target="photoError">
-
-                                <small class="form-hint">
-                                    Optional. JPG or PNG.
-                                </small>
-
-                                <small class="upload-error"
-                                       id="photoError"
-                                       role="alert">
-                                </small>
-
-                                <div class="upload-preview"
-                                     id="photoPreview"
-                                     hidden>
-
-                                    <img alt="New employee photo preview">
-
-                                </div>
-
-                            </div>
-
-
-                            <!-- ================================================= -->
-                            <!-- EMPLOYEE SIGNATURE -->
-                            <!-- ================================================= -->
-
-                            <div class="file-upload mb-4">
-
-                                <label class="form-label">
-                                    Current signature
-                                </label>
-
-                                <div class="upload-preview upload-preview-signature">
-
-                                    <img th:src="@{'/uploads/' + ${employee.signaturePath}}"
-                                         alt="Current employee signature">
-
-                                </div>
-
-
-                                <label class="form-label mt-3"
-                                       for="signature">
-                                    New signature
-                                </label>
-
-                                <input class="form-control image-preview-input"
-                                       id="signature"
-                                       type="file"
-                                       th:field="*{signature}"
-                                       accept="image/jpeg,image/png"
-                                       data-preview-target="signaturePreview"
-                                       data-error-target="signatureError">
-
-                                <small class="form-hint">
-                                    Optional. JPG or PNG.
-                                </small>
-
-                                <small class="upload-error"
-                                       id="signatureError"
-                                       role="alert">
-                                </small>
-
-                                <div class="upload-preview upload-preview-signature"
-                                     id="signaturePreview"
-                                     hidden>
-
-                                    <img alt="New employee signature preview">
-
-                                </div>
-
-                            </div>
-
-
-                            <!-- ================================================= -->
-                            <!-- FOREIGN SIGNATURE -->
-                            <!-- ================================================= -->
-
-                            <div class="file-upload">
-
-                                <label class="form-label">
-
-                                    <i class="bi bi-pen me-1"></i>
-
-                                    Current foreign signature
-
-                                </label>
-
-
-                                <!-- Existing Foreign Signature -->
-
-                                <div class="upload-preview upload-preview-signature"
-                                     th:if="${employee.foreignSignaturePath != null
-                                             and !#strings.isEmpty(employee.foreignSignaturePath)}">
-
-                                    <!-- IMPORTANT:
-                                         Do NOT add /foreign-signature/
-                                         here because the database path
-                                         already contains it.
-                                    -->
-
-                                    <img th:src="@{'/uploads/' + ${employee.foreignSignaturePath}}"
-                                         alt="Current foreign signature">
-
-                                </div>
-
-
-                                <!-- No Foreign Signature -->
-
-                                <div class="text-muted"
-                                     th:unless="${employee.foreignSignaturePath != null
-                                                 and !#strings.isEmpty(employee.foreignSignaturePath)}">
-
-                                    <i class="bi bi-dash-circle me-1"></i>
-
-                                    No foreign signature available
-
-                                </div>
-
-
-                                <!-- New Foreign Signature -->
-
-                                <label class="form-label mt-3"
-                                       for="foreignSignature">
-
-                                    New foreign signature
-
-                                    <span class="text-muted">
-                                        (Optional)
-                                    </span>
-
-                                </label>
-
-
-                                <input class="form-control image-preview-input"
-                                       id="foreignSignature"
-                                       type="file"
-                                       th:field="*{foreignSignature}"
-                                       accept="image/jpeg,image/png"
-                                       data-preview-target="foreignSignaturePreview"
-                                       data-error-target="foreignSignatureError">
-
-
-                                <small class="form-hint">
-
-                                    Optional. JPG or PNG.
-                                    Leave empty to keep the existing
-                                    foreign signature.
-
-                                </small>
-
-
-                                <small class="upload-error"
-                                       id="foreignSignatureError"
-                                       role="alert">
-                                </small>
-
-
-                                <!-- New Foreign Signature Preview -->
-
-                                <div class="upload-preview upload-preview-signature"
-                                     id="foreignSignaturePreview"
-                                     hidden>
-
-                                    <img alt="New foreign signature preview">
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </aside>
-
-            </div>
-
-
-            <!-- ==================== ACTIONS ==================== -->
-
-            <div class="d-flex justify-content-end gap-2 mt-4">
-
-                <a class="btn btn-soft"
-                   th:href="@{/pd/requests}">
-
-                    <i class="bi bi-arrow-left me-2"></i>
-
-                    Cancel
-
-                </a>
-
-
-                <button class="btn btn-bank"
-                        type="submit">
-
-                    <i class="bi bi-check-lg me-2"></i>
-
-                    <span th:text="${rejectedRequestId != null
-                                    ? 'Resubmit for approval'
-                                    : 'Submit for approval'}">
-
-                        Submit for approval
-
-                    </span>
-
-                </button>
-
-            </div>
-
-        </form>
-
-    </div>
-</main>
-
-
-<footer th:replace="~{fragments/layout :: footer}"></footer>
-
-<div th:replace="~{fragments/layout :: scripts}"></div>
-
-</body>
-</html>
->>>>>>> 902a0ff191f065118ce7dffba299f0b0c67231a8

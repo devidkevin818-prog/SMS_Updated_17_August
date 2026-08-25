@@ -146,7 +146,6 @@
                             </div>
 
                         </td>
-<<<<<<< HEAD
                         <td><img class="approved-photo-thumbnail" th:src="@{'/uploads/'+${employee.photoPath}}"
                                  alt="Approved employee photo"></td>
                         <td><img class="approved-signature-thumbnail" th:src="@{'/uploads/'+${employee.signaturePath}}"
@@ -155,88 +154,6 @@
                         <td class="text-end"><a class="btn btn-sm btn-soft"
                                                 th:href="@{/pd/approved-signatures/{id}(id=${employee.id})}">View
                             Versions</a></td>
-=======
-
-
-                        <!-- ================================================= -->
-                        <!-- APPROVED PHOTO -->
-                        <!-- ================================================= -->
-
-                        <td>
-
-                            <img class="approved-photo-thumbnail"
-                                 th:src="@{'/uploads/' + ${employee.photoPath}}"
-                                 alt="Approved employee photo">
-
-                        </td>
-
-
-                        <!-- ================================================= -->
-                        <!-- APPROVED SIGNATURE -->
-                        <!-- ================================================= -->
-
-                        <td>
-
-                            <img class="approved-signature-thumbnail"
-                                 th:src="@{'/uploads/' + ${employee.signaturePath}}"
-                                 alt="Approved employee signature">
-
-                        </td>
-
-
-                        <!-- ================================================= -->
-                        <!-- FOREIGN SIGNATURE -->
-                        <!-- ================================================= -->
-
-                        <td>
-
-                            <div th:if="${employee.foreignSignaturePath != null
-                                         and !#strings.isEmpty(employee.foreignSignaturePath)}">
-
-                                <img class="approved-signature-thumbnail"
-                                     th:src="@{'/uploads/' + ${employee.foreignSignaturePath}}"
-                                     alt="Approved foreign signature">
-
-                            </div>
-
-
-                            <span th:unless="${employee.foreignSignaturePath != null
-                                              and !#strings.isEmpty(employee.foreignSignaturePath)}"
-                                  class="text-muted">
-
-                                N/A
-
-                            </span>
-
-                        </td>
-
-
-                        <!-- ================================================= -->
-                        <!-- BRANCH -->
-                        <!-- ================================================= -->
-
-                        <td th:text="${employee.branchCode}">
-                            Branch
-                        </td>
-
-
-                        <!-- ================================================= -->
-                        <!-- ACTION -->
-                        <!-- ================================================= -->
-
-                        <td class="text-end">
-
-                            <a class="btn btn-sm btn-soft"
-                               th:href="@{/pd/approved-signatures/{id}(id=${employee.id})}">
-
-                                View Versions
-
-                            </a>
-
-                        </td>
-
-
->>>>>>> 902a0ff191f065118ce7dffba299f0b0c67231a8
                     </tr>
 
 
