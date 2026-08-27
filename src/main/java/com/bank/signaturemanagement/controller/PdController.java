@@ -4,6 +4,7 @@ import com.bank.signaturemanagement.dto.EmployeeRequestForm;
 import com.bank.signaturemanagement.dto.EmployeeUpdateForm;
 import com.bank.signaturemanagement.entity.Employee;
 import com.bank.signaturemanagement.entity.EmployeeRequest;
+import com.bank.signaturemanagement.entity.EmployeeSignatureSerialNumber;
 import com.bank.signaturemanagement.entity.RequestStatus;
 import com.bank.signaturemanagement.service.EmployeeService;
 import com.bank.signaturemanagement.service.EmployeeRequestService;
@@ -18,6 +19,9 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import com.bank.signaturemanagement.service.EmployeeSignatureSerialNumberService;
+import com.bank.signaturemanagement.dto.EmployeeSignatureSerialNumberDto;
+
 
 @Controller
 @RequestMapping("/pd")
@@ -27,16 +31,18 @@ public class PdController {
     private final EmployeeService employeeService;
     private final ApprovedSignaturePdfService pdfService;
     private final EmployeeMediaVersionRepository mediaVersionRepository;
+    private final EmployeeSignatureSerialNumberService signatureSerialNumberService;
 
     public PdController(EmployeeRequestService requestService,
                         EmployeeService employeeService,
                         ApprovedSignaturePdfService pdfService,
-                        EmployeeMediaVersionRepository mediaVersionRepository) {
+                        EmployeeMediaVersionRepository mediaVersionRepository, EmployeeSignatureSerialNumberService signatureSerialNumberService) {
 
         this.requestService = requestService;
         this.employeeService = employeeService;
         this.pdfService = pdfService;
         this.mediaVersionRepository = mediaVersionRepository;
+        this.signatureSerialNumberService = signatureSerialNumberService;
     }
 
     @GetMapping("/dashboard")
@@ -93,6 +99,7 @@ public class PdController {
                 )
         );
 
+
         return "pd/request-list";
     }
 
@@ -146,10 +153,8 @@ public class PdController {
                 employeeService.getEmployee(id)
         );
 
-        model.addAttribute(
-                "versions",
-                mediaVersionRepository.findByEmployeeIdOrderByVersionNumberDesc(id)
-        );
+
+
 
         return "pd/approved-signature-versions";
     }
@@ -197,6 +202,7 @@ public class PdController {
                     "rejectedRequestId",
                     rejectedRequestId
             );
+
         }
 
         return "pd/edit-employee";
@@ -258,6 +264,7 @@ public class PdController {
                 employeeService.getEmployee(id)
         );
 
+
         // Preserve rejected-request information if validation fails.
         if (rejectedRequestId != null) {
             model.addAttribute(
@@ -305,6 +312,7 @@ public class PdController {
 
         model.addAttribute("request", request);
         model.addAttribute("employee", employee);
+
 
         return "pd/update-request";
     }
@@ -387,6 +395,79 @@ public class PdController {
         model.addAttribute("request", request);
 
         return "pd/update-request";
+    }
+    @GetMapping("/signature-serial-numbers")
+    public String signatureSerialNumbers(
+            @RequestParam(defaultValue = "") String query,
+            @RequestParam(defaultValue = "0") int page,
+            Model model) {
+
+        model.addAttribute("query", query);
+
+        model.addAttribute(
+                "employees",
+                signatureSerialNumberService.getEmployeesWithSerialNumbers(
+                        query,
+                        page
+                )
+        );
+
+        return "pd/signature-serial-numbers";
+    }
+
+    @GetMapping("/signature-serial-numbers/{id}/edit")
+    public String editSignatureSerialNumber(
+            @PathVariable Long id,
+            Model model) {
+
+        EmployeeSignatureSerialNumber signatureSerialNumber =
+                signatureSerialNumberService.getByEmployeeId(id);
+
+        model.addAttribute("signatureSerialNumber", signatureSerialNumber);
+        model.addAttribute("employee",employeeService.getEmployee(id));
+
+        return "pd/edit-signature-serial-number";
+    }
+
+    // UPDATE
+    @PostMapping("/signature-serial-numbers/{id}/edit")
+    public String updateSignatureSerialNumber(
+            @PathVariable Long id,
+            @ModelAttribute("signatureSerialNumber")
+            EmployeeSignatureSerialNumber signatureSerialNumber,
+            Model model,
+            RedirectAttributes redirectAttributes) {
+
+        try {
+
+            signatureSerialNumberService.update(id, signatureSerialNumber);
+
+            redirectAttributes.addFlashAttribute(
+                    "success",
+                    "Signature serial number updated successfully"
+            );
+
+            return "redirect:/pd/signature-serial-numbers";
+
+        } catch (Exception e) {
+
+            model.addAttribute(
+                    "signatureSerialNumber",
+                    signatureSerialNumber
+            );
+
+            model.addAttribute(
+                    "employee",
+                    employeeService.getEmployee(id)
+            );
+
+            model.addAttribute(
+                    "error",
+                    "Serial number 2026 already exists. Please enter a different number."
+            );
+
+            return "pd/edit-signature-serial-number";
+        }
     }
 
 }

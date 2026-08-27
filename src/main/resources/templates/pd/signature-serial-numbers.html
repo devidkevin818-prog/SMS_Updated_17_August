@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/head :: head('Signature Serial Numbers')}"></head>
+
+<body>
+
+<header th:replace="~{fragments/navbar :: navbar('PD')}"></header>
+
+<aside th:replace="~{fragments/sidebar :: sidebar('PD','signature-serial-numbers')}"></aside>
+
+<main class="app-main">
+
+    <div class="content-wrap">
+
+        <!-- Page Header -->
+        <div class="page-header">
+
+            <div>
+                <span class="page-eyebrow">Signature Management</span>
+
+                <h1 class="page-title">
+                    Signature Serial Numbers
+                </h1>
+
+                <p class="page-subtitle">
+                    View and manage employee signature serial numbers for 2025 and 2026.
+                </p>
+            </div>
+
+        </div>
+
+
+        <!-- Success Message -->
+        <div class="alert alert-success app-alert"
+             th:if="${success}">
+
+            <i class="bi bi-check-circle-fill"></i>
+
+            <div>
+                <strong>Success</strong>
+
+                <div th:text="${success}">
+                    Serial number updated successfully.
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- Error Message -->
+        <div class="alert alert-danger app-alert"
+             th:if="${error}">
+
+            <i class="bi bi-exclamation-triangle-fill"></i>
+
+            <div>
+                <strong>Error</strong>
+
+                <div th:text="${error}">
+                    Unable to update serial number.
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- Search -->
+        <div class="surface-card mb-4">
+
+            <div class="card-body">
+
+                <form th:action="@{/pd/signature-serial-numbers}"
+                      method="get"
+                      class="row g-3 align-items-end">
+
+                    <div class="col-md-6">
+
+                        <label class="form-label" for="query">
+                            Search employee
+                        </label>
+
+                        <input
+                                class="form-control"
+                                id="query"
+                                name="query"
+                                type="text"
+                                th:value="${query}"
+                                placeholder="Employee ID or employee name">
+
+                    </div>
+
+                    <div class="col-auto">
+
+                        <button class="btn btn-bank"
+                                type="submit">
+
+                            <i class="bi bi-search me-2"></i>
+                            Search
+
+                        </button>
+
+                    </div>
+
+                    <div class="col-auto">
+
+                        <a class="btn btn-soft"
+                           th:href="@{/pd/signature-serial-numbers}">
+
+                            <i class="bi bi-arrow-counterclockwise me-2"></i>
+                            Reset
+
+                        </a>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+
+
+        <!-- Serial Number Table -->
+        <div class="surface-card">
+
+            <div class="card-header d-flex justify-content-between align-items-center">
+
+                <div>
+                    <h2 class="h5 mb-1">
+
+                        <i class="bi bi-123 text-success me-2"></i>
+
+                        Employee Signature Serial Numbers
+
+                    </h2>
+
+                    <p class="page-subtitle mb-0">
+                        Serial numbers must be unique within each year.
+                    </p>
+                </div>
+
+                <span class="badge bg-success"
+                      th:text="${employees.totalElements}">
+                    0
+                </span>
+
+            </div>
+
+
+            <div class="card-body p-0">
+
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead class="table-light">
+
+                        <tr>
+
+                            <th class="ps-4">
+                                Employee ID
+                            </th>
+
+                            <th>
+                                Employee Name
+                            </th>
+
+                            <th>
+                                Designation
+                            </th>
+
+                            <th class="text-center">
+                                2025 Serial
+                            </th>
+
+                            <th class="text-center">
+                                2026 Serial
+                            </th>
+
+                            <th class="text-end pe-4">
+                                Action
+                            </th>
+
+                        </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                        <tr th:each="record : ${employees.content}">
+
+                            <!-- Employee ID -->
+                            <td class="ps-4">
+
+                                <strong th:text="${record.employeeId}">
+                                    1
+                                </strong>
+
+                            </td>
+
+
+                            <!-- Employee Name -->
+                            <td>
+
+                                <span th:text="${record.fullName}">
+                                    Employee Name
+                                </span>
+
+                            </td>
+
+
+                            <!-- Designation -->
+                            <td>
+
+                                <span th:text="${record.designation}">
+                                    Officer
+                                </span>
+
+                            </td>
+
+
+                            <!-- 2025 Serial -->
+                            <td class="text-center">
+
+                                <span
+                                        th:if="${record.serialNumber2025 != null}"
+                                        class="badge bg-success-subtle text-success-emphasis fs-6"
+                                        th:text="${record.serialNumber2025}">
+                                    100
+                                </span>
+
+                                <span
+                                        th:unless="${record.serialNumber2025 != null}"
+                                        class="text-muted">
+                                    Not assigned
+                                </span>
+
+                            </td>
+
+
+                            <!-- 2026 Serial -->
+                            <td class="text-center">
+
+                                <span
+                                        th:if="${record.serialNumber2026 != null}"
+                                        class="badge bg-success-subtle text-success-emphasis fs-6"
+                                        th:text="${record.serialNumber2026}">
+                                    101
+                                </span>
+
+                                <span
+                                        th:unless="${record.serialNumber2026 != null}"
+                                        class="text-muted">
+                                    Not assigned
+                                </span>
+
+                            </td>
+
+
+                            <!-- Update -->
+                            <td class="text-end pe-4">
+
+                                <a
+                                        class="btn btn-sm btn-bank"
+                                        th:href="@{/pd/signature-serial-numbers/{id}/edit(id=${record.employeeId})}">
+
+                                    <i class="bi bi-pencil-square me-1"></i>
+                                    Update
+
+                                </a>
+
+                            </td>
+
+                        </tr>
+
+
+                        <!-- Empty State -->
+                        <tr th:if="${employees.empty}">
+
+                            <td colspan="6"
+                                class="text-center py-5">
+
+                                <div class="text-muted">
+
+                                    <i class="bi bi-person-x fs-1 d-block mb-3"></i>
+
+                                    <h5>
+                                        No employees found
+                                    </h5>
+
+                                    <p class="mb-0">
+                                        No employees matched your search.
+                                    </p>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+
+            <!-- Pagination -->
+            <div class="card-footer"
+                 th:if="${employees.totalPages > 1}">
+
+                <nav aria-label="Employee pagination">
+
+                    <ul class="pagination justify-content-end mb-0">
+
+                        <!-- Previous -->
+                        <li class="page-item"
+                            th:classappend="${employees.first} ? 'disabled'">
+
+                            <a class="page-link"
+                               th:href="@{/pd/signature-serial-numbers(
+                                   page=${employees.number - 1},
+                                   query=${query}
+                               )}">
+
+                                <i class="bi bi-chevron-left"></i>
+
+                            </a>
+
+                        </li>
+
+
+                        <!-- Page Numbers -->
+                        <li
+                                class="page-item"
+                                th:each="pageNumber : ${#numbers.sequence(0, employees.totalPages - 1)}"
+                                th:classappend="${pageNumber == employees.number} ? 'active'">
+
+                            <a
+                                    class="page-link"
+                                    th:href="@{/pd/signature-serial-numbers(
+                                        page=${pageNumber},
+                                        query=${query}
+                                    )}"
+                                    th:text="${pageNumber + 1}">
+                                1
+                            </a>
+
+                        </li>
+
+
+                        <!-- Next -->
+                        <li class="page-item"
+                            th:classappend="${employees.last} ? 'disabled'">
+
+                            <a class="page-link"
+                               th:href="@{/pd/signature-serial-numbers(
+                                   page=${employees.number + 1},
+                                   query=${query}
+                               )}">
+
+                                <i class="bi bi-chevron-right"></i>
+
+                            </a>
+
+                        </li>
+
+                    </ul>
+
+                </nav>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</main>
+
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+
+<div th:replace="~{fragments/layout :: scripts}"></div>
+
+</body>
+</html>

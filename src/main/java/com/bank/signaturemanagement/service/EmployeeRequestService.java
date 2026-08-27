@@ -4,6 +4,7 @@ import com.bank.signaturemanagement.dto.EmployeeRequestForm;
 import com.bank.signaturemanagement.dto.EmployeeUpdateForm;
 import com.bank.signaturemanagement.entity.*;
 import com.bank.signaturemanagement.repository.*;
+import jakarta.validation.constraints.Null;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -21,19 +22,21 @@ public class EmployeeRequestService {
     private final UserRepository userRepository;
     private final FileStorageService fileStorageService;
     private final EmployeeMediaVersionRepository mediaVersionRepository;
+    private final EmployeeSignatureSerialNumberService employeeSignatureSerialNumberService;
 
     public EmployeeRequestService(EmployeeRequestRepository requestRepository,
                                   EmployeeRepository employeeRepository,
                                   ApprovalHistoryRepository approvalRepository,
                                   UserRepository userRepository,
                                   FileStorageService fileStorageService,
-                                  EmployeeMediaVersionRepository mediaVersionRepository) {
+                                  EmployeeMediaVersionRepository mediaVersionRepository, EmployeeSignatureSerialNumberService employeeSignatureSerialNumberService) {
         this.requestRepository = requestRepository;
         this.employeeRepository = employeeRepository;
         this.approvalRepository = approvalRepository;
         this.userRepository = userRepository;
         this.fileStorageService = fileStorageService;
         this.mediaVersionRepository = mediaVersionRepository;
+        this.employeeSignatureSerialNumberService = employeeSignatureSerialNumberService;
     }
 
     @Transactional
@@ -222,6 +225,12 @@ public class EmployeeRequestService {
             );
 
             employee = employeeRepository.saveAndFlush(employee);
+
+
+            employeeSignatureSerialNumberService
+                    .saveEmptySerialNumber(employee);
+
+
 
             String approvedPhotoPath = fileStorageService.organizeEmployeeImage(
                     request.getPhotoPath(), "profile", employee.getId());

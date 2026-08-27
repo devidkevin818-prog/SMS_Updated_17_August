@@ -14,6 +14,16 @@
         <a th:if="${role == 'PD'}" th:href="@{/pd/employees}" th:classappend="${activePage == 'update'} ? ' active'" class="sidebar-link"><i class="bi bi-pencil-square"></i><span>Update Employee</span></a>
         <a th:if="${role == 'PD'}" th:href="@{/pd/approved-signatures}" th:classappend="${activePage == 'approved-signatures'} ? ' active'" class="sidebar-link"><i class="bi bi-person-badge-fill"></i><span>Approved Signatures</span></a>
         <a th:if="${role == 'PD'}" th:href="@{/employees}" th:classappend="${activePage == 'directory'} ? ' active'" class="sidebar-link"><i class="bi bi-person-vcard-fill"></i><span>Employee Directory</span></a>
+        <a th:if="${role == 'PD'}"
+           th:href="@{/pd/signature-serial-numbers}"
+           th:classappend="${activePage == 'signature-serial-numbers'} ? ' active'"
+           class="sidebar-link">
+
+            <i class="bi bi-123"></i>
+            <span>Signature Serial Numbers</span>
+
+        </a>
+
 
         <a th:if="${role == 'DGM'}" th:href="@{/dgm/dashboard}" th:classappend="${activePage == 'dashboard'} ? ' active'" class="sidebar-link"><i class="bi bi-grid-1x2-fill"></i><span>Dashboard</span></a>
         <a th:if="${role == 'DGM'}" th:href="@{/dgm/dashboard}" th:classappend="${activePage == 'approval'} ? ' active'" class="sidebar-link"><i class="bi bi-clipboard2-check-fill"></i><span>Pending Approval</span></a>
@@ -26,15 +36,20 @@
             <i class="bi bi-pencil-square"></i>
             <span>Update Employee</span>
         </a>
+        <a th:if="${role == 'DGM'}" th:href="@{/employees/signature-serial-numbers}" th:classappend="${activePage == 'directory'} ? ' active'" class="sidebar-link"><i class="bi bi-person-vcard-fill"></i><span>Signature Serial Directory</span></a>
+
 
         <a th:if="${role == 'GM'}" th:href="@{/gm/dashboard}" th:classappend="${activePage == 'dashboard'} ? ' active'" class="sidebar-link"><i class="bi bi-grid-1x2-fill"></i><span>Dashboard</span></a>
         <a th:if="${role == 'GM'}" th:href="@{/gm/dashboard}" th:classappend="${activePage == 'approval'} ? ' active'" class="sidebar-link"><i class="bi bi-patch-check-fill"></i><span>Pending Approval</span></a>
         <a th:if="${role == 'GM'}" th:href="@{/gm/approvals}" th:classappend="${activePage == 'history'} ? ' active'" class="sidebar-link"><i class="bi bi-clock-history"></i><span>My Decisions</span></a>
         <a th:if="${role == 'GM'}" th:href="@{/employees}" th:classappend="${activePage == 'directory'} ? ' active'" class="sidebar-link"><i class="bi bi-person-vcard-fill"></i><span>Employee Directory</span></a>
+        <a th:if="${role == 'GM'}" th:href="@{/employees/signature-serial-numbers}" th:classappend="${activePage == 'directory'} ? ' active'" class="sidebar-link"><i class="bi bi-person-vcard-fill"></i><span>Signature Serial Directory</span></a>
 
         <a th:if="${role == 'BRANCH'}" th:href="@{/branch/dashboard}" th:classappend="${activePage == 'dashboard'} ? ' active'" class="sidebar-link"><i class="bi bi-grid-1x2-fill"></i><span>Dashboard</span></a>
         <a th:if="${role == 'BRANCH'}" th:href="@{/branch/dashboard}" th:classappend="${activePage == 'search'} ? ' active'" class="sidebar-link"><i class="bi bi-search"></i><span>Search Employee</span></a>
         <a th:if="${role == 'BRANCH'}" th:href="@{/employees}" th:classappend="${activePage == 'directory'} ? ' active'" class="sidebar-link"><i class="bi bi-person-vcard-fill"></i><span>Employee Directory</span></a>
+        <a th:if="${role == 'BRANCH'}" th:href="@{/employees/signature-serial-numbers}" th:classappend="${activePage == 'directory'} ? ' active'" class="sidebar-link"><i class="bi bi-person-vcard-fill"></i><span>Signature Serial Directory</span></a>
+
     </nav>
     <div class="sidebar-security"><i class="bi bi-shield-check"></i><div><strong>Protected system</strong><small>Authorized access only</small></div></div>
 </aside>

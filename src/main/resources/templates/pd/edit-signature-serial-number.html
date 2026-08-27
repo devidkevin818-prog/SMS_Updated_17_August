@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Edit Signature Serial Number</title>
+    <script th:if="${error}">
+        alert("[[${error}]]");
+    </script>
+
+    <script th:if="${success}">
+        alert("[[${success}]]");
+    </script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f6fa;
+            margin: 0;
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        h2 {
+            margin-top: 0;
+            margin-bottom: 25px;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 7px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10px 12px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #2563eb;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        button,
+        .btn-cancel {
+            padding: 10px 18px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+        }
+
+        .btn-save {
+            background: #2563eb;
+            color: white;
+        }
+
+        .btn-save:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-cancel {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn-cancel:hover {
+            background: #4b5563;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h2>Edit Signature Serial Number</h2>
+
+    <form th:action="@{/pd/signature-serial-numbers/{id}/edit(id=${signatureSerialNumber.employeeId})}"
+          th:object="${signatureSerialNumber}"
+          method="post">
+
+        <!-- Employee ID -->
+        <input type="hidden"
+               th:field="*{employeeId}">
+
+
+        <!-- Serial Number 2025 -->
+        <div class="form-group">
+
+            <label for="serialNumber2025">
+                Serial Number 2025
+            </label>
+
+            <input type="number"
+                   id="serialNumber2025"
+                   th:field="*{serialNumber2025}"
+                   placeholder="Enter 2025 serial number"
+                   required>
+
+        </div>
+
+
+        <!-- Serial Number 2026 -->
+        <div class="form-group">
+
+            <label for="serialNumber2026">
+                Serial Number 2026
+            </label>
+
+            <input type="number"
+                   id="serialNumber2026"
+                   th:field="*{serialNumber2026}"
+                   placeholder="Enter 2026 serial number"
+                   required>
+
+        </div>
+
+
+        <!-- Buttons -->
+        <div class="buttons">
+
+            <button type="submit"
+                    class="btn-save">
+                Update
+            </button>
+
+            <a th:href="@{/pd/signature-serial-numbers}"
+               class="btn-cancel">
+                Cancel
+            </a>
+
+        </div>
+
+    </form>
+
+</div>
+<div th:if="${error}"
+     id="errorPopup"
+     th:text="${error}"
+     style="
+        background:#dc2626;
+        color:white;
+        padding:15px;
+        border-radius:5px;
+        margin-bottom:20px;
+        text-align:center;
+     ">
+</div>
+
+
+<div th:if="${success}"
+     id="successPopup"
+     th:text="${success}"
+     style="
+        background:#16a34a;
+        color:white;
+        padding:15px;
+        border-radius:5px;
+        margin-bottom:20px;
+        text-align:center;
+     ">
+</div>
+
+
+</body>
+</html>
