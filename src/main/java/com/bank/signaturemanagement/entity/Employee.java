@@ -77,6 +77,22 @@ public class Employee {
     @Column(name = "update_request_status")
     private Boolean updateRequestStatus = false;
 
+    @Column(name = "locked", nullable = false)
+    private boolean locked;
+
+    @Column(name = "classification", nullable = false, length = 10)
+    private String classification = "BOTH";
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "status_id")
+    private EmployeeStatus employeeStatus;
+
+    @Column(name = "joining_date")
+    private LocalDate joiningDate;
+
+    @Column(name = "active", nullable = false)
+    private boolean active = true;
+
     public Boolean getUpdateRequestStatus() { return updateRequestStatus; }
     public void setUpdateRequestStatus(Boolean updateRequestStatus) {
         this.updateRequestStatus = updateRequestStatus;
@@ -143,5 +159,15 @@ public class Employee {
     public void setSignatureValidUntil(LocalDate signatureValidUntil) {
         this.signatureValidUntil = signatureValidUntil;
     }
+    public boolean isLocked() { return locked; }
+    public void setLocked(boolean locked) { this.locked = locked; }
+    public String getClassification() { return classification; }
+    public void setClassification(String classification) { this.classification = classification; }
+    public EmployeeStatus getEmployeeStatus() { return employeeStatus; }
+    public void setEmployeeStatus(EmployeeStatus employeeStatus) { this.employeeStatus = employeeStatus; }
+    public LocalDate getJoiningDate() { return joiningDate; }
+    public void setJoiningDate(LocalDate joiningDate) { this.joiningDate = joiningDate; }
+    public boolean isActive() { return active; }
+    public void setActive(boolean active) { this.active = active; }
 
 }

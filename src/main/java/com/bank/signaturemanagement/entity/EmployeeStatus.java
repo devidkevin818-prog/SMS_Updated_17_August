@@ -14,6 +14,12 @@ public class EmployeeStatus {
     @Column(name = "status_name", nullable = false)
     private String statusName;
 
+    @Column(name = "active", nullable = false)
+    private boolean active = true;
+
+    @Column(name = "display_order", nullable = false)
+    private int displayOrder = 100;
+
     public Integer getStatusId() {
         return statusId;
     }
@@ -29,5 +35,9 @@ public class EmployeeStatus {
     public void setStatusName(String statusName) {
         this.statusName = statusName;
     }
+    public boolean isActive() { return active; }
+    public void setActive(boolean active) { this.active = active; }
+    public int getDisplayOrder() { return displayOrder; }
+    public void setDisplayOrder(int displayOrder) { this.displayOrder = displayOrder; }
 }
 

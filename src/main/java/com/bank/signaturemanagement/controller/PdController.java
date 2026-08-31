@@ -27,11 +27,18 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.bank.signaturemanagement.repository.EmployeeStatusRepository;
+import com.bank.signaturemanagement.service.UserService;
+import com.bank.signaturemanagement.service.UserApprovalService;
+import com.bank.signaturemanagement.dto.UserForm;
+import com.bank.signaturemanagement.service.EmployeeChangeProposalService;
 
 
 @Controller
 @RequestMapping("/pd")
 public class PdController {
+
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.bank.signaturemanagement.repository.EmployeeStatusRepository employeeStatusRepository;
     private final EmployeeRequestService requestService;
     private final EmployeeService employeeService;
     private final ApprovedSignaturePdfService pdfService;
@@ -39,6 +46,9 @@ public class PdController {
     private final DesignationService designationService;
     private final DepartmentService departmentService;
     private final BranchService branchService;
+    private final UserService userService;
+    private final UserApprovalService userApprovalService;
+    private final EmployeeChangeProposalService changeProposalService;
 
     public PdController(
             EmployeeRequestService requestService,
@@ -47,7 +57,8 @@ public class PdController {
             EmployeeMediaVersionRepository mediaVersionRepository,
             DesignationService designationService,
             DepartmentService departmentService,
-            BranchService branchService) {
+            BranchService branchService, UserService userService, UserApprovalService userApprovalService,
+            EmployeeChangeProposalService changeProposalService) {
         this.requestService = requestService;
         this.employeeService = employeeService;
         this.pdfService = pdfService;
@@ -55,11 +66,37 @@ public class PdController {
         this.designationService = designationService;
         this.departmentService = departmentService;
         this.branchService = branchService;
+        this.userService = userService;
+        this.userApprovalService = userApprovalService;
+        this.changeProposalService = changeProposalService;
     }
 
+    @GetMapping("/users/new")
+    public String createUserForm(Model model){model.addAttribute("userForm",new UserForm());addUserReferenceData(model);return "admin/create-user";}
+    @PostMapping("/users")
+    public String createUser(@Valid @ModelAttribute UserForm form,BindingResult result,Authentication authentication,Model model,RedirectAttributes redirect){
+        if(!result.hasErrors())try{userApprovalService.propose(form,authentication.getName());redirect.addFlashAttribute("success","User request submitted for DGM approval");return "redirect:/pd/dashboard";}catch(IllegalArgumentException e){result.reject("user",e.getMessage());}
+        addUserReferenceData(model);return "admin/create-user";
+    }
+    private void addUserReferenceData(Model model){model.addAttribute("branches",userService.getBranches());model.addAttribute("roles",userService.getRoles().stream().filter(r->!"ADMIN".equals(r.getName())).toList());model.addAttribute("creatorRole","PD");model.addAttribute("creatorBackPath","/pd/dashboard");model.addAttribute("userCreateAction","/pd/users");}
+
     @GetMapping("/dashboard")
-    public String dashboard() {
+    public String dashboard(Model model) {
+        model.addAttribute("changeProposals", changeProposalService.pendingPd());
         return "pd/dashboard";
+    }
+
+    @PostMapping("/employees/{id}/toggle-lock")
+    public String toggleLock(@PathVariable Long id, Authentication authentication, RedirectAttributes redirect) {
+        changeProposalService.toggleLock(id, authentication.getName());
+        redirect.addFlashAttribute("success", "Employee edit lock updated");
+        return "redirect:/pd/employees";
+    }
+
+    @PostMapping("/change-proposals/{id}/accept")
+    public String acceptProposal(@PathVariable Long id, Authentication authentication) {
+        changeProposalService.acceptForEditing(id, authentication.getName());
+        return "redirect:/pd/dashboard";
     }
 
     @GetMapping("/employees/new")
@@ -152,10 +189,12 @@ public class PdController {
     public String editEmployeeForm(
             @PathVariable Long id,
             @RequestParam(required = false) Long rejectedRequestId,
+            @RequestParam(required = false) Long proposalId,
             Authentication authentication,
             Model model) {
         model.addAttribute("employee", employeeService.getEmployee(id));
         model.addAttribute("employeeUpdateForm", employeeService.getUpdateForm(id));
+        model.addAttribute("proposalId", proposalId);
         addReferenceData(model);
 
         // Load activity statuses from database
@@ -179,6 +218,7 @@ public class PdController {
     public String updateEmployee(
             @PathVariable Long id,
             @RequestParam(required = false) Long rejectedRequestId,
+            @RequestParam(required = false) Long proposalId,
             @Valid @ModelAttribute EmployeeUpdateForm employeeUpdateForm,
             BindingResult result,
             Model model,
@@ -187,6 +227,7 @@ public class PdController {
         if (!result.hasErrors()) {
             try {
                 requestService.createUpdateRequest(id, employeeUpdateForm, authentication.getName());
+                if (proposalId != null) changeProposalService.markSubmitted(proposalId);
                 employeeService.updateRequestStatus(id, false);
                 if (rejectedRequestId != null) {
                     requestService.markUpdateRequestCompleted(rejectedRequestId);

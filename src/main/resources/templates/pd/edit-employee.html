@@ -12,7 +12,7 @@
                 <p class="page-subtitle">Changes are saved as a request and applied after DGM and GM approval. Leave
                     image fields empty to keep the existing images.</p></div>
             <a class="btn btn-soft" th:href="@{/pd/employees}"><i class="bi bi-x-lg me-2"></i>Cancel</a></div>
-        <form th:action="@{/pd/employees/{id}/edit(id=${employee.id})}" th:object="${employeeUpdateForm}" method="post"
+        <form th:action="@{/pd/employees/{id}/edit(id=${employee.id},rejectedRequestId=${rejectedRequestId},proposalId=${proposalId})}" th:object="${employeeUpdateForm}" method="post"
               enctype="multipart/form-data">
             <div class="alert alert-danger app-alert" th:if="${#fields.hasAnyErrors()}">
                 <i class="bi bi-exclamation-triangle-fill"></i>

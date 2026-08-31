@@ -54,6 +54,15 @@ public class User {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    @Column(name = "signature_scope", nullable = false, length = 10)
+    private String signatureScope = "BOTH";
+
+    @Column(name = "approval_status", nullable = false, length = 30)
+    private String approvalStatus = "APPROVED";
+
+    @Column(name = "deactivated_at")
+    private LocalDateTime deactivatedAt;
+
     public User() {
     }
 
@@ -126,4 +135,10 @@ public class User {
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
+    public String getSignatureScope() { return signatureScope; }
+    public void setSignatureScope(String signatureScope) { this.signatureScope = signatureScope; }
+    public String getApprovalStatus() { return approvalStatus; }
+    public void setApprovalStatus(String approvalStatus) { this.approvalStatus = approvalStatus; }
+    public LocalDateTime getDeactivatedAt() { return deactivatedAt; }
+    public void setDeactivatedAt(LocalDateTime deactivatedAt) { this.deactivatedAt = deactivatedAt; }
 }

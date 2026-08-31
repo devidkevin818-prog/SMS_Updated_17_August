@@ -12,7 +12,13 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
 
     List<Department> findAllByOrderByDepartmentNameAsc();
 
+    List<Department> findByActiveTrueOrderByDepartmentNameAsc();
+
     Optional<Department> findByDepartmentName(String departmentName);
 
     boolean existsByDepartmentName(String departmentName);
+
+    boolean existsByDepartmentNameIgnoreCaseAndDepartmentIdNot(String departmentName, Long departmentId);
+
+    boolean existsByDepartmentNameIgnoreCase(String departmentName);
 }

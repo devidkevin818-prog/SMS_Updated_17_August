@@ -19,10 +19,10 @@ public class SecurityConfig {
         http.authorizeHttpRequests(requests -> requests
                         .requestMatchers("/login", "/css/**", "/js/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/pd/**").hasRole("PD")
-                        .requestMatchers("/dgm/**").hasRole("DGM")
-                        .requestMatchers("/gm/**").hasRole("GM")
-                        .requestMatchers("/branch/**").hasRole("BRANCH")
+                        .requestMatchers("/pd/**").hasAnyRole("PD", "ADMIN")
+                        .requestMatchers("/dgm/**").hasAnyRole("DGM", "ADMIN")
+                        .requestMatchers("/gm/**").hasAnyRole("GM", "ADMIN")
+                        .requestMatchers("/branch/**").hasAnyRole("BRANCH", "ADMIN")
                         .requestMatchers("/uploads/**").authenticated()
                         .anyRequest().authenticated())
                 .formLogin(login -> login

@@ -2,14 +2,14 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/head :: head('Create User')}"></head>
 <body>
-<header th:replace="~{fragments/navbar :: navbar('ADMIN')}"></header>
-<aside th:replace="~{fragments/sidebar :: sidebar('ADMIN','users')}"></aside>
+<header th:replace="~{fragments/navbar :: navbar(${creatorRole})}"></header>
+<aside th:replace="~{fragments/sidebar :: sidebar(${creatorRole},'users')}"></aside>
 <main class="app-main"><div class="content-wrap">
     <div class="page-header"><div><span class="page-eyebrow">Access Control</span><h1 class="page-title">Create user</h1>
         <p class="page-subtitle">Create an authorized account with a temporary password.</p></div>
-        <a class="btn btn-soft" th:href="@{/admin/users}"><i class="bi bi-arrow-left me-2"></i>Authorized users</a></div>
+        <a class="btn btn-soft" th:href="${creatorBackPath}"><i class="bi bi-arrow-left me-2"></i>Back</a></div>
     <div class="surface-card mx-auto form-card-narrow"><div class="card-body">
-        <form th:action="@{/admin/users}" th:object="${userForm}" method="post">
+        <form th:action="${userCreateAction}" th:object="${userForm}" method="post">
             <div class="alert alert-danger app-alert" th:if="${#fields.hasAnyErrors()}">
                 <i class="bi bi-exclamation-triangle-fill"></i><div th:each="error:${#fields.allErrors()}" th:text="${error}"></div></div>
             <div class="mb-3"><label class="form-label" for="employeeNumber">Employee ID</label>

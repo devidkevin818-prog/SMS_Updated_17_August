@@ -4,6 +4,7 @@ import com.bank.signaturemanagement.dto.ApprovalForm;
 import com.bank.signaturemanagement.entity.RequestStatus;
 import com.bank.signaturemanagement.service.EmployeeRequestService;
 import com.bank.signaturemanagement.service.ApprovalHistoryService;
+import com.bank.signaturemanagement.service.UserApprovalService;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -15,15 +16,32 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class GmController {
     private final EmployeeRequestService requestService;
     private final ApprovalHistoryService approvalHistoryService;
-    public GmController(EmployeeRequestService requestService, ApprovalHistoryService approvalHistoryService) {
+    private final UserApprovalService userApprovalService;
+    private final com.bank.signaturemanagement.service.EmployeeChangeProposalService changeProposalService;
+    public GmController(EmployeeRequestService requestService, ApprovalHistoryService approvalHistoryService, UserApprovalService userApprovalService, com.bank.signaturemanagement.service.EmployeeChangeProposalService changeProposalService) {
         this.requestService = requestService;
         this.approvalHistoryService = approvalHistoryService;
+        this.userApprovalService = userApprovalService;
+        this.changeProposalService = changeProposalService;
     }
 
     @GetMapping("/dashboard")
     public String dashboard(@RequestParam(defaultValue = "0") int page, Model model) {
         model.addAttribute("requests", requestService.getPendingRequests(RequestStatus.PENDING_GM, page));
+        model.addAttribute("userRequests", userApprovalService.pending("GM"));
         return "gm/dashboard";
+    }
+    @PostMapping("/employees/{id}/update-request")
+    public String requestEmployeeUpdate(@PathVariable Long id, @RequestParam String justification,
+                                        Authentication authentication, RedirectAttributes redirect) {
+        try { changeProposalService.submit(id, justification, authentication.getName()); redirect.addFlashAttribute("success", "Proposal sent directly to PD"); }
+        catch (IllegalArgumentException e) { redirect.addFlashAttribute("error", e.getMessage()); }
+        return "redirect:/employees";
+    }
+    @PostMapping("/user-requests/{id}/decision")
+    public String userDecision(@PathVariable Long id,@RequestParam String action,@RequestParam(required=false) String comment,Authentication authentication,RedirectAttributes redirect){
+        try{userApprovalService.decide(id,"GM",action,comment,authentication.getName());redirect.addFlashAttribute("success","User request decision saved");}
+        catch(IllegalArgumentException e){redirect.addFlashAttribute("error",e.getMessage());} return "redirect:/gm/dashboard";
     }
 
     @GetMapping("/requests/{id}")

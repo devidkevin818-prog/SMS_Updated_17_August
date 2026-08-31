@@ -9,8 +9,11 @@ import java.util.Optional;
 public interface BranchRepository extends JpaRepository<Branch, Long> {
 
     List<Branch> findAllByOrderByBranchNameAsc();
+    List<Branch> findByActiveTrueOrderByBranchNameAsc();
 
     Optional<Branch> findByBranchName(String branchName);
 
     boolean existsByBranchName(String branchName);
+    boolean existsByBranchNameIgnoreCase(String branchName);
+    boolean existsByBranchNameIgnoreCaseAndBranchIdNot(String branchName, Long id);
 }

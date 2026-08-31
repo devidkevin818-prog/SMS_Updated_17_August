@@ -72,6 +72,9 @@
                                   th:action="@{/dgm/employees/{id}/update-request(id=${employee.id})}"
                                   style="display: inline;">
 
+                                <input class="form-control form-control-sm mb-1" name="justification"
+                                       maxlength="500" placeholder="Mandatory justification" required>
+
                                 <input type="hidden"
                                        th:name="${_csrf.parameterName}"
                                        th:value="${_csrf.token}">

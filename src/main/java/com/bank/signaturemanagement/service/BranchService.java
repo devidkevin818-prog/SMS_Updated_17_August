@@ -16,6 +16,6 @@ public class BranchService {
     }
 
     public List<Branch> findAll() {
-        return branchRepository.findAll();
+        return branchRepository.findByActiveTrueOrderByBranchNameAsc();
     }
 }

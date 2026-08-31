@@ -11,5 +11,9 @@ public interface EmployeeStatusRepository
         extends JpaRepository<EmployeeStatus, Integer> {
 
     List<EmployeeStatus> findAllByOrderByStatusIdAsc();
+    List<EmployeeStatus> findAllByOrderByDisplayOrderAscStatusNameAsc();
+    List<EmployeeStatus> findByActiveTrueOrderByDisplayOrderAscStatusNameAsc();
+    boolean existsByStatusNameIgnoreCase(String name);
+    boolean existsByStatusNameIgnoreCaseAndStatusIdNot(String name, Integer id);
 }
 

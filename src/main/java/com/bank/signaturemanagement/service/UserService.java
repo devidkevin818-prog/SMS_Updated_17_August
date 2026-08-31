@@ -32,7 +32,7 @@ public class UserService {
     private final SecureTemporaryPasswordGenerator temporaryPasswordGenerator;
 
     public List<Branch> getBranches() {
-        return branchRepository.findAllByOrderByBranchNameAsc();
+        return branchRepository.findByActiveTrueOrderByBranchNameAsc();
     }
 
     public UserService(UserRepository userRepository, RoleRepository roleRepository,
