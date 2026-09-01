@@ -9,7 +9,7 @@ public class EmployeeStatus {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "status_id")
-    private Integer statusId;
+    private Long statusId;
 
     @Column(name = "status_name", nullable = false)
     private String statusName;
@@ -20,11 +20,11 @@ public class EmployeeStatus {
     @Column(name = "display_order", nullable = false)
     private int displayOrder = 100;
 
-    public Integer getStatusId() {
+    public Long getStatusId() {
         return statusId;
     }
 
-    public void setStatusId(Integer statusId) {
+    public void setStatusId(Long statusId) {
         this.statusId = statusId;
     }
 

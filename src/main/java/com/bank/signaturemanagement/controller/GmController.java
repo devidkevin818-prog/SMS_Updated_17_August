@@ -18,19 +18,24 @@ public class GmController {
     private final ApprovalHistoryService approvalHistoryService;
     private final UserApprovalService userApprovalService;
     private final com.bank.signaturemanagement.service.EmployeeChangeProposalService changeProposalService;
-    public GmController(EmployeeRequestService requestService, ApprovalHistoryService approvalHistoryService, UserApprovalService userApprovalService, com.bank.signaturemanagement.service.EmployeeChangeProposalService changeProposalService) {
+    private final com.bank.signaturemanagement.service.BatchImportService batchImportService;
+    public GmController(EmployeeRequestService requestService, ApprovalHistoryService approvalHistoryService, UserApprovalService userApprovalService, com.bank.signaturemanagement.service.EmployeeChangeProposalService changeProposalService, com.bank.signaturemanagement.service.BatchImportService batchImportService) {
         this.requestService = requestService;
         this.approvalHistoryService = approvalHistoryService;
         this.userApprovalService = userApprovalService;
         this.changeProposalService = changeProposalService;
+        this.batchImportService = batchImportService;
     }
 
     @GetMapping("/dashboard")
     public String dashboard(@RequestParam(defaultValue = "0") int page, Model model) {
         model.addAttribute("requests", requestService.getPendingRequests(RequestStatus.PENDING_GM, page));
         model.addAttribute("userRequests", userApprovalService.pending("GM"));
+        model.addAttribute("batchRequests", batchImportService.pending("GM"));
         return "gm/dashboard";
     }
+    @PostMapping("/batch-requests/{id}/decision")
+    public String batchDecision(@PathVariable Long id,@RequestParam String action,@RequestParam(required=false)String comment,Authentication authentication,RedirectAttributes redirect){try{batchImportService.decide(id,"GM",action,comment,authentication.getName());redirect.addFlashAttribute("success","Batch decision saved");}catch(IllegalArgumentException e){redirect.addFlashAttribute("error",e.getMessage());}return "redirect:/gm/dashboard";}
     @PostMapping("/employees/{id}/update-request")
     public String requestEmployeeUpdate(@PathVariable Long id, @RequestParam String justification,
                                         Authentication authentication, RedirectAttributes redirect) {

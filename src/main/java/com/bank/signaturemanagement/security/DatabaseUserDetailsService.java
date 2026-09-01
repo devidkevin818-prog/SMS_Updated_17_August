@@ -22,7 +22,7 @@ public class DatabaseUserDetailsService implements UserDetailsService {
         return org.springframework.security.core.userdetails.User.withUsername(user.getUsername())
                 .password(user.getPasswordHash())
                 .roles(user.getRole().getName())
-                .disabled(!user.isActive())
+                .disabled(!user.isActive() || !"APPROVED".equals(user.getApprovalStatus()) || !user.getRole().isActive())
                 .build();
     }
 }

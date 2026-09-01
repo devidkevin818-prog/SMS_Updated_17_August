@@ -25,6 +25,9 @@ public class Designation {
     @Column(name = "CreatedAt")
     private LocalDateTime createdAt;
 
+    @Column(name = "HierarchyOrder", nullable = false)
+    private Integer hierarchyOrder = 100;
+
     public Designation() {
     }
 
@@ -38,4 +41,6 @@ public class Designation {
     public void setIsActive(Boolean active) { isActive = active; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public Integer getHierarchyOrder() { return hierarchyOrder; }
+    public void setHierarchyOrder(Integer hierarchyOrder) { this.hierarchyOrder = hierarchyOrder; }
 }

@@ -63,6 +63,10 @@ public class User {
     @Column(name = "deactivated_at")
     private LocalDateTime deactivatedAt;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by")
+    private User createdBy;
+
     public User() {
     }
 
@@ -141,4 +145,6 @@ public class User {
     public void setApprovalStatus(String approvalStatus) { this.approvalStatus = approvalStatus; }
     public LocalDateTime getDeactivatedAt() { return deactivatedAt; }
     public void setDeactivatedAt(LocalDateTime deactivatedAt) { this.deactivatedAt = deactivatedAt; }
+    public User getCreatedBy() { return createdBy; }
+    public void setCreatedBy(User createdBy) { this.createdBy = createdBy; }
 }

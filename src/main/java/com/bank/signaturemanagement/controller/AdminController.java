@@ -109,10 +109,10 @@ public class AdminController {
     public String update(@PathVariable Long id,
                          @Valid @ModelAttribute UserUpdateForm userUpdateForm,
                          BindingResult result, Model model,
-                         RedirectAttributes redirectAttributes) {
+                         RedirectAttributes redirectAttributes, Authentication authentication) {
         if (!result.hasErrors()) {
             try {
-                userService.updateUser(id, userUpdateForm);
+                userService.updateUser(id, userUpdateForm, authentication.getName());
                 redirectAttributes.addFlashAttribute("success", "User updated successfully");
                 return "redirect:/admin/users";
             } catch (IllegalArgumentException exception) {

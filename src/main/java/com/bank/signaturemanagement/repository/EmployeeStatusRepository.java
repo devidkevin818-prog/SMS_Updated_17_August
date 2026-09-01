@@ -8,12 +8,12 @@ import java.util.List;
 
 @Repository
 public interface EmployeeStatusRepository
-        extends JpaRepository<EmployeeStatus, Integer> {
+        extends JpaRepository<EmployeeStatus, Long> {
 
     List<EmployeeStatus> findAllByOrderByStatusIdAsc();
     List<EmployeeStatus> findAllByOrderByDisplayOrderAscStatusNameAsc();
     List<EmployeeStatus> findByActiveTrueOrderByDisplayOrderAscStatusNameAsc();
     boolean existsByStatusNameIgnoreCase(String name);
-    boolean existsByStatusNameIgnoreCaseAndStatusIdNot(String name, Integer id);
+    boolean existsByStatusNameIgnoreCaseAndStatusIdNot(String name, Long id);
 }
 

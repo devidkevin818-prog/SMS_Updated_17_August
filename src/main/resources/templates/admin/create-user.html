@@ -27,6 +27,7 @@
                 <option value="">Select branch</option><option th:each="branch:${branches}" th:value="${branch.branchId}" th:text="${branch.branchName}"></option></select></div>
             <div class="mb-3"><label class="form-label" for="roleName">Role</label><select class="form-select" id="roleName" th:field="*{roleName}" required>
                 <option value="">Select role</option><option th:each="role:${roles}" th:value="${role.name}" th:text="${role.name}"></option></select></div>
+            <div class="mb-3"><label class="form-label" for="signatureScope">Signature visibility</label><select class="form-select" id="signatureScope" th:field="*{signatureScope}" required><option value="LOCAL">Local only</option><option value="FOREIGN">Foreign only</option><option value="BOTH">Local and foreign</option></select></div>
             <div class="mb-4"><label class="form-label" for="password">Temporary password</label>
                 <input class="form-control" id="password" type="password" th:field="*{password}" minlength="8" autocomplete="new-password" required>
                 <small class="form-hint">The user must change this password after login.</small></div>

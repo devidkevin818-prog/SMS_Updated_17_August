@@ -13,6 +13,10 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Long> {
     @Override
     @EntityGraph(attributePaths = "role")
+    List<User> findAll();
+
+    @Override
+    @EntityGraph(attributePaths = "role")
     Page<User> findAll(Pageable pageable);
 
     @Override
@@ -55,4 +59,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
     long countByActiveTrue();
     long countByActiveFalse();
     long countByRoleNameAndActiveTrue(String roleName);
+    long countByRoleNameAndActiveTrueAndIdNot(String roleName, Long id);
 }

@@ -30,6 +30,10 @@ public class EmployeeRequest {
     @JoinColumn(name = "target_employee_id")
     private Employee targetEmployee;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "change_proposal_id")
+    private EmployeeChangeProposal changeProposal;
+
     @Column(name = "employee_code", nullable = false, length = 30)
     private String employeeCode;
 
@@ -47,6 +51,16 @@ public class EmployeeRequest {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "branch", referencedColumnName = "branch_id")
     private Branch branch;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "status_id")
+    private EmployeeStatus employeeStatus;
+
+    @Column(name = "classification", nullable = false, length = 10)
+    private String classification = "BOTH";
+
+    @Column(name = "joining_date")
+    private LocalDate joiningDate;
 
     @Column(name = "photo_path", nullable = false, length = 500)
     private String photoPath;
@@ -104,6 +118,8 @@ public class EmployeeRequest {
     public void setTargetEmployee(Employee targetEmployee) {
         this.targetEmployee = targetEmployee;
     }
+    public EmployeeChangeProposal getChangeProposal() { return changeProposal; }
+    public void setChangeProposal(EmployeeChangeProposal changeProposal) { this.changeProposal = changeProposal; }
 
     public boolean isUpdateRequest() {
         return targetEmployee != null;
@@ -148,6 +164,12 @@ public class EmployeeRequest {
     public void setBranch(Branch branch) {
         this.branch = branch;
     }
+    public EmployeeStatus getEmployeeStatus() { return employeeStatus; }
+    public void setEmployeeStatus(EmployeeStatus employeeStatus) { this.employeeStatus = employeeStatus; }
+    public String getClassification() { return classification; }
+    public void setClassification(String classification) { this.classification = classification; }
+    public LocalDate getJoiningDate() { return joiningDate; }
+    public void setJoiningDate(LocalDate joiningDate) { this.joiningDate = joiningDate; }
 
     public String getPhotoPath() {
         return photoPath;

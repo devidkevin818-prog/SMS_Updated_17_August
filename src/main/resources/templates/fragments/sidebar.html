@@ -4,10 +4,13 @@
 <aside th:fragment="sidebar(role, activePage)" class="app-sidebar" id="appSidebar">
     <div class="sidebar-heading">Workspace</div>
     <nav class="sidebar-nav" aria-label="Main navigation">
+        <a th:href="@{/books}" th:classappend="${activePage == 'books'} ? ' active'" class="sidebar-link"><i class="bi bi-book"></i><span>Signature Books</span></a>
         <a th:if="${role == 'ADMIN'}" th:href="@{/admin/dashboard}" th:classappend="${activePage == 'dashboard'} ? ' active'" class="sidebar-link"><i class="bi bi-grid-1x2-fill"></i><span>Dashboard</span></a>
         <a th:if="${role == 'ADMIN'}" th:href="@{/admin/users}" th:classappend="${activePage == 'users'} ? ' active'" class="sidebar-link"><i class="bi bi-people-fill"></i><span>User Management</span></a>
         <a th:if="${role == 'ADMIN'}" th:href="@{/admin/reference-data}" th:classappend="${activePage == 'reference-data'} ? ' active'" class="sidebar-link"><i class="bi bi-sliders"></i><span>Configurable Dropdowns</span></a>
         <a th:if="${role == 'ADMIN'}" th:href="@{/admin/audit}" th:classappend="${activePage == 'audit'} ? ' active'" class="sidebar-link"><i class="bi bi-journal-lock"></i><span>Audit Log</span></a>
+        <a th:if="${role == 'ADMIN'}" th:href="@{/admin/permissions}" th:classappend="${activePage == 'permissions'} ? ' active'" class="sidebar-link"><i class="bi bi-shield-lock"></i><span>Permissions</span></a>
+        <a th:if="${role == 'ADMIN'}" th:href="@{/admin/batches}" th:classappend="${activePage == 'batches'} ? ' active'" class="sidebar-link"><i class="bi bi-file-earmark-spreadsheet"></i><span>Batch Onboarding</span></a>
         <a th:if="${role == 'ADMIN'}" th:href="@{/employees}" th:classappend="${activePage == 'directory'} ? ' active'" class="sidebar-link"><i class="bi bi-person-vcard-fill"></i><span>Employee Directory</span></a>
 
         <a th:if="${role == 'PD'}" th:href="@{/pd/dashboard}" th:classappend="${activePage == 'dashboard'} ? ' active'" class="sidebar-link"><i class="bi bi-grid-1x2-fill"></i><span>Dashboard</span></a>
@@ -17,6 +20,7 @@
         <a th:if="${role == 'PD'}" th:href="@{/pd/employees}" th:classappend="${activePage == 'update'} ? ' active'" class="sidebar-link"><i class="bi bi-pencil-square"></i><span>Update Employee</span></a>
         <a th:if="${role == 'PD'}" th:href="@{/pd/approved-signatures}" th:classappend="${activePage == 'approved-signatures'} ? ' active'" class="sidebar-link"><i class="bi bi-person-badge-fill"></i><span>Approved Signatures</span></a>
         <a th:if="${role == 'PD'}" th:href="@{/pd/reference-data}" th:classappend="${activePage == 'reference-data'} ? ' active'" class="sidebar-link"><i class="bi bi-sliders"></i><span>Configurable Dropdowns</span></a>
+        <a th:if="${role == 'PD'}" th:href="@{/pd/batches}" th:classappend="${activePage == 'batches'} ? ' active'" class="sidebar-link"><i class="bi bi-file-earmark-spreadsheet"></i><span>Batch Onboarding</span></a>
         <a th:if="${role == 'PD'}" th:href="@{/employees}" th:classappend="${activePage == 'directory'} ? ' active'" class="sidebar-link"><i class="bi bi-person-vcard-fill"></i><span>Employee Directory</span></a>
 
         <a th:if="${role == 'DGM'}" th:href="@{/dgm/dashboard}" th:classappend="${activePage == 'dashboard'} ? ' active'" class="sidebar-link"><i class="bi bi-grid-1x2-fill"></i><span>Dashboard</span></a>
@@ -39,6 +43,7 @@
         <a th:if="${role == 'BRANCH'}" th:href="@{/branch/dashboard}" th:classappend="${activePage == 'dashboard'} ? ' active'" class="sidebar-link"><i class="bi bi-grid-1x2-fill"></i><span>Dashboard</span></a>
         <a th:if="${role == 'BRANCH'}" th:href="@{/branch/dashboard}" th:classappend="${activePage == 'search'} ? ' active'" class="sidebar-link"><i class="bi bi-search"></i><span>Search Employee</span></a>
         <a th:if="${role == 'BRANCH'}" th:href="@{/employees}" th:classappend="${activePage == 'directory'} ? ' active'" class="sidebar-link"><i class="bi bi-person-vcard-fill"></i><span>Employee Directory</span></a>
+        <a th:if="${role == 'BRANCH'}" th:href="@{/audit}" th:classappend="${activePage == 'audit'} ? ' active'" class="sidebar-link"><i class="bi bi-journal-text"></i><span>My Audit Trail</span></a>
     </nav>
     <div class="sidebar-security"><i class="bi bi-shield-check"></i><div><strong>Protected system</strong><small>Authorized access only</small></div></div>
 </aside>

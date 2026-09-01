@@ -81,8 +81,8 @@ public class PdController {
     private void addUserReferenceData(Model model){model.addAttribute("branches",userService.getBranches());model.addAttribute("roles",userService.getRoles().stream().filter(r->!"ADMIN".equals(r.getName())).toList());model.addAttribute("creatorRole","PD");model.addAttribute("creatorBackPath","/pd/dashboard");model.addAttribute("userCreateAction","/pd/users");}
 
     @GetMapping("/dashboard")
-    public String dashboard(Model model) {
-        model.addAttribute("changeProposals", changeProposalService.pendingPd());
+    public String dashboard(Authentication authentication, Model model) {
+        model.addAttribute("changeProposals", changeProposalService.pendingPd(authentication.getName()));
         return "pd/dashboard";
     }
 
@@ -95,8 +95,8 @@ public class PdController {
 
     @PostMapping("/change-proposals/{id}/accept")
     public String acceptProposal(@PathVariable Long id, Authentication authentication) {
-        changeProposalService.acceptForEditing(id, authentication.getName());
-        return "redirect:/pd/dashboard";
+        var proposal=changeProposalService.acceptForEditing(id, authentication.getName());
+        return "redirect:/pd/employees/"+proposal.getEmployee().getId()+"/edit?proposalId="+id;
     }
 
     @GetMapping("/employees/new")
@@ -105,8 +105,8 @@ public class PdController {
         if (!model.containsAttribute("employeeRequestForm")) {
 
             EmployeeRequestForm form = new EmployeeRequestForm();
-            // Active is the default status for a new employee
-            form.setStatusId(1);
+            employeeStatusRepository.findByActiveTrueOrderByDisplayOrderAscStatusNameAsc().stream().findFirst()
+                    .ifPresent(status -> form.setStatusId(status.getStatusId()));
             model.addAttribute(
                     "employeeRequestForm",
                     form
@@ -180,7 +180,8 @@ public class PdController {
 
     @GetMapping("/approved-signatures/{id}")
     public String approvedSignatureVersions(@PathVariable Long id, Model model) {
-        model.addAttribute("employee", employeeService.getEmployee(id));
+        var employee=employeeService.getEmployee(id);
+        model.addAttribute("employee", employee);
         model.addAttribute("versions", mediaVersionRepository.findByEmployeeIdOrderByVersionNumberDesc(id));
         return "pd/approved-signature-versions";
     }
@@ -192,16 +193,17 @@ public class PdController {
             @RequestParam(required = false) Long proposalId,
             Authentication authentication,
             Model model) {
-        model.addAttribute("employee", employeeService.getEmployee(id));
+        var employee = employeeService.getEmployee(id);
+        if (employee.isLocked()) {
+            if (proposalId == null) {
+                throw new IllegalStateException("This employee is locked; an accepted DGM/GM proposal is required");
+            }
+            changeProposalService.requireEditing(proposalId, id, authentication.getName());
+        }
+        model.addAttribute("employee", employee);
         model.addAttribute("employeeUpdateForm", employeeService.getUpdateForm(id));
         model.addAttribute("proposalId", proposalId);
         addReferenceData(model);
-
-        // Load activity statuses from database
-        model.addAttribute(
-                "employeeStatuses",
-                employeeStatusRepository.findAllByOrderByStatusIdAsc()
-        );
 
         if (rejectedRequestId != null) {
             Long targetEmployeeId = requestService.getTargetEmployeeIdForUpdate(
@@ -226,8 +228,10 @@ public class PdController {
             RedirectAttributes redirectAttributes) {
         if (!result.hasErrors()) {
             try {
-                requestService.createUpdateRequest(id, employeeUpdateForm, authentication.getName());
-                if (proposalId != null) changeProposalService.markSubmitted(proposalId);
+                var proposal=proposalId==null?null:changeProposalService.requireEditing(proposalId,id,authentication.getName());
+                if(employeeService.getEmployee(id).isLocked()&&proposal==null) throw new IllegalStateException("This employee is locked");
+                requestService.createUpdateRequest(id, employeeUpdateForm, authentication.getName(),proposal);
+                if (proposalId != null) changeProposalService.markSubmitted(proposalId, authentication.getName());
                 employeeService.updateRequestStatus(id, false);
                 if (rejectedRequestId != null) {
                     requestService.markUpdateRequestCompleted(rejectedRequestId);
@@ -312,6 +316,7 @@ public class PdController {
         model.addAttribute("designations", designationService.findAll());
         model.addAttribute("departments", departmentService.findAll());
         model.addAttribute("branches", branchService.findAll());
+        model.addAttribute("employeeStatuses", employeeStatusRepository.findByActiveTrueOrderByDisplayOrderAscStatusNameAsc());
     }
 
     private void requireOriginalRequester(EmployeeRequest request, String username) {

@@ -146,10 +146,12 @@
                             </div>
 
                         </td>
-                        <td><img class="approved-photo-thumbnail" th:src="@{'/uploads/'+${employee.photoPath}}"
+                        <td><img th:if="${employee.photoPath != null}" class="approved-photo-thumbnail" th:src="@{'/media/'+${employee.photoPath}}"
                                  alt="Approved employee photo"></td>
-                        <td><img class="approved-signature-thumbnail" th:src="@{'/uploads/'+${employee.signaturePath}}"
-                                 alt="Approved employee signature"></td>
+                        <td><img th:if="${canViewLocal and employee.signaturePath != null}" class="approved-signature-thumbnail" th:src="@{'/media/'+${employee.signaturePath}}"
+                                 alt="Approved local signature"><span th:unless="${canViewLocal}">Restricted</span></td>
+                        <td><img th:if="${canViewForeign and employee.foreignSignaturePath != null}" class="approved-signature-thumbnail" th:src="@{'/media/'+${employee.foreignSignaturePath}}"
+                                 alt="Approved foreign signature"><span th:unless="${canViewForeign}">Restricted</span></td>
                         <td th:text="${employee.branch.branchName}"></td>
                         <td class="text-end"><a class="btn btn-sm btn-soft"
                                                 th:href="@{/pd/approved-signatures/{id}(id=${employee.id})}">View

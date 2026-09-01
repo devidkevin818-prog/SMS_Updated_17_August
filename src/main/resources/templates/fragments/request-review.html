@@ -42,7 +42,7 @@
                         </div>
                         <div class="detail-item">
                             <dt>Status</dt>
-                            <dd th:text="${request.statusName}"></dd>
+                            <dd th:text="${request.employeeStatus != null ? request.employeeStatus.statusName : 'Not assigned'}"></dd>
                         </div>
                         <div class="detail-item">
                             <dt>PD remark</dt>
@@ -62,15 +62,15 @@
                     <div class="review-media">
                         <div><p class="form-label">Employee photo</p>
                             <div class="media-panel"><img class="review-image"
-                                                          th:src="@{'/uploads/'+${request.photoPath}}"
+                                                          th:src="@{'/media/'+${request.photoPath}}"
                                                           alt="Employee photo"></div>
                         </div>
-                        <div><p class="form-label">Specimen signature</p>
+                        <div th:if="${canViewLocal}"><p class="form-label">Local signature</p>
                             <div class="media-panel"><img class="signature-image"
-                                                          th:src="@{'/uploads/'+${request.signaturePath}}"
+                                                          th:src="@{'/media/'+${request.signaturePath}}"
                                                           alt="Employee signature"></div>
                         </div>
-                        <div th:if="${request.foreignSignaturePath != null
+                        <div th:if="${canViewForeign and request.foreignSignaturePath != null
                  and !#strings.isEmpty(request.foreignSignaturePath)}">
 
                             <p class="form-label">
@@ -79,7 +79,7 @@
 
                             <div class="media-panel">
                                 <img class="signature-image"
-                                     th:src="@{'/uploads/' + ${request.foreignSignaturePath}}"
+                                     th:src="@{'/media/' + ${request.foreignSignaturePath}}"
                                      alt="Foreign signature">
                             </div>
 

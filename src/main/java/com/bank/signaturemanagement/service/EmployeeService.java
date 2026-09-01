@@ -46,6 +46,9 @@ public class EmployeeService {
         }
         form.setSignatureValidFrom(employee.getSignatureValidFrom());
         form.setSignatureValidUntil(employee.getSignatureValidUntil());
+        form.setStatusId(employee.getEmployeeStatus()==null?null:employee.getEmployeeStatus().getStatusId());
+        form.setClassification(employee.getClassification());
+        form.setJoiningDate(employee.getJoiningDate());
         return form;
     }
 

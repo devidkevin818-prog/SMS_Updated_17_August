@@ -13,6 +13,8 @@ public class UserUpdateForm {
     private String password;
     private boolean active;
     private String branchId;
+    @NotBlank @Pattern(regexp = "LOCAL|FOREIGN|BOTH", message = "Select a valid signature scope")
+    private String signatureScope = "BOTH";
 
     public String getBranchId() {
         return branchId;
@@ -34,4 +36,6 @@ public class UserUpdateForm {
     public void setPassword(String password) { this.password = password; }
     public boolean isActive() { return active; }
     public void setActive(boolean active) { this.active = active; }
+    public String getSignatureScope() { return signatureScope; }
+    public void setSignatureScope(String signatureScope) { this.signatureScope = signatureScope; }
 }

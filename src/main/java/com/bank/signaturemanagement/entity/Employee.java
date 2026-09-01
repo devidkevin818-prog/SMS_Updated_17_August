@@ -43,10 +43,10 @@ public class Employee {
     )
     private Branch branch;
 
-    @Column(name = "photo_path", nullable = false, length = 500)
+    @Column(name = "photo_path", length = 500)
     private String photoPath;
 
-    @Column(name = "signature_path", nullable = false, length = 500)
+    @Column(name = "signature_path", length = 500)
     private String signaturePath;
 
     @Column(name = "foreign_signature_path", nullable = true,length = 500)
@@ -67,10 +67,10 @@ public class Employee {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt = LocalDateTime.now();
 
-    @Column(name = "signature_valid_from", nullable = false)
+    @Column(name = "signature_valid_from")
     private LocalDate signatureValidFrom;
 
-    @Column(name = "signature_valid_until", nullable = false)
+    @Column(name = "signature_valid_until")
     private LocalDate signatureValidUntil;
 
 
@@ -92,6 +92,9 @@ public class Employee {
 
     @Column(name = "active", nullable = false)
     private boolean active = true;
+
+    @Column(name = "batch_id")
+    private Long batchId;
 
     public Boolean getUpdateRequestStatus() { return updateRequestStatus; }
     public void setUpdateRequestStatus(Boolean updateRequestStatus) {
@@ -169,5 +172,7 @@ public class Employee {
     public void setJoiningDate(LocalDate joiningDate) { this.joiningDate = joiningDate; }
     public boolean isActive() { return active; }
     public void setActive(boolean active) { this.active = active; }
+    public Long getBatchId() { return batchId; }
+    public void setBatchId(Long batchId) { this.batchId = batchId; }
 
 }

@@ -267,7 +267,7 @@
                                      style="min-height: 250px;">
 
                                     <img th:if="${request.photoPath != null}"
-                                         th:src="@{'/uploads/' + ${request.photoPath}}"
+                                         th:src="@{'/media/' + ${request.photoPath}}"
                                          alt="Employee Photo"
                                          class="img-fluid rounded"
                                          style="max-height: 220px;
@@ -295,7 +295,7 @@
                                      style="min-height: 250px;">
 
                                     <img th:if="${request.signaturePath != null}"
-                                         th:src="@{'/uploads/' + ${request.signaturePath}}"
+                                         th:src="@{'/media/' + ${request.signaturePath}}"
                                          alt="Employee Signature"
                                          class="img-fluid"
                                          style="max-height: 220px;
@@ -326,7 +326,7 @@
                                     <!-- Show existing foreign signature -->
                                     <img th:if="${request.foreignSignaturePath != null
                                                  and !#strings.isEmpty(request.foreignSignaturePath)}"
-                                         th:src="@{'/uploads/' + ${request.foreignSignaturePath}}"
+                                         th:src="@{'/media/' + ${request.foreignSignaturePath}}"
                                          alt="Foreign Signature"
                                          class="img-fluid"
                                          style="max-height: 220px;

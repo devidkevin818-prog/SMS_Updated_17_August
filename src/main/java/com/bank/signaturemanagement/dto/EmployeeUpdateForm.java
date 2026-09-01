@@ -19,7 +19,11 @@ public class EmployeeUpdateForm {
     private MultipartFile photo;
     private MultipartFile signature;
     private MultipartFile foreignSignature;
-    private Integer statusId;
+    private Long statusId;
+    @NotBlank @Pattern(regexp = "LOCAL|FOREIGN|BOTH", message = "Select a valid classification")
+    private String classification = "BOTH";
+    @NotNull(message = "Joining date is required")
+    private LocalDate joiningDate;
 
     public MultipartFile getForeignSignature() {
         return foreignSignature;
@@ -69,11 +73,15 @@ public class EmployeeUpdateForm {
         this.signatureValidUntil = signatureValidUntil;
     }
 
-    public Integer getStatusId() {
+    public Long getStatusId() {
         return statusId;
     }
 
-    public void setStatusId(Integer statusId) {
+    public void setStatusId(Long statusId) {
         this.statusId = statusId;
     }
+    public String getClassification() { return classification; }
+    public void setClassification(String classification) { this.classification = classification; }
+    public LocalDate getJoiningDate() { return joiningDate; }
+    public void setJoiningDate(LocalDate joiningDate) { this.joiningDate = joiningDate; }
 }
