@@ -29,6 +29,12 @@ public class EmployeeRequestService {
     private final DesignationRepository designationRepository;
     private final DepartmentRepository departmentRepository;
     private final BranchRepository branchRepository;
+    private final EmployeeStatusRepository employeeStatusRepository;
+    private final EmployeeVersionService employeeVersionService;
+    private final EmployeeChangeProposalService changeProposalService;
+    private final AuditService auditService;
+    private final AccessControlService accessControl;
+    private final EmployeeNumberPolicyService employeeNumberPolicy;
 
     public EmployeeRequestService(
             EmployeeRequestRepository requestRepository,
@@ -39,7 +45,10 @@ public class EmployeeRequestService {
             EmployeeMediaVersionRepository mediaVersionRepository,
             DesignationRepository designationRepository,
             DepartmentRepository departmentRepository,
-            BranchRepository branchRepository) {
+            BranchRepository branchRepository, EmployeeStatusRepository employeeStatusRepository,
+            EmployeeVersionService employeeVersionService, EmployeeChangeProposalService changeProposalService,
+            AuditService auditService, AccessControlService accessControl,
+            EmployeeNumberPolicyService employeeNumberPolicy) {
         this.requestRepository = requestRepository;
         this.employeeRepository = employeeRepository;
         this.approvalRepository = approvalRepository;
@@ -49,12 +58,18 @@ public class EmployeeRequestService {
         this.designationRepository = designationRepository;
         this.departmentRepository = departmentRepository;
         this.branchRepository = branchRepository;
+        this.employeeStatusRepository = employeeStatusRepository;
+        this.employeeVersionService = employeeVersionService;
+        this.changeProposalService = changeProposalService;
+        this.auditService = auditService;
+        this.accessControl = accessControl;
+        this.employeeNumberPolicy = employeeNumberPolicy;
     }
 
     @Transactional
     public void createRequest(EmployeeRequestForm form, String username) {
         validateDates(form.getSignatureValidFrom(), form.getSignatureValidUntil());
-        String code = EmployeeNumberFormat.normalize(form.getEmployeeCode());
+        String code = employeeNumberPolicy.normalize(form.getEmployeeCode());
         validateEmployeeCodeAvailable(code, null);
 
         fileStorageService.validateImage(form.getPhoto());
@@ -67,6 +82,9 @@ public class EmployeeRequestService {
         request.setDesignation(requireDesignation(form.getDesignation()));
         request.setDepartment(requireDepartment(form.getDepartment()));
         request.setBranch(requireBranch(form.getBranch()));
+        request.setEmployeeStatus(requireEmployeeStatus(form.getStatusId()));
+        request.setClassification(form.getClassification());
+        request.setJoiningDate(form.getJoiningDate());
         request.setRemark(form.getRemark().trim());
         request.setPhotoPath(fileStorageService.storeImage(form.getPhoto(), "employee-photo"));
         request.setSignaturePath(fileStorageService.storeImage(form.getSignature(), "employee-signature"));
@@ -74,10 +92,16 @@ public class EmployeeRequestService {
         request.setSignatureValidFrom(form.getSignatureValidFrom());
         request.setSignatureValidUntil(form.getSignatureValidUntil());
         requestRepository.save(request);
+        auditService.record(username,"EMPLOYEE_CREATE_PROPOSE","EMPLOYEE_REQUEST",String.valueOf(request.getId()),null,"SUCCESS",null,code,form.getRemark());
     }
 
     @Transactional
     public void createUpdateRequest(Long employeeId, EmployeeUpdateForm form, String username) {
+        createUpdateRequest(employeeId, form, username, null);
+    }
+
+    @Transactional
+    public void createUpdateRequest(Long employeeId, EmployeeUpdateForm form, String username, EmployeeChangeProposal proposal) {
         validateDates(form.getSignatureValidFrom(), form.getSignatureValidUntil());
         Employee employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new IllegalArgumentException("Employee not found"));
@@ -86,17 +110,22 @@ public class EmployeeRequestService {
             throw new IllegalArgumentException("A pending update request already exists for this employee");
         }
 
-        String code = EmployeeNumberFormat.normalize(form.getEmployeeCode());
+        String code = employeeNumberPolicy.normalize(form.getEmployeeCode());
+        if (!code.equals(employee.getEmployeeNumber())) throw new IllegalArgumentException("Employee ID is immutable");
         validateEmployeeCodeAvailable(code, employeeId);
 
         EmployeeRequest request = new EmployeeRequest();
         request.setRequestedBy(requireUser(username));
         request.setTargetEmployee(employee);
+        request.setChangeProposal(proposal);
         request.setEmployeeCode(code);
         request.setEmployeeName(form.getEmployeeName().trim());
         request.setDesignation(requireDesignation(form.getDesignationId()));
         request.setDepartment(requireDepartment(form.getDepartmentId()));
         request.setBranch(requireBranch(form.getBranchId()));
+        request.setEmployeeStatus(requireEmployeeStatus(form.getStatusId()));
+        request.setClassification(form.getClassification());
+        request.setJoiningDate(form.getJoiningDate());
         request.setPhotoPath(storeOptionalImage(form.getPhoto(), "pending-photo", employee.getPhotoPath()));
         request.setSignaturePath(storeOptionalImage(form.getSignature(), "pending-signature", employee.getSignaturePath()));
         request.setForeignSignaturePath(storeOptionalImage(
@@ -105,6 +134,7 @@ public class EmployeeRequestService {
         request.setSignatureValidFrom(form.getSignatureValidFrom());
         request.setSignatureValidUntil(form.getSignatureValidUntil());
         requestRepository.save(request);
+        auditService.record(username,"EMPLOYEE_UPDATE_PROPOSE","EMPLOYEE",String.valueOf(employeeId),null,"SUCCESS",null,null,form.getRemark());
     }
 
     @Transactional(readOnly = true)
@@ -127,6 +157,7 @@ public class EmployeeRequestService {
 
     @Transactional
     public void dgmDecision(Long id, String action, String remark, String username) {
+        accessControl.require(username,"APPROVE_DGM");
         EmployeeRequest request = requireStatus(id, RequestStatus.PENDING_DGM);
         ApprovalAction decision = parseAction(action);
         saveHistory(request, requireUser(username), "DGM", decision, remark);
@@ -135,10 +166,12 @@ public class EmployeeRequestService {
         if (decision == ApprovalAction.REJECTED) {
             markRejected(request);
         }
+        auditService.record(username,"EMPLOYEE_DGM_"+decision.name(),"EMPLOYEE_REQUEST",String.valueOf(id),null,"SUCCESS",null,request.getStatus().name(),remark);
     }
 
     @Transactional
     public void gmDecision(Long id, String action, String remark, String username) {
+        accessControl.require(username,"APPROVE_GM");
         EmployeeRequest request = requireStatus(id, RequestStatus.PENDING_GM);
         ApprovalAction decision = parseAction(action);
         saveHistory(request, requireUser(username), "GM", decision, remark);
@@ -146,6 +179,7 @@ public class EmployeeRequestService {
         if (decision == ApprovalAction.REJECTED) {
             request.setStatus(RequestStatus.REJECTED);
             markRejected(request);
+            auditService.record(username,"EMPLOYEE_GM_REJECTED","EMPLOYEE_REQUEST",String.valueOf(id),null,"SUCCESS",null,"REJECTED",remark);
             return;
         }
 
@@ -165,10 +199,13 @@ public class EmployeeRequestService {
         organizeApprovedImages(employee, request);
         employeeRepository.save(employee);
         saveMediaVersion(employee, request);
+        employeeVersionService.append(employee,username,request.getChangeProposal()==null?"Approved employee request":"Approved locked-record change: "+request.getChangeProposal().getJustification());
+        changeProposalService.markEffective(request.getChangeProposal());
 
         request.setStatus(RequestStatus.APPROVED);
         request.setUpdateRequestStatus(false);
         request.setCompletedAt(LocalDateTime.now());
+        auditService.record(username,"EMPLOYEE_GM_APPROVED","EMPLOYEE",String.valueOf(employee.getId()),null,"SUCCESS",null,"version appended",remark);
     }
 
     @Transactional(readOnly = true)
@@ -207,7 +244,7 @@ public class EmployeeRequestService {
         }
 
         validateDates(updatedRequest.getSignatureValidFrom(), updatedRequest.getSignatureValidUntil());
-        String code = EmployeeNumberFormat.normalize(updatedRequest.getEmployeeCode());
+        String code = employeeNumberPolicy.normalize(updatedRequest.getEmployeeCode());
         Long targetId = request.getTargetEmployee() == null ? null : request.getTargetEmployee().getId();
         validateEmployeeCodeAvailable(code, targetId);
 
@@ -366,11 +403,22 @@ public class EmployeeRequestService {
         employee.setDesignation(request.getDesignation());
         employee.setDepartment(request.getDepartment());
         employee.setBranch(request.getBranch());
+        employee.setEmployeeStatus(request.getEmployeeStatus());
+        employee.setClassification(request.getClassification());
+        employee.setJoiningDate(request.getJoiningDate());
         employee.setPhotoPath(request.getPhotoPath());
         employee.setSignaturePath(request.getSignaturePath());
         employee.setForeignSignaturePath(request.getForeignSignaturePath());
         employee.setSignatureValidFrom(request.getSignatureValidFrom());
         employee.setSignatureValidUntil(request.getSignatureValidUntil());
+    }
+
+    private EmployeeStatus requireEmployeeStatus(Long id) {
+        if (id == null) throw new IllegalArgumentException("Employee status is required");
+        EmployeeStatus status=employeeStatusRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid employee status"));
+        if (!status.isActive()) throw new IllegalArgumentException("Employee status is inactive");
+        return status;
     }
 
     private void organizeApprovedImages(Employee employee, EmployeeRequest request) {

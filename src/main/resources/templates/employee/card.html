@@ -22,8 +22,8 @@
                                                 alt="Uttara Bank Limited"></div>
                 <span class="id-card-mark"><i class="bi bi-patch-check-fill me-1"></i>Verified profile</span></header>
             <div class="id-card-body">
-                <div class="employee-photo-wrap"><img class="employee-photo"
-                                                      th:src="@{'/uploads/'+${employee.photoPath}}"
+                <div class="employee-photo-wrap" th:if="${employee.photoPath != null}"><img class="employee-photo"
+                                                      th:src="@{'/media/'+${employee.photoPath}}"
                                                       alt="Employee photo"></div>
                 <section><h2 class="employee-name" th:text="${employee.fullName}"></h2>
                     <div class="employee-designation" th:text="${employee.designation.designationName}"></div>
@@ -50,8 +50,10 @@
                         </tr>
 
                     </table>
-                    <div class="signature-panel"><span>Approved specimen signature</span><img
-                            th:src="@{'/uploads/'+${employee.signaturePath}}" alt="Approved signature"></div>
+                    <div class="signature-panel" th:if="${canViewLocal and employee.signaturePath != null}"><span>Approved local signature</span><img
+                            th:src="@{'/media/'+${employee.signaturePath}}" alt="Approved local signature"></div>
+                    <div class="signature-panel" th:if="${canViewForeign and employee.foreignSignaturePath != null}"><span>Approved foreign signature</span><img
+                            th:src="@{'/media/'+${employee.foreignSignaturePath}}" alt="Approved foreign signature"></div>
                 </section>
             </div>
             <footer class="id-card-footer"><span>Employee Signature Management System</span><span>Authorized internal use only</span>

@@ -12,7 +12,7 @@
                 <p class="page-subtitle">Changes are saved as a request and applied after DGM and GM approval. Leave
                     image fields empty to keep the existing images.</p></div>
             <a class="btn btn-soft" th:href="@{/pd/employees}"><i class="bi bi-x-lg me-2"></i>Cancel</a></div>
-        <form th:action="@{/pd/employees/{id}/edit(id=${employee.id})}" th:object="${employeeUpdateForm}" method="post"
+        <form th:action="@{/pd/employees/{id}/edit(id=${employee.id},rejectedRequestId=${rejectedRequestId},proposalId=${proposalId})}" th:object="${employeeUpdateForm}" method="post"
               enctype="multipart/form-data">
             <div class="alert alert-danger app-alert" th:if="${#fields.hasAnyErrors()}">
                 <i class="bi bi-exclamation-triangle-fill"></i>
@@ -76,6 +76,9 @@
                                            th:field="*{employeeCode}"
                                            required>
                                 </div>
+
+                                <div class="col-md-6"><label class="form-label" for="classification">Signature classification</label><select class="form-select" id="classification" th:field="*{classification}" required><option value="LOCAL">Local</option><option value="FOREIGN">Foreign</option><option value="BOTH">Both</option></select></div>
+                                <div class="col-md-6"><label class="form-label" for="joiningDate">Date of joining</label><input class="form-control" id="joiningDate" type="date" th:field="*{joiningDate}" required></div>
 
                                 <div class="col-md-6">
                                     <label class="form-label" for="employeeName">
@@ -244,7 +247,7 @@
                              and replacement images</h2></div>
                          <div class="card-body">
                              <div class="file-upload mb-4"><label class="form-label">Current employee photo</label>
-                                 <div class="upload-preview"><img th:src="@{'/uploads/'+${employee.photoPath}}"
+                                 <div class="upload-preview"><img th:src="@{'/media/'+${employee.photoPath}}"
                                                                   alt="Current employee photo"></div>
                                  <label class="form-label mt-3" for="photo">New employee photo</label><input
                                          class="form-control image-preview-input" id="photo" type="file"
@@ -258,7 +261,7 @@
                              </div>
                              <div class="file-upload"><label class="form-label">Current signature</label>
                                  <div class="upload-preview upload-preview-signature"><img
-                                         th:src="@{'/uploads/'+${employee.signaturePath}}"
+                                         th:src="@{'/media/'+${employee.signaturePath}}"
                                          alt="Current employee signature"></div>
                                  <label class="form-label mt-3" for="signature">New signature</label><input
                                          class="form-control image-preview-input" id="signature" type="file"

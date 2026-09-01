@@ -43,10 +43,10 @@ public class Employee {
     )
     private Branch branch;
 
-    @Column(name = "photo_path", nullable = false, length = 500)
+    @Column(name = "photo_path", length = 500)
     private String photoPath;
 
-    @Column(name = "signature_path", nullable = false, length = 500)
+    @Column(name = "signature_path", length = 500)
     private String signaturePath;
 
     @Column(name = "foreign_signature_path", nullable = true,length = 500)
@@ -67,15 +67,34 @@ public class Employee {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt = LocalDateTime.now();
 
-    @Column(name = "signature_valid_from", nullable = false)
+    @Column(name = "signature_valid_from")
     private LocalDate signatureValidFrom;
 
-    @Column(name = "signature_valid_until", nullable = false)
+    @Column(name = "signature_valid_until")
     private LocalDate signatureValidUntil;
 
 
     @Column(name = "update_request_status")
     private Boolean updateRequestStatus = false;
+
+    @Column(name = "locked", nullable = false)
+    private boolean locked;
+
+    @Column(name = "classification", nullable = false, length = 10)
+    private String classification = "BOTH";
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "status_id")
+    private EmployeeStatus employeeStatus;
+
+    @Column(name = "joining_date")
+    private LocalDate joiningDate;
+
+    @Column(name = "active", nullable = false)
+    private boolean active = true;
+
+    @Column(name = "batch_id")
+    private Long batchId;
 
     public Boolean getUpdateRequestStatus() { return updateRequestStatus; }
     public void setUpdateRequestStatus(Boolean updateRequestStatus) {
@@ -143,5 +162,17 @@ public class Employee {
     public void setSignatureValidUntil(LocalDate signatureValidUntil) {
         this.signatureValidUntil = signatureValidUntil;
     }
+    public boolean isLocked() { return locked; }
+    public void setLocked(boolean locked) { this.locked = locked; }
+    public String getClassification() { return classification; }
+    public void setClassification(String classification) { this.classification = classification; }
+    public EmployeeStatus getEmployeeStatus() { return employeeStatus; }
+    public void setEmployeeStatus(EmployeeStatus employeeStatus) { this.employeeStatus = employeeStatus; }
+    public LocalDate getJoiningDate() { return joiningDate; }
+    public void setJoiningDate(LocalDate joiningDate) { this.joiningDate = joiningDate; }
+    public boolean isActive() { return active; }
+    public void setActive(boolean active) { this.active = active; }
+    public Long getBatchId() { return batchId; }
+    public void setBatchId(Long batchId) { this.batchId = batchId; }
 
 }

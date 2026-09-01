@@ -16,6 +16,6 @@ public class DesignationService {
     }
 
     public List<Designation> findAll() {
-        return designationRepository.findAllByOrderByDesignationNameAsc();
+        return designationRepository.findByIsActiveTrueOrderByDesignationNameAsc();
     }
 }

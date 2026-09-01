@@ -25,13 +25,18 @@
                         <div class="review-media">
                             <div><p class="form-label">Profile photo</p>
                                 <div class="media-panel"><img class="review-image"
-                                                              th:src="@{'/uploads/'+${version.photoPath}}"
+                                                              th:src="@{'/media/'+${version.photoPath}}"
                                                               alt="Approved profile photo"></div>
                             </div>
-                            <div><p class="form-label">Signature</p>
+                            <div th:if="${canViewLocal and version.signaturePath != null}"><p class="form-label">Local signature</p>
                                 <div class="media-panel"><img class="signature-image"
-                                                              th:src="@{'/uploads/'+${version.signaturePath}}"
+                                                              th:src="@{'/media/'+${version.signaturePath}}"
                                                               alt="Approved signature"></div>
+                            </div>
+                            <div th:if="${canViewForeign and version.foreignSignaturePath != null}"><p class="form-label">Foreign signature</p>
+                                <div class="media-panel"><img class="signature-image"
+                                                              th:src="@{'/media/'+${version.foreignSignaturePath}}"
+                                                              alt="Approved foreign signature"></div>
                             </div>
                         </div>
                     </div>

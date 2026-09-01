@@ -9,16 +9,22 @@ public class EmployeeStatus {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "status_id")
-    private Integer statusId;
+    private Long statusId;
 
     @Column(name = "status_name", nullable = false)
     private String statusName;
 
-    public Integer getStatusId() {
+    @Column(name = "active", nullable = false)
+    private boolean active = true;
+
+    @Column(name = "display_order", nullable = false)
+    private int displayOrder = 100;
+
+    public Long getStatusId() {
         return statusId;
     }
 
-    public void setStatusId(Integer statusId) {
+    public void setStatusId(Long statusId) {
         this.statusId = statusId;
     }
 
@@ -29,5 +35,9 @@ public class EmployeeStatus {
     public void setStatusName(String statusName) {
         this.statusName = statusName;
     }
+    public boolean isActive() { return active; }
+    public void setActive(boolean active) { this.active = active; }
+    public int getDisplayOrder() { return displayOrder; }
+    public void setDisplayOrder(int displayOrder) { this.displayOrder = displayOrder; }
 }
 

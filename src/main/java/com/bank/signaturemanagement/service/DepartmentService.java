@@ -16,6 +16,6 @@ public class DepartmentService {
     }
 
     public List<Department> findAll() {
-        return departmentRepository.findAllByOrderByDepartmentNameAsc();
+        return departmentRepository.findByActiveTrueOrderByDepartmentNameAsc();
     }
 }

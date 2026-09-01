@@ -14,17 +14,18 @@ import java.util.Optional;
 public interface EmployeeRequestRepository extends JpaRepository<EmployeeRequest, Long> {
 
     @Override
-    @EntityGraph(attributePaths = {"requestedBy", "designation", "department", "branch"})
+    @EntityGraph(attributePaths = {"requestedBy", "designation", "department", "branch", "employeeStatus", "targetEmployee", "changeProposal"})
     Optional<EmployeeRequest> findById(Long id);
 
-    @EntityGraph(attributePaths = {"requestedBy", "designation", "department", "branch"})
+    @EntityGraph(attributePaths = {"requestedBy", "designation", "department", "branch", "employeeStatus", "targetEmployee", "changeProposal"})
     Page<EmployeeRequest> findByStatusOrderByRequestedAtAsc(
             RequestStatus status, Pageable pageable);
 
-    @EntityGraph(attributePaths = {"requestedBy", "designation", "department", "branch"})
+    @EntityGraph(attributePaths = {"requestedBy", "designation", "department", "branch", "employeeStatus", "targetEmployee", "changeProposal"})
     Page<EmployeeRequest> findByRequestedByIdOrderByRequestedAtDesc(
             Long userId, Pageable pageable);
 
+    @EntityGraph(attributePaths = {"targetEmployee"})
     List<EmployeeRequest> findByStatusIn(List<RequestStatus> statuses);
 
     boolean existsByEmployeeCodeAndStatusIn(String employeeCode, java.util.Collection<RequestStatus> statuses);

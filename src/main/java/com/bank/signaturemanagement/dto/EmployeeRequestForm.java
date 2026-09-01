@@ -11,15 +11,25 @@ public class EmployeeRequestForm {
     @NotBlank
     @Pattern(regexp = "\\d{6}", message = "Employee number must contain exactly 6 digits")
     private String employeeCode;
-    @NotBlank private String employeeName;
-    @NotBlank private String designation;
-    @NotBlank private String department;
-    @NotBlank private String branch;
-    @NotBlank private String remark;
+    @NotBlank
+    private String employeeName;
+    @NotBlank
+    private String designation;
+    @NotBlank
+    private String department;
+    @NotBlank
+    private String branch;
+    @NotBlank
+    private String remark;
     private MultipartFile photo;
     private MultipartFile signature;
     private MultipartFile foreignSignature;
-    private Integer statusId;
+    private Long statusId;
+    @NotBlank
+    @Pattern(regexp = "LOCAL|FOREIGN|BOTH", message = "Select a valid classification")
+    private String classification = "BOTH";
+    @NotNull(message = "Joining date is required")
+    private LocalDate joiningDate;
 
     public MultipartFile getForeignSignature() {
         return foreignSignature;
@@ -36,22 +46,70 @@ public class EmployeeRequestForm {
     @NotNull(message = "Signature valid-until date is required")
     private LocalDate signatureValidUntil;
 
-    public String getEmployeeCode() { return employeeCode; }
-    public void setEmployeeCode(String employeeCode) { this.employeeCode = employeeCode; }
-    public String getEmployeeName() { return employeeName; }
-    public void setEmployeeName(String employeeName) { this.employeeName = employeeName; }
-    public String getDesignation() { return designation; }
-    public void setDesignation(String designation) { this.designation = designation; }
-    public String getDepartment() { return department; }
-    public void setDepartment(String department) { this.department = department; }
-    public String getBranch() { return branch; }
-    public void setBranch(String branch) { this.branch = branch; }
-    public String getRemark() { return remark; }
-    public void setRemark(String remark) { this.remark = remark; }
-    public MultipartFile getPhoto() { return photo; }
-    public void setPhoto(MultipartFile photo) { this.photo = photo; }
-    public MultipartFile getSignature() { return signature; }
-    public void setSignature(MultipartFile signature) { this.signature = signature; }
+    public String getEmployeeCode() {
+        return employeeCode;
+    }
+
+    public void setEmployeeCode(String employeeCode) {
+        this.employeeCode = employeeCode;
+    }
+
+    public String getEmployeeName() {
+        return employeeName;
+    }
+
+    public void setEmployeeName(String employeeName) {
+        this.employeeName = employeeName;
+    }
+
+    public String getDesignation() {
+        return designation;
+    }
+
+    public void setDesignation(String designation) {
+        this.designation = designation;
+    }
+
+    public String getDepartment() {
+        return department;
+    }
+
+    public void setDepartment(String department) {
+        this.department = department;
+    }
+
+    public String getBranch() {
+        return branch;
+    }
+
+    public void setBranch(String branch) {
+        this.branch = branch;
+    }
+
+    public String getRemark() {
+        return remark;
+    }
+
+    public void setRemark(String remark) {
+        this.remark = remark;
+    }
+
+    public MultipartFile getPhoto() {
+        return photo;
+    }
+
+    public void setPhoto(MultipartFile photo) {
+        this.photo = photo;
+    }
+
+    public MultipartFile getSignature() {
+        return signature;
+    }
+
+    public void setSignature(MultipartFile signature) {
+        this.signature = signature;
+    }
+
     public LocalDate getSignatureValidFrom() {
         return signatureValidFrom;
     }
@@ -68,11 +126,27 @@ public class EmployeeRequestForm {
         this.signatureValidUntil = signatureValidUntil;
     }
 
-    public Integer getStatusId() {
+    public Long getStatusId() {
         return statusId;
     }
 
-    public void setStatusId(Integer statusId) {
+    public void setStatusId(Long statusId) {
         this.statusId = statusId;
+    }
+
+    public String getClassification() {
+        return classification;
+    }
+
+    public void setClassification(String classification) {
+        this.classification = classification;
+    }
+
+    public LocalDate getJoiningDate() {
+        return joiningDate;
+    }
+
+    public void setJoiningDate(LocalDate joiningDate) {
+        this.joiningDate = joiningDate;
     }
 }

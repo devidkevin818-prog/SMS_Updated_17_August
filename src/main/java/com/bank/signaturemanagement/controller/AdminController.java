@@ -4,6 +4,8 @@ import com.bank.signaturemanagement.dto.UserForm;
 import com.bank.signaturemanagement.dto.UserUpdateForm;
 import com.bank.signaturemanagement.dto.AdminPasswordResetForm;
 import com.bank.signaturemanagement.service.UserService;
+import com.bank.signaturemanagement.service.UserApprovalService;
+import org.springframework.security.core.Authentication;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -18,9 +20,11 @@ import java.util.stream.IntStream;
 @RequestMapping("/admin")
 public class AdminController {
     private final UserService userService;
+    private final UserApprovalService userApprovalService;
 
-    public AdminController(UserService userService) {
+    public AdminController(UserService userService, UserApprovalService userApprovalService) {
         this.userService = userService;
+        this.userApprovalService = userApprovalService;
     }
 
     @GetMapping("/dashboard")
@@ -39,6 +43,7 @@ public class AdminController {
         var users = userService.searchUsers(query, role, branch, active, page);
         model.addAttribute("users", users);
         model.addAttribute("roles", userService.getRoles());
+        addCreatorViewData(model);
         model.addAttribute("branches", userService.getBranches());
         model.addAttribute("branchNames", userService.getBranchNamesById());
         model.addAttribute("duplicateEmployeeNumbers", userService.getDuplicateEmployeeNumbers());
@@ -63,16 +68,17 @@ public class AdminController {
         if (!model.containsAttribute("userForm")) model.addAttribute("userForm", new UserForm());
         model.addAttribute("branches", userService.getBranches());
         model.addAttribute("roles", userService.getRoles());
+        addCreatorViewData(model);
         return "admin/create-user";
     }
 
     @PostMapping("/users")
     public String create(@Valid @ModelAttribute UserForm userForm, BindingResult result,
-                         Model model, RedirectAttributes redirectAttributes) {
+                         Model model, RedirectAttributes redirectAttributes, Authentication authentication) {
         if (!result.hasErrors()) {
             try {
-                userService.createUser(userForm);
-                redirectAttributes.addFlashAttribute("success", "User created successfully");
+                boolean bootstrap=userApprovalService.propose(userForm,authentication.getName());
+                redirectAttributes.addFlashAttribute("success", bootstrap ? "Bootstrap user created and activated" : "User request submitted for DGM approval");
                 return "redirect:/admin/users";
             } catch (IllegalArgumentException exception) {
                 result.reject("user", exception.getMessage());
@@ -103,10 +109,10 @@ public class AdminController {
     public String update(@PathVariable Long id,
                          @Valid @ModelAttribute UserUpdateForm userUpdateForm,
                          BindingResult result, Model model,
-                         RedirectAttributes redirectAttributes) {
+                         RedirectAttributes redirectAttributes, Authentication authentication) {
         if (!result.hasErrors()) {
             try {
-                userService.updateUser(id, userUpdateForm);
+                userService.updateUser(id, userUpdateForm, authentication.getName());
                 redirectAttributes.addFlashAttribute("success", "User updated successfully");
                 return "redirect:/admin/users";
             } catch (IllegalArgumentException exception) {
@@ -177,4 +183,5 @@ public class AdminController {
         response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
         response.setHeader("Pragma", "no-cache");
     }
+    private void addCreatorViewData(Model model){model.addAttribute("creatorRole","ADMIN");model.addAttribute("creatorBackPath","/admin/users");model.addAttribute("userCreateAction","/admin/users");}
 }

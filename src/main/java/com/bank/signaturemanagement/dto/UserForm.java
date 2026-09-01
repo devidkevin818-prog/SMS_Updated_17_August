@@ -15,6 +15,8 @@ public class UserForm {
     @NotBlank @Email @Size(max = 100, message = "Email must not exceed 100 characters") private String email;
     @NotBlank @Size(max = 100, message = "Branch must not exceed 100 characters") private String branchId;
     @NotBlank @Size(max = 30) private String roleName;
+    @NotBlank @Pattern(regexp = "LOCAL|FOREIGN|BOTH", message = "Select a valid signature scope")
+    private String signatureScope = "BOTH";
 
 
     public String getBranchId() {
@@ -37,4 +39,6 @@ public class UserForm {
     public void setEmail(String email) { this.email = email; }
     public String getRoleName() { return roleName; }
     public void setRoleName(String roleName) { this.roleName = roleName; }
+    public String getSignatureScope() { return signatureScope; }
+    public void setSignatureScope(String signatureScope) { this.signatureScope = signatureScope; }
 }

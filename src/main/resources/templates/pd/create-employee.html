@@ -91,6 +91,9 @@
                                     </select>
                                 </div>
 
+                                <div class="col-md-6"><label class="form-label" for="classification">Signature classification</label><select class="form-select" id="classification" th:field="*{classification}" required><option value="LOCAL">Local</option><option value="FOREIGN">Foreign</option><option value="BOTH">Both</option></select></div>
+                                <div class="col-md-6"><label class="form-label" for="joiningDate">Date of joining</label><input class="form-control" id="joiningDate" type="date" th:field="*{joiningDate}" required></div>
+
 
                                 <div class="col-md-6">
                                     <label class="form-label" for="department">

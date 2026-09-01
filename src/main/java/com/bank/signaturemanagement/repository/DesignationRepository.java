@@ -12,7 +12,13 @@ public interface DesignationRepository extends JpaRepository<Designation, Long> 
 
     List<Designation> findAllByOrderByDesignationNameAsc();
 
+    List<Designation> findByIsActiveTrueOrderByDesignationNameAsc();
+
     Optional<Designation> findByDesignationName(String designationName);
 
     boolean existsByDesignationName(String designationName);
+
+    boolean existsByDesignationNameIgnoreCaseAndDesignationIdNot(String designationName, Long designationId);
+
+    boolean existsByDesignationNameIgnoreCase(String designationName);
 }

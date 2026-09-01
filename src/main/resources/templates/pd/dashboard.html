@@ -24,7 +24,10 @@
             <article class="metric-card"><span class="metric-icon"><i class="bi bi-diagram-3-fill"></i></span><strong
                     class="metric-value">2 Levels</strong><span class="metric-label">DGM and GM approval</span>
             </article>
-        </section>
+</section>
+<section class="surface-card table-card mt-4" th:if="${changeProposals != null}"><div class="card-header"><h2 class="h5 mb-1">Employee changes awaiting PD</h2></div><div class="table-responsive"><table class="table app-table"><thead><tr><th>Employee</th><th>Requested by</th><th>Mandatory justification</th><th>Action</th></tr></thead><tbody>
+<tr th:each="proposal:${changeProposals}"><td th:text="${proposal.employee.employeeNumber+' - '+proposal.employee.fullName}"></td><td th:text="${proposal.requestedBy.username}"></td><td th:text="${proposal.justification}"></td><td><form method="post" th:action="@{/pd/change-proposals/{id}/accept(id=${proposal.id})}"><button class="btn btn-sm btn-bank">Accept for PD editing</button></form></td></tr>
+<tr th:if="${#lists.isEmpty(changeProposals)}"><td colspan="4" class="empty-state">No employee changes are waiting for PD.</td></tr></tbody></table></div></section>
         <section class="surface-card">
             <div class="card-header"><h2 class="h5 mb-1">Your workspace</h2>
                 <p class="page-subtitle mb-0">Create, track, or maintain employee records</p></div>

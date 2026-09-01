@@ -24,6 +24,12 @@ public class Role {
     @Column(nullable = false)
     private boolean active = true;
 
+    @Column(name = "hierarchy_order")
+    private Integer hierarchyOrder;
+
+    @Column(name = "system_role", nullable = false)
+    private boolean systemRole;
+
     protected Role() {
     }
 
@@ -39,4 +45,8 @@ public class Role {
     public void setDescription(String description) { this.description = description; }
     public boolean isActive() { return active; }
     public void setActive(boolean active) { this.active = active; }
+    public Integer getHierarchyOrder() { return hierarchyOrder; }
+    public void setHierarchyOrder(Integer hierarchyOrder) { this.hierarchyOrder = hierarchyOrder; }
+    public boolean isSystemRole() { return systemRole; }
+    public void setSystemRole(boolean systemRole) { this.systemRole = systemRole; }
 }

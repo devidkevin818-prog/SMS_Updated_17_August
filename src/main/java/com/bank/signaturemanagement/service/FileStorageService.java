@@ -202,13 +202,17 @@ public class FileStorageService {
         requireInsideRoot(path, uploadRoot);
 
         try {
-
-            Files.deleteIfExists(path);
-
+            if (!Files.exists(path)) return;
+            Path archiveRoot = uploadRoot.resolve("archive/rejected").normalize();
+            requireInsideRoot(archiveRoot, uploadRoot);
+            Files.createDirectories(archiveRoot);
+            Path archived = archiveRoot.resolve(UUID.randomUUID() + "-" + path.getFileName()).normalize();
+            requireInsideRoot(archived, archiveRoot);
+            Files.move(path, archived, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException exception) {
 
             throw new IllegalStateException(
-                    "Could not remove the rejected pending image",
+                    "Could not archive the rejected pending image",
                     exception
             );
         }
@@ -262,6 +266,13 @@ public class FileStorageService {
         requireInsideRoot(resolved, root);
 
         return resolved;
+    }
+
+    public Path resolveForRead(String storedPath) {
+        if (storedPath == null || storedPath.isBlank() || storedPath.indexOf('\0') >= 0) {
+            throw new IllegalArgumentException("Invalid media path");
+        }
+        return resolveStoredPath(storedPath.replace('\\','/'));
     }
 
 
@@ -361,6 +372,19 @@ public class FileStorageService {
                     exception
             );
         }
+    }
+
+    public String storeImportFile(MultipartFile file, String batchNumber) {
+        if (file == null || file.isEmpty()) throw new IllegalArgumentException("Select a CSV or XLSX file");
+        String original=file.getOriginalFilename()==null?"":file.getOriginalFilename().toLowerCase(Locale.ROOT);
+        if (!original.endsWith(".csv") && !original.endsWith(".xlsx")) throw new IllegalArgumentException("Only CSV and XLSX files are allowed");
+        if (file.getSize()>10L*1024*1024) throw new IllegalArgumentException("Batch file must not exceed 10 MB");
+        Path folder=uploadRoot.resolve("import-batches").normalize(); requireInsideRoot(folder,uploadRoot);
+        String extension=original.endsWith(".xlsx")?".xlsx":".csv";
+        Path destination=folder.resolve(batchNumber+"-"+UUID.randomUUID()+extension).normalize(); requireInsideRoot(destination,folder);
+        try { Files.createDirectories(folder); try(var in=file.getInputStream()){Files.copy(in,destination,StandardCopyOption.REPLACE_EXISTING);} }
+        catch(IOException e){throw new IllegalStateException("Could not retain batch source file",e);}
+        return "import-batches/"+destination.getFileName();
     }
 
 

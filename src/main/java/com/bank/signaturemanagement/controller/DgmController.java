@@ -6,6 +6,7 @@ import com.bank.signaturemanagement.entity.RequestStatus;
 import com.bank.signaturemanagement.service.EmployeeRequestService;
 import com.bank.signaturemanagement.service.ApprovalHistoryService;
 import com.bank.signaturemanagement.service.EmployeeService;
+import com.bank.signaturemanagement.service.UserApprovalService;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -18,18 +19,33 @@ public class DgmController {
     private final EmployeeRequestService requestService;
     private final ApprovalHistoryService approvalHistoryService;
     private final EmployeeService employeeService;
+    private final UserApprovalService userApprovalService;
+    private final com.bank.signaturemanagement.service.EmployeeChangeProposalService changeProposalService;
+    private final com.bank.signaturemanagement.service.BatchImportService batchImportService;
 
 
-    public DgmController(EmployeeRequestService requestService, ApprovalHistoryService approvalHistoryService, EmployeeService employeeService) {
+    public DgmController(EmployeeRequestService requestService, ApprovalHistoryService approvalHistoryService, EmployeeService employeeService, UserApprovalService userApprovalService, com.bank.signaturemanagement.service.EmployeeChangeProposalService changeProposalService, com.bank.signaturemanagement.service.BatchImportService batchImportService) {
         this.requestService = requestService;
         this.approvalHistoryService = approvalHistoryService;
         this.employeeService = employeeService;
+        this.userApprovalService = userApprovalService;
+        this.changeProposalService = changeProposalService;
+        this.batchImportService = batchImportService;
     }
 
     @GetMapping("/dashboard")
     public String dashboard(@RequestParam(defaultValue = "0") int page, Model model) {
         model.addAttribute("requests", requestService.getPendingRequests(RequestStatus.PENDING_DGM, page));
+        model.addAttribute("userRequests", userApprovalService.pending("DGM"));
+        model.addAttribute("batchRequests", batchImportService.pending("DGM"));
         return "dgm/dashboard";
+    }
+    @PostMapping("/batch-requests/{id}/decision")
+    public String batchDecision(@PathVariable Long id,@RequestParam String action,@RequestParam(required=false)String comment,Authentication authentication,RedirectAttributes redirect){try{batchImportService.decide(id,"DGM",action,comment,authentication.getName());redirect.addFlashAttribute("success","Batch decision saved");}catch(IllegalArgumentException e){redirect.addFlashAttribute("error",e.getMessage());}return "redirect:/dgm/dashboard";}
+    @PostMapping("/user-requests/{id}/decision")
+    public String userDecision(@PathVariable Long id,@RequestParam String action,@RequestParam(required=false) String comment,Authentication authentication,RedirectAttributes redirect){
+        try{userApprovalService.decide(id,"DGM",action,comment,authentication.getName());redirect.addFlashAttribute("success","User request decision saved");}
+        catch(IllegalArgumentException e){redirect.addFlashAttribute("error",e.getMessage());} return "redirect:/dgm/dashboard";
     }
 
     @GetMapping("/requests/{id}")
@@ -71,11 +87,13 @@ public class DgmController {
     }
     @PostMapping("/employees/{id}/update-request")
     public String requestEmployeeUpdate(@PathVariable Long id,
+                                        @RequestParam String justification,
+                                        Authentication authentication,
                                         RedirectAttributes redirectAttributes) {
 
 
         try {
-            employeeService.requestUpdate(id);
+            changeProposalService.submit(id, justification, authentication.getName());
             redirectAttributes.addFlashAttribute(
                     "success",
                     "Update request submitted successfully"

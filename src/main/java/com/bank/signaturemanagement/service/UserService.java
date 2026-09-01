@@ -30,26 +30,35 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final BranchRepository branchRepository;
     private final SecureTemporaryPasswordGenerator temporaryPasswordGenerator;
+    private final EmployeeNumberPolicyService employeeNumberPolicy;
 
     public List<Branch> getBranches() {
-        return branchRepository.findAllByOrderByBranchNameAsc();
+        return branchRepository.findByActiveTrueOrderByBranchNameAsc();
     }
 
     public UserService(UserRepository userRepository, RoleRepository roleRepository,
                        PasswordEncoder passwordEncoder, BranchRepository branchRepository) {
         this(userRepository, roleRepository, passwordEncoder, branchRepository,
-                new SecureTemporaryPasswordGenerator());
+                new SecureTemporaryPasswordGenerator(), null);
+    }
+
+    public UserService(UserRepository userRepository, RoleRepository roleRepository,
+                       PasswordEncoder passwordEncoder, BranchRepository branchRepository,
+                       SecureTemporaryPasswordGenerator temporaryPasswordGenerator) {
+        this(userRepository, roleRepository, passwordEncoder, branchRepository, temporaryPasswordGenerator, null);
     }
 
     @Autowired
     public UserService(UserRepository userRepository, RoleRepository roleRepository,
                        PasswordEncoder passwordEncoder, BranchRepository branchRepository,
-                       SecureTemporaryPasswordGenerator temporaryPasswordGenerator) {
+                       SecureTemporaryPasswordGenerator temporaryPasswordGenerator,
+                       EmployeeNumberPolicyService employeeNumberPolicy) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
         this.branchRepository = branchRepository;
         this.temporaryPasswordGenerator = temporaryPasswordGenerator;
+        this.employeeNumberPolicy = employeeNumberPolicy;
     }
 
     @Transactional
@@ -160,11 +169,17 @@ public class UserService {
         form.setEmail(user.getEmail());
         form.setRoleName(user.getRole().getName());
         form.setActive(user.isActive());
+        form.setSignatureScope(user.getSignatureScope());
         return form;
     }
 
     @Transactional
     public void updateUser(Long id, UserUpdateForm form) {
+        updateUser(id, form, null);
+    }
+
+    @Transactional
+    public void updateUser(Long id, UserUpdateForm form, String requestingUsername) {
         User user = userRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("User not found"));
         String email = form.getEmail().trim();
         String employeeNumber = normalizeOptionalEmployeeNumber(form.getEmployeeNumber());
@@ -177,12 +192,24 @@ public class UserService {
         }
         Role role = roleRepository.findByName(form.getRoleName())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid role"));
+        if (requestingUsername != null) {
+            User actor=userRepository.findByUsername(requestingUsername).orElseThrow(() -> new IllegalArgumentException("Requesting user not found"));
+            if (actor.getId().equals(user.getId()) && "PD".equals(actor.getRole().getName()) && !role.getName().equals(user.getRole().getName())) {
+                throw new IllegalArgumentException("PD users cannot change their own role");
+            }
+        }
+        if ("ADMIN".equals(user.getRole().getName()) && !"ADMIN".equals(role.getName())
+                && userRepository.countByRoleNameAndActiveTrueAndIdNot("ADMIN",id)==0) {
+            throw new IllegalArgumentException("The final active administrator cannot be downgraded");
+        }
         user.setFullName(form.getFullName().trim());
         user.setEmployeeNumber(employeeNumber);
         user.setBranchId(form.getBranchId().trim());
         user.setEmail(email);
         user.setRole(role);
         user.setActive(form.isActive());
+        user.setSignatureScope(form.getSignatureScope());
+        user.setDeactivatedAt(form.isActive()?null:LocalDateTime.now());
         if (form.getPassword() != null && !form.getPassword().isBlank()) {
             user.setPasswordHash(passwordEncoder.encode(form.getPassword()));
         }
@@ -227,12 +254,14 @@ public class UserService {
         if (employeeNumber == null || employeeNumber.isBlank()) {
             throw new IllegalArgumentException("Employee ID is required");
         }
-        return EmployeeNumberFormat.normalize(employeeNumber);
+        return employeeNumberPolicy == null
+                ? EmployeeNumberFormat.normalize(employeeNumber)
+                : employeeNumberPolicy.normalize(employeeNumber);
     }
 
     private String normalizeOptionalEmployeeNumber(String employeeNumber) {
         return employeeNumber == null || employeeNumber.isBlank()
-                ? null : EmployeeNumberFormat.normalize(employeeNumber);
+                ? null : normalizeEmployeeNumber(employeeNumber);
     }
 
     private String normalizeFilter(String value) {
