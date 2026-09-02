@@ -6,25 +6,14 @@
 <aside th:replace="~{fragments/sidebar :: sidebar('ADMIN','dashboard')}"></aside>
 <main class="app-main">
     <div class="content-wrap">
-        <div class="page-header">
-            <div><span class="page-eyebrow">Administration</span>
-                <h1 class="page-title">Control center</h1>
-                <p class="page-subtitle">Manage authorized users and keep access current.</p></div>
+        <div class="dashboard-toolbar">
             <a class="btn btn-bank" th:href="@{/admin/users}"><i class="bi bi-person-plus-fill me-2"></i>Create user</a>
         </div>
-        <section class="metric-grid">
-            <article class="metric-card"><span class="metric-icon"><i class="bi bi-people-fill"></i></span><strong
-                    class="metric-value">Users</strong><span class="metric-label">Authorized system accounts</span>
-            </article>
-            <article class="metric-card"><span class="metric-icon"><i class="bi bi-person-check-fill"></i></span><strong
-                    class="metric-value">5 Roles</strong><span class="metric-label">Controlled access groups</span>
-            </article>
-            <article class="metric-card"><span class="metric-icon"><i class="bi bi-shield-lock-fill"></i></span><strong
-                    class="metric-value">BCrypt</strong><span class="metric-label">Protected credentials</span>
-            </article>
-            <article class="metric-card"><span class="metric-icon"><i class="bi bi-database-check"></i></span><strong
-                    class="metric-value">Secure</strong><span class="metric-label">Database authentication</span>
-            </article>
+        <section class="metric-grid queue-menu-grid" aria-label="User management menu">
+            <a class="metric-card text-decoration-none" th:href="@{/admin/users}"><span class="metric-icon"><i class="bi bi-people-fill"></i></span><strong class="metric-value" th:text="${totalUsers}">0</strong><span class="metric-label">All users</span></a>
+            <a class="metric-card text-decoration-none" th:href="@{/admin/users(status='active')}"><span class="metric-icon"><i class="bi bi-person-check-fill"></i></span><strong class="metric-value" th:text="${activeUsers}">0</strong><span class="metric-label">Active users</span></a>
+            <a class="metric-card text-decoration-none" th:href="@{/admin/users(status='inactive')}"><span class="metric-icon"><i class="bi bi-person-dash-fill"></i></span><strong class="metric-value" th:text="${inactiveUsers}">0</strong><span class="metric-label">Inactive users</span></a>
+            <a class="metric-card text-decoration-none" th:href="@{/admin/users}"><span class="metric-icon"><i class="bi bi-shield-lock-fill"></i></span><strong class="metric-value" th:text="${roleCount}">0</strong><span class="metric-label">Access roles</span></a>
         </section>
         <section class="surface-card">
             <div class="card-header"><h2 class="h5 mb-1">Quick actions</h2>

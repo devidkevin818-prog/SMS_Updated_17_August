@@ -6,25 +6,16 @@
 <aside th:replace="~{fragments/sidebar :: sidebar('GM','approval')}"></aside>
 <main class="app-main">
     <div class="content-wrap">
-        <div class="page-header">
-            <div><span class="page-eyebrow">Approval Level 2</span>
-                <h1 class="page-title">GM approval queue</h1>
-                <p class="page-subtitle">Provide the final authorization before an employee becomes active.</p></div>
+        <div class="dashboard-toolbar">
             <span class="status-badge status-pending"><i class="bi bi-hourglass-split me-1"></i><span
-                    th:text="${requests.totalElements} + ' pending'">0 pending</span></span></div>
+                    th:text="${requests.totalElements + #lists.size(userRequests) + #lists.size(batchRequests) + #lists.size(signatureRequests) + #lists.size(mediaRequests)} + ' total pending'">0 pending</span></span></div>
         <div th:replace="~{fragments/layout :: messages}"></div>
-        <section class="metric-grid">
-            <article class="metric-card"><span class="metric-icon"><i class="bi bi-inbox-fill"></i></span><strong
-                    class="metric-value" th:text="${requests.totalElements}">0</strong><span class="metric-label">Pending final reviews</span>
-            </article>
-            <article class="metric-card"><span class="metric-icon"><i class="bi bi-patch-check-fill"></i></span><strong
-                    class="metric-value">Final</strong><span class="metric-label">Authorization level</span></article>
-            <article class="metric-card"><span class="metric-icon"><i class="bi bi-person-check-fill"></i></span><strong
-                    class="metric-value">Activate</strong><span class="metric-label">Approved employee record</span>
-            </article>
-            <article class="metric-card"><span class="metric-icon"><i class="bi bi-bank2"></i></span><strong
-                    class="metric-value">Bank</strong><span class="metric-label">Verified internal profile</span>
-            </article>
+        <section class="metric-grid queue-menu-grid" aria-label="Approval queue menu">
+            <a href="#employees" class="metric-card dashboard-counter" data-section-title="DGM-approved requests"><span class="metric-icon"><i class="bi bi-person-check-fill"></i></span><strong class="metric-value" th:text="${requests.totalElements}">0</strong><span class="metric-label">Employee requests</span></a>
+            <a href="#media" class="metric-card dashboard-counter" data-section-title="Combined profile/signature approvals"><span class="metric-icon"><i class="bi bi-images"></i></span><strong class="metric-value" th:text="${#lists.size(mediaRequests)}">0</strong><span class="metric-label">Profile &amp; media</span></a>
+            <a href="#signatures" class="metric-card dashboard-counter" data-section-title="Pending signature approvals"><span class="metric-icon"><i class="bi bi-pen-fill"></i></span><strong class="metric-value" th:text="${#lists.size(signatureRequests)}">0</strong><span class="metric-label">Signature requests</span></a>
+            <a href="#users" class="metric-card dashboard-counter" data-section-title="Pending user creation requests"><span class="metric-icon"><i class="bi bi-person-lock"></i></span><strong class="metric-value" th:text="${#lists.size(userRequests)}">0</strong><span class="metric-label">User requests</span></a>
+            <a href="#batches" class="metric-card dashboard-counter" data-section-title="Pending import batches"><span class="metric-icon"><i class="bi bi-file-earmark-spreadsheet"></i></span><strong class="metric-value" th:text="${#lists.size(batchRequests)}">0</strong><span class="metric-label">Import batches</span></a>
         </section>
         <section class="surface-card table-card">
             <div class="card-header"><h2 class="h5 mb-1">DGM-approved requests</h2>

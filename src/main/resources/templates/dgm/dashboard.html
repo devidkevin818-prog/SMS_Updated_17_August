@@ -6,10 +6,7 @@
 <aside th:replace="~{fragments/sidebar :: sidebar('DGM','approval')}"></aside>
 <main class="app-main">
     <div class="content-wrap">
-        <div class="page-header">
-            <div><span class="page-eyebrow">Approval Level 1</span>
-                <h1 class="page-title">DGM approval queue</h1>
-                <p class="page-subtitle">Verify employee information, photograph, signature, and PD remarks.</p></div>
+        <div class="dashboard-toolbar">
 	            <span class="status-badge status-pending"><i class="bi bi-hourglass-split me-1"></i><span
 	                    th:text="${requests.totalElements + #lists.size(userRequests) + #lists.size(batchRequests) + #lists.size(signatureRequests) + #lists.size(mediaRequests)} + ' total pending'">0 pending</span></span></div>
         <div th:replace="~{fragments/layout :: messages}"></div>
@@ -64,21 +61,5 @@
 </main>
 <footer th:replace="~{fragments/layout :: footer}"></footer>
 <div th:replace="~{fragments/layout :: scripts}"></div>
-<script>
-document.querySelectorAll('.dashboard-counter').forEach(function (counter) {
-    counter.addEventListener('click', function (event) {
-        event.preventDefault();
-        const title = counter.dataset.sectionTitle;
-        const heading = Array.from(document.querySelectorAll('.surface-card h2')).find(function (item) {
-            return item.textContent.trim() === title;
-        });
-        if (!heading) return;
-        const section = heading.closest('.surface-card');
-        section.scrollIntoView({behavior: 'smooth', block: 'start'});
-        section.classList.add('dashboard-section-focus');
-        window.setTimeout(function () { section.classList.remove('dashboard-section-focus'); }, 1400);
-    });
-});
-</script>
 </body>
 </html>

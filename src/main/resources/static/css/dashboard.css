@@ -179,3 +179,35 @@
 @media (max-width:1199.98px) { .queue-menu-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
 @media (max-width:767.98px) { .queue-menu-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 @media (max-width:479.98px) { .queue-menu-grid { grid-template-columns:1fr; } }
+
+/* Register-inspired content components */
+.dashboard-toolbar { display:flex; justify-content:flex-end; align-items:center; min-height:32px; margin-bottom:14px; }
+.surface-card { border-color:#d8dfda; border-radius:4px; box-shadow:0 3px 12px rgba(20,53,36,.045); }
+.surface-card .card-header { padding:14px 18px; background:#fafbf9; border-bottom-color:#d8dfda; }
+.surface-card .card-header h2,.surface-card .card-header h3 { font-family:"IBM Plex Serif",Georgia,serif; color:#173324; }
+.surface-card .card-body { padding:18px; }
+.metric-grid { gap:10px; margin-bottom:20px; }
+.metric-card { min-height:112px; padding:16px; border-color:#d8dfda; border-radius:4px; box-shadow:0 2px 8px rgba(20,53,36,.04); }
+.metric-card:hover { transform:translateY(-2px); border-color:#78a98d; box-shadow:0 6px 15px rgba(20,53,36,.08); }
+.metric-icon { width:38px; height:38px; margin-bottom:12px; border-radius:3px; color:#fff; background:var(--bank-green); font-size:1rem; }
+.metric-value { font-family:"IBM Plex Serif",Georgia,serif; font-size:1.45rem; font-weight:600; }
+.metric-label { margin-top:5px; font-size:.74rem; }
+.metric-card::after { display:none; }
+.queue-menu-grid { gap:8px; }
+.queue-menu-grid .metric-card { min-height:74px; padding:10px 12px; grid-template-columns:32px 1fr; column-gap:9px; }
+.queue-menu-grid .metric-icon { width:32px; height:32px; border-radius:3px; }
+.queue-menu-grid .metric-value { font-size:1.2rem; }
+.queue-menu-grid .metric-label { font-size:.68rem; }
+.quick-actions { gap:9px; }
+.quick-action { padding:13px 14px; border-radius:3px; background:#fbfcfa; }
+.quick-action:hover { transform:none; box-shadow:inset 3px 0 var(--bank-green); }
+.search-panel { padding:15px; margin-bottom:18px; background:#eef4ef; border-color:#cbd9cf; border-radius:4px; }
+.app-table thead th { padding:10px 14px; color:#214934; background:#eaf2ec; border-top:1px solid #d8e2db; border-bottom:1px solid #ccd8cf; font-size:.66rem; letter-spacing:.09em; }
+.app-table tbody td { padding:11px 14px; border-color:#e1e6e2; font-size:.84rem; }
+.app-table tbody tr:nth-child(even) { background:#fbfcfb; }
+.status-badge { padding:4px 7px; border-radius:3px; font-size:.64rem; }
+.detail-list { border-radius:3px; }
+.detail-item { padding:11px 14px; }
+.file-upload,.media-panel,.signature-panel,.employee-photo-wrap { border-radius:3px; }
+.employee-id-card { border-radius:5px; border-top-width:4px; box-shadow:0 12px 30px rgba(20,53,36,.14); }
+.id-card-header,.id-card-footer { background:#f0f5f1; }

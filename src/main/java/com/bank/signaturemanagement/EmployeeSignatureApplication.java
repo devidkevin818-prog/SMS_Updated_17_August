@@ -7,6 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class EmployeeSignatureApplication {
 
     public static void main(String[] args) {
+        SqlServerDatabaseProvisioner.createConfiguredDatabaseIfMissing(args);
         SpringApplication.run(EmployeeSignatureApplication.class, args);
     }
 }

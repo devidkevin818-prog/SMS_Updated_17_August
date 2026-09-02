@@ -55,7 +55,6 @@
         <a th:if="${role == 'BRANCH'}" th:href="@{/employees}" th:classappend="${activePage == 'directory'} ? ' active'" class="sidebar-link"><i class="bi bi-person-vcard-fill"></i><span>Employee Directory</span></a>
         <a th:if="${role == 'BRANCH'}" th:href="@{/audit}" th:classappend="${activePage == 'audit'} ? ' active'" class="sidebar-link"><i class="bi bi-journal-text"></i><span>My Audit Trail</span></a>
     </nav>
-    <div class="sidebar-security"><i class="bi bi-shield-check"></i><div><strong>Protected system</strong><small>Authorized access only</small></div></div>
 </aside>
 </body>
 </html>

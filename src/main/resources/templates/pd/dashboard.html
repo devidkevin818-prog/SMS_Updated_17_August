@@ -6,25 +6,16 @@
 <aside th:replace="~{fragments/sidebar :: sidebar('PD','dashboard')}"></aside>
 <main class="app-main">
     <div class="content-wrap">
-        <div class="page-header">
-            <div><span class="page-eyebrow">Personnel Department</span>
-                <h1 class="page-title">Employee onboarding</h1>
-                <p class="page-subtitle">Submit complete employee records for two-level approval.</p></div>
+        <div class="dashboard-toolbar">
             <a class="btn btn-bank" th:href="@{/pd/employees/new}"><i class="bi bi-person-plus-fill me-2"></i>Create
                 employee</a></div>
-        <section class="metric-grid">
-            <article class="metric-card"><span class="metric-icon"><i
-                    class="bi bi-file-earmark-plus-fill"></i></span><strong class="metric-value">Create</strong><span
-                    class="metric-label">New employee request</span></article>
-            <article class="metric-card"><span class="metric-icon"><i class="bi bi-camera-fill"></i></span><strong
-                    class="metric-value">Photo</strong><span class="metric-label">JPG and PNG supported</span></article>
-            <article class="metric-card"><span class="metric-icon"><i class="bi bi-pen-fill"></i></span><strong
-                    class="metric-value">Signature</strong><span class="metric-label">Secure specimen upload</span>
-            </article>
-            <article class="metric-card"><span class="metric-icon"><i class="bi bi-diagram-3-fill"></i></span><strong
-                    class="metric-value">2 Levels</strong><span class="metric-label">DGM and GM approval</span>
-            </article>
-</section>
+        <section class="metric-grid queue-menu-grid" aria-label="PD workspace menu">
+            <a class="metric-card text-decoration-none" th:href="@{/pd/employees/new}"><span class="metric-icon"><i class="bi bi-person-plus-fill"></i></span><strong class="metric-value">New</strong><span class="metric-label">Create employee</span></a>
+            <a class="metric-card text-decoration-none" th:href="@{/pd/requests}"><span class="metric-icon"><i class="bi bi-clock-history"></i></span><strong class="metric-value" th:text="${myRequestCount}">0</strong><span class="metric-label">My requests</span></a>
+            <a href="#changes" class="metric-card text-decoration-none dashboard-counter" data-section-title="Employee changes awaiting PD"><span class="metric-icon"><i class="bi bi-pencil-square"></i></span><strong class="metric-value" th:text="${changeProposalCount}">0</strong><span class="metric-label">Employee changes</span></a>
+            <a class="metric-card text-decoration-none" th:href="@{/pd/signatures}"><span class="metric-icon"><i class="bi bi-images"></i></span><strong class="metric-value">Upload</strong><span class="metric-label">Photo &amp; signatures</span></a>
+            <a class="metric-card text-decoration-none" th:href="@{/employees}"><span class="metric-icon"><i class="bi bi-person-vcard-fill"></i></span><strong class="metric-value">View</strong><span class="metric-label">Employee directory</span></a>
+        </section>
 <section class="surface-card table-card mt-4" th:if="${changeProposals != null}"><div class="card-header"><h2 class="h5 mb-1">Employee changes awaiting PD</h2></div><div class="table-responsive"><table class="table app-table"><thead><tr><th>Employee</th><th>Requested by</th><th>Mandatory justification</th><th>Action</th></tr></thead><tbody>
 <tr th:each="proposal:${changeProposals}"><td th:text="${proposal.employee.employeeNumber+' - '+proposal.employee.fullName}"></td><td th:text="${proposal.requestedBy.username}"></td><td th:text="${proposal.justification}"></td><td><form method="post" th:action="@{/pd/change-proposals/{id}/accept(id=${proposal.id})}"><button class="btn btn-sm btn-bank">Accept for PD editing</button></form></td></tr>
 <tr th:if="${#lists.isEmpty(changeProposals)}"><td colspan="4" class="empty-state">No employee changes are waiting for PD.</td></tr></tbody></table></div></section>
