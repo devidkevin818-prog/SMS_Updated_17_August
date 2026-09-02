@@ -22,15 +22,19 @@ public class DgmController {
     private final UserApprovalService userApprovalService;
     private final com.bank.signaturemanagement.service.EmployeeChangeProposalService changeProposalService;
     private final com.bank.signaturemanagement.service.BatchImportService batchImportService;
+    private final com.bank.signaturemanagement.service.SignatureWorkflowService signatureWorkflowService;
+    private final com.bank.signaturemanagement.service.EmployeeMediaRequestService mediaRequestService;
 
 
-    public DgmController(EmployeeRequestService requestService, ApprovalHistoryService approvalHistoryService, EmployeeService employeeService, UserApprovalService userApprovalService, com.bank.signaturemanagement.service.EmployeeChangeProposalService changeProposalService, com.bank.signaturemanagement.service.BatchImportService batchImportService) {
+    public DgmController(EmployeeRequestService requestService, ApprovalHistoryService approvalHistoryService, EmployeeService employeeService, UserApprovalService userApprovalService, com.bank.signaturemanagement.service.EmployeeChangeProposalService changeProposalService, com.bank.signaturemanagement.service.BatchImportService batchImportService, com.bank.signaturemanagement.service.SignatureWorkflowService signatureWorkflowService,com.bank.signaturemanagement.service.EmployeeMediaRequestService mediaRequestService) {
         this.requestService = requestService;
         this.approvalHistoryService = approvalHistoryService;
         this.employeeService = employeeService;
         this.userApprovalService = userApprovalService;
         this.changeProposalService = changeProposalService;
         this.batchImportService = batchImportService;
+        this.signatureWorkflowService = signatureWorkflowService;
+        this.mediaRequestService = mediaRequestService;
     }
 
     @GetMapping("/dashboard")
@@ -38,10 +42,14 @@ public class DgmController {
         model.addAttribute("requests", requestService.getPendingRequests(RequestStatus.PENDING_DGM, page));
         model.addAttribute("userRequests", userApprovalService.pending("DGM"));
         model.addAttribute("batchRequests", batchImportService.pending("DGM"));
+        model.addAttribute("signatureRequests", signatureWorkflowService.pending("DGM"));
+        model.addAttribute("mediaRequests", mediaRequestService.pending("DGM"));
         return "dgm/dashboard";
     }
     @PostMapping("/batch-requests/{id}/decision")
     public String batchDecision(@PathVariable Long id,@RequestParam String action,@RequestParam(required=false)String comment,Authentication authentication,RedirectAttributes redirect){try{batchImportService.decide(id,"DGM",action,comment,authentication.getName());redirect.addFlashAttribute("success","Batch decision saved");}catch(IllegalArgumentException e){redirect.addFlashAttribute("error",e.getMessage());}return "redirect:/dgm/dashboard";}
+    @GetMapping("/batch-requests/{id}")
+    public String batchView(@PathVariable Long id,Model model){model.addAttribute("batch",batchImportService.get(id));model.addAttribute("items",batchImportService.itemViews(id));model.addAttribute("batchBase","/dgm/dashboard");model.addAttribute("pageRole","DGM");model.addAttribute("batchReadOnly",true);return "batches/detail";}
     @PostMapping("/user-requests/{id}/decision")
     public String userDecision(@PathVariable Long id,@RequestParam String action,@RequestParam(required=false) String comment,Authentication authentication,RedirectAttributes redirect){
         try{userApprovalService.decide(id,"DGM",action,comment,authentication.getName());redirect.addFlashAttribute("success","User request decision saved");}

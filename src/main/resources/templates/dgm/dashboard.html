@@ -10,21 +10,16 @@
             <div><span class="page-eyebrow">Approval Level 1</span>
                 <h1 class="page-title">DGM approval queue</h1>
                 <p class="page-subtitle">Verify employee information, photograph, signature, and PD remarks.</p></div>
-            <span class="status-badge status-pending"><i class="bi bi-hourglass-split me-1"></i><span
-                    th:text="${requests.totalElements} + ' pending'">0 pending</span></span></div>
+	            <span class="status-badge status-pending"><i class="bi bi-hourglass-split me-1"></i><span
+	                    th:text="${requests.totalElements + #lists.size(userRequests) + #lists.size(batchRequests) + #lists.size(signatureRequests) + #lists.size(mediaRequests)} + ' total pending'">0 pending</span></span></div>
         <div th:replace="~{fragments/layout :: messages}"></div>
-        <section class="metric-grid">
-            <article class="metric-card"><span class="metric-icon"><i class="bi bi-inbox-fill"></i></span><strong
-                    class="metric-value" th:text="${requests.totalElements}">0</strong><span class="metric-label">Pending DGM reviews</span>
-            </article>
-            <article class="metric-card"><span class="metric-icon"><i class="bi bi-person-vcard-fill"></i></span><strong
-                    class="metric-value">Verify</strong><span class="metric-label">Employee identity</span></article>
-            <article class="metric-card"><span class="metric-icon"><i class="bi bi-pen-fill"></i></span><strong
-                    class="metric-value">Check</strong><span class="metric-label">Specimen signature</span></article>
-            <article class="metric-card"><span class="metric-icon"><i
-                    class="bi bi-arrow-right-circle-fill"></i></span><strong class="metric-value">Forward</strong><span
-                    class="metric-label">Approved items to GM</span></article>
-        </section>
+	        <section class="metric-grid queue-menu-grid" aria-label="Approval queue menu">
+	            <a href="#" class="metric-card text-decoration-none dashboard-counter" data-section-title="Pending requests"><span class="metric-icon"><i class="bi bi-person-plus-fill"></i></span><strong class="metric-value" th:text="${requests.totalElements}">0</strong><span class="metric-label">Employee requests</span></a>
+	            <a href="#" class="metric-card text-decoration-none dashboard-counter" data-section-title="Combined profile/signature approvals"><span class="metric-icon"><i class="bi bi-images"></i></span><strong class="metric-value" th:text="${#lists.size(mediaRequests)}">0</strong><span class="metric-label">Profile &amp; media</span></a>
+	            <a href="#" class="metric-card text-decoration-none dashboard-counter" data-section-title="Pending signature approvals"><span class="metric-icon"><i class="bi bi-pen-fill"></i></span><strong class="metric-value" th:text="${#lists.size(signatureRequests)}">0</strong><span class="metric-label">Signature requests</span></a>
+	            <a href="#" class="metric-card text-decoration-none dashboard-counter" data-section-title="Pending user creation requests"><span class="metric-icon"><i class="bi bi-person-lock"></i></span><strong class="metric-value" th:text="${#lists.size(userRequests)}">0</strong><span class="metric-label">User requests</span></a>
+	            <a href="#" class="metric-card text-decoration-none dashboard-counter" data-section-title="Pending import batches"><span class="metric-icon"><i class="bi bi-file-earmark-spreadsheet"></i></span><strong class="metric-value" th:text="${#lists.size(batchRequests)}">0</strong><span class="metric-label">Import batches</span></a>
+	        </section>
         <section class="surface-card table-card">
             <div class="card-header"><h2 class="h5 mb-1">Pending requests</h2>
                 <p class="page-subtitle mb-0">Oldest submissions appear first</p></div>
@@ -62,10 +57,28 @@
         <section class="surface-card table-card mt-4"><div class="card-header"><h2 class="h5 mb-1">Pending user creation requests</h2></div><div class="table-responsive"><table class="table app-table"><thead><tr><th>Employee ID</th><th>Name</th><th>Role</th><th>Requested by</th><th>Decision</th></tr></thead><tbody>
         <tr th:each="item:${userRequests}"><td th:text="${item.proposedEmployeeNumber}"></td><td th:text="${item.proposedFullName}"></td><td th:text="${item.proposedRole.name}"></td><td th:text="${item.proposedBy.username}"></td><td><form method="post" th:action="@{/dgm/user-requests/{id}/decision(id=${item.id})}" class="d-flex gap-1"><input class="form-control form-control-sm" name="comment" placeholder="Comment / rejection reason"><button class="btn btn-sm btn-success" name="action" value="APPROVE">Approve</button><button class="btn btn-sm btn-danger" name="action" value="REJECT">Reject</button></form></td></tr>
         <tr th:if="${#lists.isEmpty(userRequests)}"><td colspan="5" class="empty-state">No user requests awaiting DGM approval.</td></tr></tbody></table></div></section>
-        <section class="surface-card table-card mt-4"><div class="card-header"><h2 class="h5">Pending import batches</h2></div><div class="table-responsive"><table class="table app-table"><tbody><tr th:each="batch:${batchRequests}"><td th:text="${batch.batchNumber}"></td><td th:text="${batch.totalRows+' rows; '+batch.failedRows+' invalid'}"></td><td><form method="post" th:action="@{/dgm/batch-requests/{id}/decision(id=${batch.id})}" class="d-flex gap-1"><input class="form-control form-control-sm" name="comment" placeholder="Comment / rejection reason"><button class="btn btn-sm btn-success" name="action" value="APPROVE">Approve</button><button class="btn btn-sm btn-danger" name="action" value="REJECT">Reject</button></form></td></tr><tr th:if="${#lists.isEmpty(batchRequests)}"><td>No batch requests awaiting DGM.</td></tr></tbody></table></div></section>
+        <section class="surface-card table-card mt-4"><div class="card-header"><h2 class="h5">Pending import batches</h2></div><div class="table-responsive"><table class="table app-table"><tbody><tr th:each="batch:${batchRequests}"><td th:text="${batch.batchNumber}"></td><td th:text="${batch.totalRows+' rows; '+batch.failedRows+' invalid'}"></td><td><a class="btn btn-sm btn-soft mb-1" th:href="@{/dgm/batch-requests/{id}(id=${batch.id})}">View</a><form method="post" th:action="@{/dgm/batch-requests/{id}/decision(id=${batch.id})}" class="d-flex gap-1"><input class="form-control form-control-sm" name="comment" placeholder="Comment / rejection reason"><button class="btn btn-sm btn-success" name="action" value="APPROVE">Approve</button><button class="btn btn-sm btn-danger" name="action" value="REJECT">Reject</button></form></td></tr><tr th:if="${#lists.isEmpty(batchRequests)}"><td>No batch requests awaiting DGM.</td></tr></tbody></table></div></section>
+        <section class="surface-card table-card mt-4"><div class="card-header"><h2 class="h5 mb-1">Pending signature approvals</h2><p class="page-subtitle mb-0">LOCAL and FOREIGN signatures are approved independently.</p></div><div class="table-responsive"><table class="table app-table align-middle"><thead><tr><th>Employee</th><th>Type</th><th>Version</th><th>Signature</th><th>Submitted by</th><th>Decision</th></tr></thead><tbody><tr th:each="item:${signatureRequests}"><td><strong th:text="${item.employeeNumber}"></strong><br><span th:text="${item.employee.fullName}"></span></td><td th:text="${item.signatureType}"></td><td th:text="${item.versionNumber}"></td><td><img class="approved-signature-thumbnail" th:src="@{'/media/'+${item.filePath}}" th:alt="${item.signatureType+' signature'}"></td><td th:text="${item.submittedBy.username}"></td><td><form method="post" th:action="@{/dgm/signature-requests/{id}/decision(id=${item.id})}" class="d-flex gap-1"><input class="form-control form-control-sm" name="remarks" maxlength="500" placeholder="Remarks required for rejection"><button class="btn btn-sm btn-success" name="action" value="APPROVE">Approve</button><button class="btn btn-sm btn-danger" name="action" value="REJECT">Reject</button></form></td></tr><tr th:if="${#lists.isEmpty(signatureRequests)}"><td colspan="6" class="empty-state">No signature requests awaiting DGM approval.</td></tr></tbody></table></div></section>
+        <section class="surface-card table-card mt-4"><div class="card-header"><h2 class="h5">Combined profile/signature approvals</h2><p class="page-subtitle mb-0">Empty slots mean PD did not include that image in this submission.</p></div><div class="table-responsive"><table class="table app-table align-middle"><thead><tr><th>Employee</th><th>Profile</th><th>Local</th><th>Foreign</th><th>Decision</th></tr></thead><tbody><tr th:each="item:${mediaRequests}"><td><strong th:text="${item.employee.employeeNumber}"></strong><br><span th:text="${item.employee.fullName}"></span><br><a class="btn btn-sm btn-soft mt-1" th:href="@{/employees/{id}(id=${item.employee.id})}">View full card</a></td><td><img th:if="${item.photoPath != null}" class="approved-photo-thumbnail" th:src="@{'/media/'+${item.photoPath}}" alt="Pending profile"><span th:if="${item.photoPath == null}" class="text-muted">Not uploaded</span></td><td><img th:if="${item.localSignaturePath != null}" class="approved-signature-thumbnail" th:src="@{'/media/'+${item.localSignaturePath}}" alt="Pending local"><span th:if="${item.localSignaturePath == null}" class="text-muted">Not uploaded</span></td><td><img th:if="${item.foreignSignaturePath != null}" class="approved-signature-thumbnail" th:src="@{'/media/'+${item.foreignSignaturePath}}" alt="Pending foreign"><span th:if="${item.foreignSignaturePath == null}" class="text-muted">Not uploaded</span></td><td><form method="post" th:action="@{/dgm/media-requests/{id}/decision(id=${item.id})}" class="d-flex gap-1"><input class="form-control form-control-sm" name="remarks" placeholder="Remarks required for rejection"><button class="btn btn-sm btn-success" name="action" value="APPROVE">Approve</button><button class="btn btn-sm btn-danger" name="action" value="REJECT">Reject</button></form></td></tr><tr th:if="${#lists.isEmpty(mediaRequests)}"><td colspan="5" class="empty-state">No combined media requests awaiting DGM.</td></tr></tbody></table></div></section>
     </div>
 </main>
 <footer th:replace="~{fragments/layout :: footer}"></footer>
 <div th:replace="~{fragments/layout :: scripts}"></div>
+<script>
+document.querySelectorAll('.dashboard-counter').forEach(function (counter) {
+    counter.addEventListener('click', function (event) {
+        event.preventDefault();
+        const title = counter.dataset.sectionTitle;
+        const heading = Array.from(document.querySelectorAll('.surface-card h2')).find(function (item) {
+            return item.textContent.trim() === title;
+        });
+        if (!heading) return;
+        const section = heading.closest('.surface-card');
+        section.scrollIntoView({behavior: 'smooth', block: 'start'});
+        section.classList.add('dashboard-section-focus');
+        window.setTimeout(function () { section.classList.remove('dashboard-section-focus'); }, 1400);
+    });
+});
+</script>
 </body>
 </html>

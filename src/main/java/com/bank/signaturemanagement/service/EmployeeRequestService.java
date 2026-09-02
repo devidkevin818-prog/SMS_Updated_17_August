@@ -7,6 +7,7 @@ import com.bank.signaturemanagement.repository.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -68,12 +69,13 @@ public class EmployeeRequestService {
 
     @Transactional
     public void createRequest(EmployeeRequestForm form, String username) {
-        validateDates(form.getSignatureValidFrom(), form.getSignatureValidUntil());
+        requirePdOrAdmin(username);
+        validateOptionalSignatureDates(form.getSignature(), form.getForeignSignature(), form.getSignatureValidFrom(), form.getSignatureValidUntil());
         String code = employeeNumberPolicy.normalize(form.getEmployeeCode());
         validateEmployeeCodeAvailable(code, null);
 
-        fileStorageService.validateImage(form.getPhoto());
-        fileStorageService.validateImage(form.getSignature());
+        validateOptionalImage(form.getPhoto());
+        validateOptionalImage(form.getSignature());
 
         EmployeeRequest request = new EmployeeRequest();
         request.setRequestedBy(requireUser(username));
@@ -86,8 +88,8 @@ public class EmployeeRequestService {
         request.setClassification(form.getClassification());
         request.setJoiningDate(form.getJoiningDate());
         request.setRemark(form.getRemark().trim());
-        request.setPhotoPath(fileStorageService.storeImage(form.getPhoto(), "employee-photo"));
-        request.setSignaturePath(fileStorageService.storeImage(form.getSignature(), "employee-signature"));
+        request.setPhotoPath(storeOptionalImage(form.getPhoto(), "employee-photo", null));
+        request.setSignaturePath(storeOptionalImage(form.getSignature(), "employee-signature", null));
         request.setForeignSignaturePath(storeOptionalImage(form.getForeignSignature(), "pending-foreign-signature", null));
         request.setSignatureValidFrom(form.getSignatureValidFrom());
         request.setSignatureValidUntil(form.getSignatureValidUntil());
@@ -102,9 +104,16 @@ public class EmployeeRequestService {
 
     @Transactional
     public void createUpdateRequest(Long employeeId, EmployeeUpdateForm form, String username, EmployeeChangeProposal proposal) {
+        requirePdOrAdmin(username);
         validateDates(form.getSignatureValidFrom(), form.getSignatureValidUntil());
         Employee employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new IllegalArgumentException("Employee not found"));
+        if (proposal == null) {
+            throw new IllegalArgumentException("DGM or GM must initiate every existing employee update before PD can edit it");
+        }
+        if (proposal != null && !proposal.getEmployee().getId().equals(employeeId)) {
+            throw new IllegalArgumentException("The change proposal does not belong to this employee");
+        }
 
         if (requestRepository.existsByTargetEmployeeIdAndStatusIn(employeeId, PENDING_STATUSES)) {
             throw new IllegalArgumentException("A pending update request already exists for this employee");
@@ -158,11 +167,15 @@ public class EmployeeRequestService {
     @Transactional
     public void dgmDecision(Long id, String action, String remark, String username) {
         accessControl.require(username,"APPROVE_DGM");
+        requireApprovalActor(username, "DGM");
         EmployeeRequest request = requireStatus(id, RequestStatus.PENDING_DGM);
         ApprovalAction decision = parseAction(action);
         saveHistory(request, requireUser(username), "DGM", decision, remark);
         request.setStatus(decision == ApprovalAction.APPROVED
                 ? RequestStatus.PENDING_GM : RequestStatus.REJECTED);
+        if (decision == ApprovalAction.APPROVED) {
+            changeProposalService.markPendingGm(request.getChangeProposal());
+        }
         if (decision == ApprovalAction.REJECTED) {
             markRejected(request);
         }
@@ -172,6 +185,7 @@ public class EmployeeRequestService {
     @Transactional
     public void gmDecision(Long id, String action, String remark, String username) {
         accessControl.require(username,"APPROVE_GM");
+        requireApprovalActor(username, "GM");
         EmployeeRequest request = requireStatus(id, RequestStatus.PENDING_GM);
         ApprovalAction decision = parseAction(action);
         saveHistory(request, requireUser(username), "GM", decision, remark);
@@ -184,6 +198,8 @@ public class EmployeeRequestService {
         }
 
         Employee employee = request.getTargetEmployee();
+        String oldSnapshot = employee == null ? null : employeeVersionService.snapshot(employee);
+        if (employee != null) employeeVersionService.ensureBaseline(employee, username, "Baseline before approved change");
         if (employee == null) {
             if (employeeRepository.existsByEmployeeNumber(request.getEmployeeCode())) {
                 throw new IllegalArgumentException("Employee code already became active");
@@ -199,13 +215,13 @@ public class EmployeeRequestService {
         organizeApprovedImages(employee, request);
         employeeRepository.save(employee);
         saveMediaVersion(employee, request);
-        employeeVersionService.append(employee,username,request.getChangeProposal()==null?"Approved employee request":"Approved locked-record change: "+request.getChangeProposal().getJustification());
+        EmployeeVersion version=employeeVersionService.append(employee,username,request.getChangeProposal()==null?"Approved employee request":"Approved locked-record change: "+request.getChangeProposal().getJustification());
         changeProposalService.markEffective(request.getChangeProposal());
 
         request.setStatus(RequestStatus.APPROVED);
         request.setUpdateRequestStatus(false);
         request.setCompletedAt(LocalDateTime.now());
-        auditService.record(username,"EMPLOYEE_GM_APPROVED","EMPLOYEE",String.valueOf(employee.getId()),null,"SUCCESS",null,"version appended",remark);
+        auditService.record(username,"EMPLOYEE_GM_APPROVED","EMPLOYEE",String.valueOf(employee.getId()),null,"SUCCESS",oldSnapshot,version.getSnapshotJson(),remark);
     }
 
     @Transactional(readOnly = true)
@@ -263,6 +279,7 @@ public class EmployeeRequestService {
         request.setStatus(RequestStatus.PENDING_DGM);
         request.setCompletedAt(null);
         requestRepository.save(request);
+        changeProposalService.markResubmitted(request.getChangeProposal());
     }
 
     @Transactional(readOnly = true)
@@ -397,7 +414,27 @@ public class EmployeeRequestService {
         }
     }
 
+    private void validateOptionalSignatureDates(MultipartFile local, MultipartFile foreign, LocalDate from, LocalDate until) {
+        boolean hasSignature=(local!=null&&!local.isEmpty())||(foreign!=null&&!foreign.isEmpty());
+        if (hasSignature || from!=null || until!=null) validateDates(from,until);
+    }
+
+    private void validateOptionalImage(MultipartFile file) { if (file!=null&&!file.isEmpty()) fileStorageService.validateImage(file); }
+
+    private void requirePdOrAdmin(String username) {
+        if (!accessControl.hasAnyRole(username, "PD", "ADMIN")) {
+            throw new AccessDeniedException("Only PD or System Admin may submit employee requests");
+        }
+    }
+
+    private void requireApprovalActor(String username, String role) {
+        if (!accessControl.hasAnyRole(username, role, "ADMIN")) {
+            throw new AccessDeniedException("This approval requires the " + role + " role");
+        }
+    }
+
     private void applyApprovedRequest(Employee employee, EmployeeRequest request) {
+        employee.setActive(true);
         employee.setEmployeeNumber(request.getEmployeeCode());
         employee.setFullName(request.getEmployeeName());
         employee.setDesignation(request.getDesignation());
@@ -422,10 +459,8 @@ public class EmployeeRequestService {
     }
 
     private void organizeApprovedImages(Employee employee, EmployeeRequest request) {
-        String photoPath = fileStorageService.organizeEmployeeImage(
-                request.getPhotoPath(), "profile", employee.getId());
-        String signaturePath = fileStorageService.organizeEmployeeImage(
-                request.getSignaturePath(), "signature", employee.getId());
+        String photoPath = organizeOptional(request.getPhotoPath(), "profile", employee.getId());
+        String signaturePath = organizeOptional(request.getSignaturePath(), "signature", employee.getId());
         String foreignSignaturePath = null;
         if (request.getForeignSignaturePath() != null && !request.getForeignSignaturePath().isBlank()) {
             foreignSignaturePath = fileStorageService.organizeEmployeeImage(
@@ -438,6 +473,8 @@ public class EmployeeRequestService {
         request.setSignaturePath(signaturePath);
         request.setForeignSignaturePath(foreignSignaturePath);
     }
+
+    private String organizeOptional(String path,String type,Long employeeId){return path==null||path.isBlank()?null:fileStorageService.organizeEmployeeImage(path,type,employeeId);}
 
     private void saveMediaVersion(Employee employee, EmployeeRequest request) {
         EmployeeMediaVersion version = new EmployeeMediaVersion();

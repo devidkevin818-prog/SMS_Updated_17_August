@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Batch Onboarding')}"></head>
+<body>
+<header th:replace="~{fragments/navbar :: navbar(${pageRole})}"></header>
+<aside th:replace="~{fragments/sidebar :: sidebar(${pageRole},'batches')}"></aside>
+<main class="app-main">
+    <div class="content-wrap">
+        <div class="page-header">
+            <div><span class="page-eyebrow">Onboarding</span>
+                <h1 class="page-title">Bulk employee upload</h1>
+                <p class="page-subtitle">CSV/XLSX columns: employee_id, name, designation, department, branch, status,
+                    classification, joining_date.</p></div>
+        </div>
+        <div th:replace="~{fragments/layout :: messages}"></div>
+        <section class="surface-card mb-4">
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data" th:action="${batchBase}"
+                      class="row g-2 align-items-end">
+                    <div class="col-md-8"><label class="form-label">CSV or XLSX file</label><input class="form-control"
+                                                                                                   type="file"
+                                                                                                   name="file"
+                                                                                                   accept=".csv,.xlsx"
+                                                                                                   required></div>
+                    <div class="col-md-4">
+                        <button class="btn btn-bank">Upload and review</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+        <section class="surface-card">
+            <div class="table-responsive">
+                <table class="table app-table">
+                    <thead>
+                    <tr>
+                        <th>Batch</th>
+                        <th>File</th>
+                        <th>Status</th>
+                        <th>Total</th>
+                        <th>Created</th>
+                        <th>Failed</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="batch:${batches}">
+                        <td th:text="${batch.batchNumber}"></td>
+                        <td th:text="${batch.originalFilename}"></td>
+                        <td th:text="${batch.status}"></td>
+                        <td th:text="${batch.totalRows}"></td>
+                        <td th:text="${batch.succeededRows}"></td>
+                        <td th:text="${batch.failedRows}"></td>
+                        <td><a class="btn btn-sm btn-soft" th:href="${batchBase+'/'+batch.id}">Details</a></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

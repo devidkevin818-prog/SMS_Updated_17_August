@@ -29,7 +29,8 @@ public class SecurityConfig {
                         .requestMatchers("/dgm/**").hasAnyRole("DGM", "ADMIN")
                         .requestMatchers("/gm/**").hasAnyRole("GM", "ADMIN")
                         .requestMatchers("/branch/**").hasAnyRole("BRANCH", "ADMIN")
-                        .requestMatchers("/media/**", "/books/**").authenticated()
+                        .requestMatchers("/audit/dashboard", "/audit/trail", "/audit/report.csv", "/audit/reports/**").hasAnyRole("AUDIT", "ADMIN")
+                        .requestMatchers("/media/**", "/books/**").hasAnyRole("ADMIN", "PD", "DGM", "GM", "BRANCH", "AUDIT")
                         .requestMatchers("/uploads/**").denyAll()
                         .anyRequest().authenticated())
                 .formLogin(login -> login

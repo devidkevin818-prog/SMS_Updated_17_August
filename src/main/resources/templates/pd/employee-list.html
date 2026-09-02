@@ -39,9 +39,7 @@
                         <td th:text="${employee.fullName}"></td>
                         <td th:text="${employee.designation.designationName}"></td>
                         <td th:text="${employee.branch.branchName}"></td>
-                        <td class="text-end"><a class="btn btn-sm btn-outline-warning"
-                                                th:href="@{/pd/employees/{id}/edit(id=${employee.id})}"><i
-                                class="bi bi-pencil-fill me-1"></i>Edit</a></td>
+                        <td class="text-end"><span class="text-muted">DGM/GM initiation required</span></td>
                     </tr>
                     <tr th:if="${employees.empty}">
                         <td class="empty-state" colspan="5"><i class="bi bi-person-x"></i>No employee found.</td>

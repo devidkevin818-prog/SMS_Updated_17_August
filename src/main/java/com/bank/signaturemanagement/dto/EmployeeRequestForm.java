@@ -40,10 +40,8 @@ public class EmployeeRequestForm {
     }
 
 
-    @NotNull(message = "Signature valid-from date is required")
     private LocalDate signatureValidFrom;
 
-    @NotNull(message = "Signature valid-until date is required")
     private LocalDate signatureValidUntil;
 
     public String getEmployeeCode() {

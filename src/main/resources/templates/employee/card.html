@@ -11,10 +11,8 @@
             <div><span class="page-eyebrow">Verified Employee</span>
                 <h1 class="page-title">Official employee profile</h1>
                 <p class="page-subtitle">GM-approved information and specimen signature.</p></div>
-            <div class="d-flex gap-2"><a class="btn btn-outline-warning" th:if="${currentRole == 'PD'}"
-                                         th:href="@{/pd/employees/{id}/edit(id=${employee.id})}"><i
-                    class="bi bi-pencil-fill me-2"></i>Edit employee</a><a class="btn btn-soft" th:href="@{/employees}"><i
-                    class="bi bi-arrow-left me-2"></i>Back to directory</a></div>
+            <div class="d-flex gap-2"><a class="btn btn-soft" th:href="${backUrl}"><i
+                    class="bi bi-arrow-left me-2"></i>Back</a></div>
         </div>
         <article class="employee-id-card">
             <header class="id-card-header">

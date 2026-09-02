@@ -150,6 +150,7 @@ public class FileStorageService {
                     || storedPath.startsWith("employee-signature/")
                     || storedPath.startsWith("pending-photo/")
                     || storedPath.startsWith("pending-signature/")
+                    || storedPath.startsWith("pending-local-signature/")
                     || storedPath.startsWith("pending-foreign-signature/")) {
 
                 Files.move(

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Configurable Dropdowns')}"></head>
+<body>
+<header th:replace="~{fragments/navbar :: navbar(${referenceRole})}"></header>
+<aside th:replace="~{fragments/sidebar :: sidebar(${referenceRole},'reference-data')}"></aside>
+<main class="app-main"><div class="content-wrap">
+    <div class="page-header"><div><span class="page-eyebrow">Configuration</span>
+        <h1 class="page-title">Configurable dropdowns</h1>
+        <p class="page-subtitle">Add, edit, or deactivate reference values. Existing records remain intact.</p></div></div>
+    <div th:replace="~{fragments/layout :: messages}"></div>
+    <div class="row g-4">
+        <div class="col-xl-6"><section class="surface-card">
+            <div class="card-header"><h2 class="h5 mb-1">Departments</h2></div>
+            <div class="card-body">
+                <form class="row g-2 mb-4" method="post" th:action="${referenceBasePath + '/departments'}" th:object="${departmentForm}">
+                    <div class="col-md-5"><input class="form-control" th:field="*{name}" placeholder="Department name" required></div>
+                    <div class="col-md-5"><input class="form-control" th:field="*{description}" placeholder="Description"></div>
+                    <div class="col-md-2"><button class="btn btn-bank w-100" type="submit">Add</button></div>
+                    <div class="text-danger small" th:if="${#fields.hasAnyErrors()}" th:each="error : ${#fields.allErrors()}" th:text="${error}"></div>
+                </form>
+                <div class="table-responsive"><table class="table align-middle"><thead><tr><th>Name</th><th>Description</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+                <tr th:each="item : ${departments}"><form method="post" th:action="${referenceBasePath + '/departments/' + item.departmentId}">
+                    <td><input class="form-control form-control-sm" name="name" th:value="${item.departmentName}" required></td>
+                    <td><input class="form-control form-control-sm" name="description" th:value="${item.description}"></td>
+                    <td><span class="badge" th:classappend="${item.active} ? ' text-bg-success' : ' text-bg-secondary'" th:text="${item.active} ? 'Active' : 'Inactive'"></span></td>
+                    <td class="text-nowrap"><button class="btn btn-sm btn-soft">Save</button></form>
+                        <form class="d-inline" method="post" th:action="${referenceBasePath + '/departments/' + item.departmentId + '/toggle'}"><button class="btn btn-sm btn-outline-warning" th:text="${item.active} ? 'Deactivate' : 'Activate'"></button></form></td>
+                </tr></tbody></table></div>
+            </div></section></div>
+        <div class="col-xl-6"><section class="surface-card">
+            <div class="card-header"><h2 class="h5 mb-1">Designations</h2></div>
+            <div class="card-body">
+                <form class="row g-2 mb-4" method="post" th:action="${referenceBasePath + '/designations'}" th:object="${designationForm}">
+                    <div class="col-md-4"><input class="form-control" th:field="*{name}" placeholder="Designation name" required></div>
+                    <div class="col-md-4"><input class="form-control" th:field="*{description}" placeholder="Description"></div>
+                    <div class="col-md-2"><input class="form-control" type="number" min="1" th:field="*{displayOrder}" title="Hierarchy order"></div>
+                    <div class="col-md-2"><button class="btn btn-bank w-100" type="submit">Add</button></div>
+                </form>
+                <div class="table-responsive"><table class="table align-middle"><thead><tr><th>Name</th><th>Description</th><th>Order</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+                <tr th:each="item : ${designations}"><form method="post" th:action="${referenceBasePath + '/designations/' + item.designationId}">
+                    <td><input class="form-control form-control-sm" name="name" th:value="${item.designationName}" required></td>
+                    <td><input class="form-control form-control-sm" name="description" th:value="${item.description}"></td>
+                    <td><input class="form-control form-control-sm" type="number" min="1" name="displayOrder" th:value="${item.hierarchyOrder}"></td>
+                    <td><span class="badge" th:classappend="${item.isActive} ? ' text-bg-success' : ' text-bg-secondary'" th:text="${item.isActive} ? 'Active' : 'Inactive'"></span></td>
+                    <td class="text-nowrap"><button class="btn btn-sm btn-soft">Save</button></form>
+                        <form class="d-inline" method="post" th:action="${referenceBasePath + '/designations/' + item.designationId + '/toggle'}"><button class="btn btn-sm btn-outline-warning" th:text="${item.isActive} ? 'Deactivate' : 'Activate'"></button></form></td>
+                </tr></tbody></table></div>
+            </div></section></div>
+    </div>
+    <div class="row g-4 mt-1">
+      <div class="col-xl-6"><section class="surface-card"><div class="card-header"><h2 class="h5 mb-1">Branches / Locations</h2></div><div class="card-body">
+        <form class="row g-2 mb-4" method="post" th:action="${referenceBasePath + '/branches'}">
+          <div class="col-5"><input class="form-control" name="name" placeholder="Branch name" required></div><div class="col-5"><input class="form-control" name="description" placeholder="Description"></div><div class="col-2"><button class="btn btn-bank w-100">Add</button></div>
+        </form><div class="table-responsive"><table class="table align-middle"><thead><tr><th>Name</th><th>Description</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+        <tr th:each="item:${branches}"><td><form method="post" th:action="${referenceBasePath + '/branches/' + item.branchId}"><input class="form-control form-control-sm" name="name" th:value="${item.branchName}" required></td><td><input class="form-control form-control-sm" name="description" th:value="${item.description}"></td><td th:text="${item.active}?'Active':'Inactive'"></td><td><button class="btn btn-sm btn-soft">Save</button></form><form class="d-inline" method="post" th:action="${referenceBasePath + '/branches/' + item.branchId + '/toggle'}"><button class="btn btn-sm btn-outline-warning" th:text="${item.active}?'Deactivate':'Activate'"></button></form></td></tr>
+        </tbody></table></div></div></section></div>
+      <div class="col-xl-6"><section class="surface-card"><div class="card-header"><h2 class="h5 mb-1">Employee Statuses</h2></div><div class="card-body">
+        <form class="row g-2 mb-4" method="post" th:action="${referenceBasePath + '/statuses'}">
+          <div class="col-7"><input class="form-control" name="name" placeholder="Status name" required></div><div class="col-3"><input class="form-control" type="number" name="displayOrder" value="100" min="1"></div><div class="col-2"><button class="btn btn-bank w-100">Add</button></div>
+        </form><div class="table-responsive"><table class="table align-middle"><thead><tr><th>Name</th><th>Order</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+        <tr th:each="item:${employeeStatuses}"><td><form method="post" th:action="${referenceBasePath + '/statuses/' + item.statusId}"><input class="form-control form-control-sm" name="name" th:value="${item.statusName}" required></td><td><input class="form-control form-control-sm" type="number" name="displayOrder" th:value="${item.displayOrder}" min="1"></td><td th:text="${item.active}?'Active':'Inactive'"></td><td><button class="btn btn-sm btn-soft">Save</button></form><form class="d-inline" method="post" th:action="${referenceBasePath + '/statuses/' + item.statusId + '/toggle'}"><button class="btn btn-sm btn-outline-warning" th:text="${item.active}?'Deactivate':'Activate'"></button></form></td></tr>
+        </tbody></table></div></div></section></div>
+    </div>
+    <section class="surface-card mt-4"><div class="card-header"><h2 class="h5 mb-1">Employee ID validation</h2></div>
+      <div class="card-body"><p class="page-subtitle">This regular expression is applied server-side to every new employee and user link. Existing historical records are not rewritten.</p>
+        <form class="row g-2" method="post" th:action="${referenceBasePath + '/settings/employee-id-regex'}">
+          <div class="col-md-10"><label class="form-label" for="employeeIdRegex">Regular expression</label><input id="employeeIdRegex" class="form-control font-monospace" name="regex" th:value="${employeeIdRegex}" maxlength="1000" required></div>
+          <div class="col-md-2 d-flex align-items-end"><button class="btn btn-bank w-100">Save format</button></div>
+        </form>
+      </div></section>
+</div></main>
+<footer th:replace="~{fragments/layout :: footer}"></footer><div th:replace="~{fragments/layout :: scripts}"></div>
+</body></html>
