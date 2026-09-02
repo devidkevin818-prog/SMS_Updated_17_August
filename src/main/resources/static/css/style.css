@@ -10,7 +10,7 @@
     --danger: #dc3545;
     --info: #2563eb;
     --warning: #f59e0b;
-    --navbar-height: 76px;
+    --navbar-height: 60px;
     --sidebar-width: 260px;
     --radius: 14px;
     --shadow: 0 12px 30px rgba(16, 52, 32, .10);
@@ -21,8 +21,8 @@ html { min-height: 100%; }
 body { min-height: 100vh; margin: 0; background: var(--app-bg); color: var(--gray-light); font-family: Inter, "Segoe UI", sans-serif; }
 a { text-decoration: none; }
 
-.app-navbar { position: fixed; z-index: 1040; inset: 0 0 auto 0; height: var(--navbar-height); display: flex; align-items: center; padding: 0 24px; background: rgba(255, 255, 255, .97); border-bottom: 1px solid #dfe8e2; backdrop-filter: blur(14px); }
-.sidebar-toggle { width: 42px; height: 42px; margin-right: 14px; border: 1px solid #d7e2da; border-radius: 10px; background: var(--white); color: #17211b; font-size: 1.45rem; transition: .2s ease; }
+.app-navbar { position: fixed; z-index: 1040; inset: 0 0 auto 0; height: var(--navbar-height); display: flex; align-items: center; padding: 0 18px; background: rgba(255, 255, 255, .97); border-bottom: 1px solid #dfe8e2; backdrop-filter: blur(14px); }
+.sidebar-toggle { position:fixed; z-index:1060; top:10px; left:14px; width:38px; height:38px; margin:0; border:1px solid #d7e2da; border-radius:9px; background:var(--white); color:#17211b; font-size:1.25rem; transition:.2s ease; box-shadow:0 4px 14px rgba(16,52,32,.12); }
 .sidebar-toggle:hover { border-color: var(--bank-green); color: var(--bank-green); }
 .app-brand { display: flex; align-items: center; gap: 12px; color: #111814; min-width: 0; }
 .brand-logo-wrap { width: 205px; height: 44px; display: grid; place-items: center; padding: 5px 9px; overflow: hidden; flex: 0 0 auto; background: rgba(255,255,255,.94); border-radius: 8px; }
@@ -31,9 +31,9 @@ a { text-decoration: none; }
 .brand-copy strong { font-size: .98rem; letter-spacing: .01em; }
 .brand-copy small { color: var(--gray-muted); font-size: .76rem; }
 .navbar-account { margin-left: auto; }
-.account-button { display: flex; align-items: center; gap: 10px; padding: 7px 10px; color: #111814; background: transparent; border: 1px solid transparent; border-radius: 11px; }
+.account-button { display: flex; align-items: center; gap: 8px; padding: 4px 8px; color: #111814; background: transparent; border: 1px solid transparent; border-radius: 9px; }
 .account-button:hover, .account-button.show { background: #f0f5f2; border-color: #d7e2da; }
-.account-avatar { width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; background: rgba(0,166,81,.15); color: var(--bank-green); }
+.account-avatar { width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; background: rgba(0,166,81,.15); color: var(--bank-green); }
 .account-copy { display: flex; flex-direction: column; text-align: left; line-height: 1.15; }
 .account-copy strong { font-size: .84rem; }
 .account-copy small { color: var(--bank-green); font-size: .7rem; font-weight: 700; letter-spacing: .08em; }
@@ -42,21 +42,24 @@ a { text-decoration: none; }
 .app-dropdown .dropdown-header strong { color: var(--bank-green); }
 .app-dropdown .dropdown-item { padding: 9px 10px; border-radius: 8px; }
 
-.app-sidebar { position: fixed; z-index: 1030; top: var(--navbar-height); bottom: 0; left: 0; width: var(--sidebar-width); display: flex; flex-direction: column; padding: 24px 16px; background: #00A651; border-right: 1px solid #202622; transition: width .25s ease, transform .25s ease; }
+.app-sidebar { position: fixed; z-index: 1050; top: 0; bottom: 0; left: 0; width: var(--sidebar-width); display: flex; flex-direction: column; padding: 0; background: #00A651; border-right: 1px solid #008b44; transition: width .25s ease, transform .25s ease; }
+.sidebar-brand { width:100%; min-height:var(--navbar-height); display:flex; align-items:center; justify-content:center; padding:8px 12px 8px 64px; background:#fff; border-bottom:1px solid rgba(0,0,0,.12); overflow:hidden; }
+.sidebar-brand img { display:block; width:100%; max-width:205px; height:42px; object-fit:contain; }
 .sidebar-heading { padding: 0 12px 12px; color: #000000; font-size: .68rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
-.sidebar-nav { display: grid; gap: 6px; }
-.sidebar-link { position: relative; display: flex; align-items: center; gap: 13px; min-height: 46px; padding: 0 13px; border-radius: 10px; color: #000000; font-size: .9rem; font-weight: 600; transition: .2s ease; white-space: nowrap; overflow: hidden; }
-.sidebar-link i { width: 22px; flex: 0 0 22px; color: #000000; font-size: 1.05rem; text-align: center; }
-.sidebar-link:hover { color: #000000; background: rgba(0, 255, 255, .32); transform: translateX(2px); }
-.sidebar-link.active { color: #000000; background: linear-gradient(90deg, rgba(0, 255, 255, .48), rgba(0, 229, 229, .22)); box-shadow: inset 3px 0 #00ffff; }
-.sidebar-link.active i { color: #000000; }
-.sidebar-security { display: flex; align-items: center; gap: 10px; margin-top: auto; padding: 13px; border: 1px solid rgba(0,166,81,.18); border-radius: 11px; background: rgba(0,166,81,.06); }
-.sidebar-security > i { color: #000000; font-size: 1.3rem; }
+.sidebar-nav { display: grid; gap: 6px; padding:16px; overflow-y:auto; }
+.sidebar-link { position: relative; display: flex; align-items: center; gap: 13px; min-height: 46px; padding: 0 13px; border-radius: 10px; color: #fff; font-size: .9rem; font-weight: 600; transition: .2s ease; white-space: nowrap; overflow: hidden; }
+.sidebar-link i { width: 22px; flex: 0 0 22px; color: #fff; font-size: 1.05rem; text-align: center; }
+.sidebar-link:hover { color: #fff; background: rgba(255,255,255,.16); transform: translateX(2px); }
+.sidebar-link.active { color: #fff; background: rgba(0,92,52,.42); box-shadow: inset 3px 0 #fff; }
+.sidebar-link.active i { color: #fff; }
+.sidebar-security { display: flex; align-items: center; gap: 10px; margin: auto 16px 16px; padding: 13px; border: 1px solid rgba(255,255,255,.28); border-radius: 11px; background: rgba(0,92,52,.24); }
+.sidebar-security > i { color: #fff; font-size: 1.3rem; }
 .sidebar-security div { display: flex; flex-direction: column; line-height: 1.25; white-space: nowrap; overflow: hidden; }
 .sidebar-security strong { color: var(--gray-light); font-size: .73rem; }
 .sidebar-security small { color: #718096; font-size: .65rem; }
-.app-sidebar .sidebar-security strong { color: #000000; }
-.app-sidebar .sidebar-security small { color: #12321f; }
+.app-sidebar .sidebar-security strong { color: #fff; }
+.app-sidebar .sidebar-security small { color: rgba(255,255,255,.78); }
+.app-navbar .app-brand { display:none; }
 
 .app-main { min-height: calc(100vh - var(--navbar-height)); margin: var(--navbar-height) 0 0 var(--sidebar-width); padding: 32px; transition: margin .25s ease; }
 .content-wrap { max-width: 1440px; margin: 0 auto; }
@@ -68,6 +71,8 @@ a { text-decoration: none; }
 
 .sidebar-collapsed .app-sidebar { width: 78px; }
 .sidebar-collapsed .sidebar-heading, .sidebar-collapsed .sidebar-link span, .sidebar-collapsed .sidebar-security div { opacity: 0; pointer-events: none; }
+.sidebar-collapsed .sidebar-brand { padding:8px 5px; min-height:var(--navbar-height); }
+.sidebar-collapsed .sidebar-brand img { width:54px; max-width:none; object-fit:cover; object-position:left; }
 .sidebar-collapsed .sidebar-link { justify-content: center; padding: 0; }
 .sidebar-collapsed .app-main, .sidebar-collapsed .app-footer { margin-left: 78px; }
 .sidebar-backdrop { display: none; }
@@ -91,7 +96,7 @@ a { text-decoration: none; }
     .app-sidebar { transform: translateX(-100%); box-shadow: 15px 0 35px rgba(0,0,0,.35); }
     .app-main, .app-footer { margin-left: 0; }
     .sidebar-mobile-open .app-sidebar { transform: translateX(0); }
-    .sidebar-mobile-open .sidebar-backdrop { display: block; position: fixed; z-index: 1020; inset: var(--navbar-height) 0 0; background: rgba(0,0,0,.55); }
+    .sidebar-mobile-open .sidebar-backdrop { display: block; position: fixed; z-index: 1020; inset: 0; background: rgba(0,0,0,.55); }
 }
 @media (max-width: 575.98px) {
     .app-navbar { padding: 0 14px; }

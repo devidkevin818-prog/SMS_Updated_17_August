@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Batch Details')}"></head>
+<body>
+<header th:replace="~{fragments/navbar :: navbar(${pageRole})}"></header>
+<aside th:replace="~{fragments/sidebar :: sidebar(${pageRole},'batches')}"></aside>
+<main class="app-main">
+    <div class="content-wrap">
+        <div class="page-header">
+            <div><span class="page-eyebrow" th:text="${batch.status}"></span>
+                <h1 class="page-title" th:text="${batch.batchNumber}"></h1>
+                <p class="page-subtitle" th:text="${batch.originalFilename}"></p></div>
+            <a class="btn btn-soft" th:href="${batchBase}">Back</a></div>
+        <section class="surface-card mb-4" th:if="${!batchReadOnly and batch.failedRows>0}">
+            <div class="card-body"><h2 class="h6">Correct failed rows</h2>
+                <form method="post" enctype="multipart/form-data" th:action="${batchBase}" class="d-flex gap-2"><input
+                        type="hidden" name="retryOfId" th:value="${batch.id}"><input class="form-control" type="file"
+                                                                                     name="file" accept=".csv,.xlsx"
+                                                                                     required>
+                    <button class="btn btn-bank">Re-upload correction</button>
+                </form>
+            </div>
+        </section>
+        <div th:replace="~{fragments/layout :: messages}"></div>
+        <section class="surface-card mb-4" th:if="${batch.status=='DRAFT_REVIEW' or batch.status=='VALIDATION_FAILED' or batch.status=='REJECTED'}">
+            <div class="card-body d-flex justify-content-between align-items-center gap-3">
+                <div><h2 class="h6 mb-1">Review before submission</h2><p class="text-muted mb-0">Edit each row below. Submission is enabled only after every row passes validation.</p></div>
+                <div class="d-flex gap-2"><form method="post" th:action="${batchBase+'/'+batch.id+'/cancel'}"><button class="btn btn-outline-danger">Cancel draft</button></form><form method="post" th:action="${batchBase+'/'+batch.id+'/submit'}"><button class="btn btn-bank" th:disabled="${batch.failedRows>0 or batch.totalRows==0}">Submit for DGM approval</button></form></div>
+            </div>
+        </section>
+        <section class="surface-card">
+            <div class="table-responsive">
+                <table class="table app-table">
+                    <thead>
+                    <tr>
+                        <th>Row</th>
+                        <th>Employee ID</th><th>Name</th><th>Designation</th><th>Department</th><th>Branch</th><th>Status</th><th>Classification</th><th>Joining date</th><th>Validation</th><th></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="view:${items}">
+                        <td th:text="${view.item.rowNumber}"></td>
+                        <td colspan="10" class="p-2">
+                            <form method="post" th:action="${batchBase+'/'+batch.id+'/rows/'+view.item.id}" class="row g-2 align-items-start">
+                                <div class="col"><input class="form-control form-control-sm" name="employeeId" th:value="${view.row.employeeId}" th:readonly="${batchReadOnly}" required></div>
+                                <div class="col"><input class="form-control form-control-sm" name="name" th:value="${view.row.name}" th:readonly="${batchReadOnly}" required></div>
+                                <div class="col"><input class="form-control form-control-sm" name="designation" th:value="${view.row.designation}" th:readonly="${batchReadOnly}" required></div>
+                                <div class="col"><input class="form-control form-control-sm" name="department" th:value="${view.row.department}" th:readonly="${batchReadOnly}" required></div>
+                                <div class="col"><input class="form-control form-control-sm" name="branch" th:value="${view.row.branch}" th:readonly="${batchReadOnly}" required></div>
+                                <div class="col"><input class="form-control form-control-sm" name="status" th:value="${view.row.status}" th:readonly="${batchReadOnly}" required></div>
+                                <div class="col"><select class="form-select form-select-sm" name="classification" th:disabled="${batchReadOnly}"><option value="LOCAL" th:selected="${view.row.classification=='LOCAL'}">LOCAL</option><option value="FOREIGN" th:selected="${view.row.classification=='FOREIGN'}">FOREIGN</option><option value="BOTH" th:selected="${view.row.classification=='BOTH'}">BOTH</option></select></div>
+                                <div class="col"><input class="form-control form-control-sm" type="date" name="joiningDate" th:value="${view.row.joiningDate}" th:readonly="${batchReadOnly}" required></div>
+                                <div class="col-2"><span class="badge" th:classappend="${view.item.status=='VALID'?'text-bg-success':'text-bg-danger'}" th:text="${view.item.status}"></span><div class="small text-danger" th:text="${view.item.errorDetail}"></div></div>
+                                <div class="col-auto" th:if="${!batchReadOnly}"><button class="btn btn-sm btn-soft" th:disabled="${batch.status!='DRAFT_REVIEW' and batch.status!='VALIDATION_FAILED' and batch.status!='REJECTED'}">Save</button></div>
+                            </form>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

@@ -14,7 +14,7 @@
                 <span class="page-eyebrow">New Request</span>
                 <h1 class="page-title">Create employee request</h1>
                 <p class="page-subtitle">
-                    Complete every field and upload clear employee images.
+                    Employee signatures and photos are optional and may be added later.
                 </p>
             </div>
 
@@ -196,8 +196,7 @@
                                         th:field="*{photo}"
                                         accept="image/jpeg,image/png"
                                         data-preview-target="photoPreview"
-                                        data-error-target="photoError"
-                                        required>
+                                        data-error-target="photoError">
 
                                 <small class="form-hint">
                                     Use a clear, front-facing photograph.
@@ -231,8 +230,7 @@
                                         th:field="*{signature}"
                                         accept="image/jpeg,image/png"
                                         data-preview-target="signaturePreview"
-                                        data-error-target="signatureError"
-                                        required>
+                                        data-error-target="signatureError">
 
                                 <small class="form-hint">
                                     Use a clean signature on a light background.
@@ -304,8 +302,7 @@
                                                     class="form-control"
                                                     id="signatureValidFrom"
                                                     type="date"
-                                                    th:field="*{signatureValidFrom}"
-                                                    required>
+                                                    th:field="*{signatureValidFrom}">
                                         </div>
 
                                         <div class="col-md-6">
@@ -318,8 +315,7 @@
                                                     class="form-control"
                                                     id="signatureValidUntil"
                                                     type="date"
-                                                    th:field="*{signatureValidUntil}"
-                                                    required>
+                                                    th:field="*{signatureValidUntil}">
                                         </div>
 
                                     </div>

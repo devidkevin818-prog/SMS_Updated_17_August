@@ -34,6 +34,7 @@ public class RoleLoginSuccessHandler implements AuthenticationSuccessHandler {
             case "ROLE_DGM" -> "/dgm/dashboard";
             case "ROLE_GM" -> "/gm/dashboard";
             case "ROLE_BRANCH" -> "/branch/dashboard";
+            case "ROLE_AUDIT" -> "/audit/dashboard";
             default -> "/login?error";
         };
         response.sendRedirect(request.getContextPath() + target);

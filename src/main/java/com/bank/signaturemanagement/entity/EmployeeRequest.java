@@ -62,19 +62,19 @@ public class EmployeeRequest {
     @Column(name = "joining_date")
     private LocalDate joiningDate;
 
-    @Column(name = "photo_path", nullable = false, length = 500)
+    @Column(name = "photo_path", length = 500)
     private String photoPath;
 
-    @Column(name = "signature_path", nullable = false, length = 500)
+    @Column(name = "signature_path", length = 500)
     private String signaturePath;
 
     @Column(name = "foreign_signature_path", length = 500)
     private String foreignSignaturePath;
 
-    @Column(name = "signature_valid_from", nullable = false)
+    @Column(name = "signature_valid_from")
     private LocalDate signatureValidFrom;
 
-    @Column(name = "signature_valid_until", nullable = false)
+    @Column(name = "signature_valid_until")
     private LocalDate signatureValidUntil;
 
     @Enumerated(EnumType.STRING)

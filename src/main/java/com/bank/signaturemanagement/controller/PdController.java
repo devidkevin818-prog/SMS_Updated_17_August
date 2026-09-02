@@ -194,12 +194,10 @@ public class PdController {
             Authentication authentication,
             Model model) {
         var employee = employeeService.getEmployee(id);
-        if (employee.isLocked()) {
-            if (proposalId == null) {
-                throw new IllegalStateException("This employee is locked; an accepted DGM/GM proposal is required");
-            }
-            changeProposalService.requireEditing(proposalId, id, authentication.getName());
+        if (proposalId == null) {
+            throw new IllegalStateException("DGM or GM must initiate this employee update first");
         }
+        changeProposalService.requireEditing(proposalId, id, authentication.getName());
         model.addAttribute("employee", employee);
         model.addAttribute("employeeUpdateForm", employeeService.getUpdateForm(id));
         model.addAttribute("proposalId", proposalId);
@@ -229,7 +227,7 @@ public class PdController {
         if (!result.hasErrors()) {
             try {
                 var proposal=proposalId==null?null:changeProposalService.requireEditing(proposalId,id,authentication.getName());
-                if(employeeService.getEmployee(id).isLocked()&&proposal==null) throw new IllegalStateException("This employee is locked");
+                if(proposal==null) throw new IllegalStateException("DGM or GM must initiate this employee update first");
                 requestService.createUpdateRequest(id, employeeUpdateForm, authentication.getName(),proposal);
                 if (proposalId != null) changeProposalService.markSubmitted(proposalId, authentication.getName());
                 employeeService.updateRequestStatus(id, false);

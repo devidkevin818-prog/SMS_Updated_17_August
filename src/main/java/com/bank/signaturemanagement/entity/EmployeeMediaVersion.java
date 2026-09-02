@@ -22,10 +22,10 @@ public class EmployeeMediaVersion {
     @Column(name = "version_number", nullable = false)
     private int versionNumber;
 
-    @Column(name = "photo_path", nullable = false, length = 500)
+    @Column(name = "photo_path", length = 500)
     private String photoPath;
 
-    @Column(name = "signature_path", nullable = false, length = 500)
+    @Column(name = "signature_path", length = 500)
     private String signaturePath;
 
     @Column(name = "foreign_signature_path", nullable = true,length = 500)
