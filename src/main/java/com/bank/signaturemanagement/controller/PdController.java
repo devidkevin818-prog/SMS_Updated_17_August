@@ -82,7 +82,11 @@ public class PdController {
 
     @GetMapping("/dashboard")
     public String dashboard(Authentication authentication, Model model) {
-        model.addAttribute("changeProposals", changeProposalService.pendingPd(authentication.getName()));
+        var changeProposals = changeProposalService.pendingPd(authentication.getName());
+        model.addAttribute("changeProposals", changeProposals);
+        model.addAttribute("changeProposalCount", changeProposals.size());
+        model.addAttribute("myRequestCount",
+                requestService.getRequestsForUser(authentication.getName(), 0).getTotalElements());
         return "pd/dashboard";
     }
 

@@ -1,4 +1,20 @@
 document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.dashboard-counter').forEach((counter) => {
+        counter.addEventListener('click', (event) => {
+            const targetHref = counter.getAttribute('href');
+            const title = counter.dataset.sectionTitle;
+            if (!title) return;
+            const heading = Array.from(document.querySelectorAll('.surface-card h2')).find((item) => item.textContent.trim() === title);
+            if (!heading) return;
+            event.preventDefault();
+            const section = heading.closest('.surface-card');
+            section.scrollIntoView({behavior: 'smooth', block: 'start'});
+            section.classList.add('dashboard-section-focus');
+            window.setTimeout(() => section.classList.remove('dashboard-section-focus'), 1400);
+            if (targetHref?.startsWith('#')) history.replaceState(null, '', targetHref);
+        });
+    });
+
     const maxImageSize = 5 * 1024 * 1024;
     document.querySelectorAll('.image-preview-input').forEach((input) => {
         const preview = document.getElementById(input.dataset.previewTarget);
@@ -49,16 +65,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const sidebar = document.getElementById('appSidebar');
     const backdrop = document.getElementById('sidebarBackdrop');
 
+    document.querySelectorAll('.sidebar-link').forEach((link) => {
+        if (!link.title) link.title = link.querySelector('span')?.textContent?.trim() || '';
+    });
+
     if (!toggle || !sidebar) return;
 
     const closeMobileSidebar = () => document.body.classList.remove('sidebar-mobile-open');
-    toggle.addEventListener('click', () => {
-        if (window.innerWidth < 992) {
-            document.body.classList.toggle('sidebar-mobile-open');
-        } else {
-            document.body.classList.toggle('sidebar-collapsed');
-        }
-    });
     backdrop?.addEventListener('click', closeMobileSidebar);
     window.addEventListener('resize', () => {
         if (window.innerWidth >= 992) closeMobileSidebar();

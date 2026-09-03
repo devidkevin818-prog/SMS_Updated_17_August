@@ -28,7 +28,11 @@ public class AdminController {
     }
 
     @GetMapping("/dashboard")
-    public String dashboard() {
+    public String dashboard(Model model) {
+        model.addAttribute("totalUsers", userService.getTotalUserCount());
+        model.addAttribute("activeUsers", userService.getActiveUserCount());
+        model.addAttribute("inactiveUsers", userService.getInactiveUserCount());
+        model.addAttribute("roleCount", userService.getRoles().size());
         return "admin/dashboard";
     }
 

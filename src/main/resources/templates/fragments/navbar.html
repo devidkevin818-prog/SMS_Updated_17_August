@@ -5,6 +5,9 @@
     <button class="sidebar-toggle" id="sidebarToggle" type="button" aria-label="Toggle navigation" aria-controls="appSidebar">
         <i class="bi bi-list"></i>
     </button>
+    <button class="navbar-back-button" id="pageBackButton" type="button" aria-label="Return to previous page" hidden>
+        <i class="bi bi-arrow-left"></i><span>Back</span>
+    </button>
     <a class="app-brand" th:href="@{|/${#strings.toLowerCase(role)}/dashboard|}">
         <span class="brand-logo-wrap"><img th:src="@{/css/images/uttara-bank-limited-seeklogo.png}" alt="Uttara Bank Limited"></span>
         <span class="brand-copy"><strong>Employee Signature</strong><small>Management System</small></span>
@@ -22,6 +25,50 @@
             </form>
         </div>
     </div>
+    <script>
+        (() => {
+            if (window.innerWidth >= 992 && localStorage.getItem('signature-sidebar-collapsed') === 'true') {
+                document.body.classList.add('sidebar-collapsed');
+            }
+            document.getElementById('sidebarToggle')?.addEventListener('click', () => {
+                if (window.innerWidth < 992) {
+                    document.body.classList.toggle('sidebar-mobile-open');
+                } else {
+                    document.body.classList.toggle('sidebar-collapsed');
+                    localStorage.setItem('signature-sidebar-collapsed',
+                        document.body.classList.contains('sidebar-collapsed') ? 'true' : 'false');
+                }
+            });
+            const button = document.getElementById('pageBackButton');
+            const currentPath = window.location.pathname.replace(/\/$/, '');
+            if (!button || currentPath.endsWith('/dashboard')) return;
+            button.addEventListener('click', () => {
+                try {
+                    const previous = new URL(document.referrer);
+                    if (document.referrer && previous.origin === window.location.origin) {
+                        window.history.back();
+                        return;
+                    }
+                } catch (ignored) {
+                    // Direct visits use the user's dashboard as a safe fallback.
+                }
+                window.location.assign(document.querySelector('.app-brand')?.href || '/');
+            });
+            document.addEventListener('DOMContentLoaded', () => {
+                const pageHeader = document.querySelector('.app-main .page-header');
+                const content = document.querySelector('.app-main .content-wrap');
+                if (pageHeader) {
+                    pageHeader.prepend(button);
+                } else if (content) {
+                    const backRow = document.createElement('div');
+                    backRow.className = 'content-back-row';
+                    backRow.append(button);
+                    content.prepend(backRow);
+                }
+                button.hidden = false;
+            }, {once:true});
+        })();
+    </script>
 </header>
 </body>
 </html>

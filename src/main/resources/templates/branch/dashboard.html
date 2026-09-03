@@ -6,11 +6,6 @@
 <aside th:replace="~{fragments/sidebar :: sidebar('BRANCH','search')}"></aside>
 <main class="app-main">
     <div class="content-wrap">
-        <div class="page-header">
-            <div><span class="page-eyebrow">Branch Access</span>
-                <h1 class="page-title">Employee verification</h1>
-                <p class="page-subtitle">Search the approved directory by employee code or employee name.</p></div>
-            <span class="status-badge status-active"><i class="bi bi-eye-fill me-1"></i>Read only</span></div>
         <section class="search-panel">
             <form class="row g-2 align-items-center" method="get" th:action="@{/branch/dashboard}">
                 <div class="col">
