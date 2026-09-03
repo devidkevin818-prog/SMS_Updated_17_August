@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import java.util.Optional;
 import java.util.List;
 
@@ -31,4 +32,15 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     @EntityGraph(attributePaths = {"designation", "department", "branch", "employeeStatus"})
     Page<Employee> findByEmployeeNumberContainingIgnoreCaseOrFullNameContainingIgnoreCase(
             String employeeNumber, String fullName, Pageable pageable);
+
+    @EntityGraph(attributePaths = {"designation", "department", "branch", "employeeStatus"})
+    @Query("""
+            select e from Employee e
+            where (lower(e.employeeNumber) like lower(concat('%', :query, '%'))
+                   or lower(e.fullName) like lower(concat('%', :query, '%')))
+              and (:departmentId is null or e.department.departmentId = :departmentId)
+              and (:designationId is null or e.designation.designationId = :designationId)
+              and (:branchId is null or e.branch.branchId = :branchId)
+            """)
+    Page<Employee> filter(String query, Long departmentId, Long designationId, Long branchId, Pageable pageable);
 }

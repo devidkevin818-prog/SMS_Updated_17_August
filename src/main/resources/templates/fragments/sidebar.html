@@ -51,7 +51,6 @@
         <a th:if="${role == 'GM'}" th:href="@{/gm/signature-management}" th:classappend="${activePage == 'signature-management'} ? ' active'" class="sidebar-link"><i class="bi bi-pen"></i><span>Signature Updates</span></a>
 
         <a th:if="${role == 'BRANCH'}" th:href="@{/branch/dashboard}" th:classappend="${activePage == 'dashboard'} ? ' active'" class="sidebar-link"><i class="bi bi-grid-1x2-fill"></i><span>Dashboard</span></a>
-        <a th:if="${role == 'BRANCH'}" th:href="@{/branch/dashboard}" th:classappend="${activePage == 'search'} ? ' active'" class="sidebar-link"><i class="bi bi-search"></i><span>Search Employee</span></a>
         <a th:if="${role == 'BRANCH'}" th:href="@{/employees}" th:classappend="${activePage == 'directory'} ? ' active'" class="sidebar-link"><i class="bi bi-person-vcard-fill"></i><span>Employee Directory</span></a>
         <a th:if="${role == 'BRANCH'}" th:href="@{/audit}" th:classappend="${activePage == 'audit'} ? ' active'" class="sidebar-link"><i class="bi bi-journal-text"></i><span>My Audit Trail</span></a>
     </nav>
