@@ -3,6 +3,7 @@ package com.bank.signaturemanagement.controller;
 import com.bank.signaturemanagement.entity.AuditLog;
 import com.bank.signaturemanagement.service.AuditService;
 import com.bank.signaturemanagement.service.AuditReportService;
+import com.bank.signaturemanagement.service.DashboardService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.csv.CSVFormat;
@@ -21,11 +22,13 @@ import java.io.IOException;
 public class AuditUserController {
     private final AuditService audit;
     private final AuditReportService reports;
+    private final DashboardService dashboardService;
 
-    public AuditUserController(AuditService audit,AuditReportService reports) { this.audit = audit;this.reports=reports; }
+    public AuditUserController(AuditService audit,AuditReportService reports,DashboardService dashboardService) { this.audit = audit;this.reports=reports;this.dashboardService=dashboardService; }
 
     @GetMapping("/dashboard")
-    public String dashboard(Model model) {
+    public String dashboard(Authentication authentication, Model model) {
+        model.addAttribute("dashboard", dashboardService.getDashboardData(authentication.getName(), "AUDIT"));
         return "audit/dashboard";
     }
 

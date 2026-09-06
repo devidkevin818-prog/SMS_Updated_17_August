@@ -57,8 +57,14 @@
             document.addEventListener('DOMContentLoaded', () => {
                 const pageHeader = document.querySelector('.app-main .page-header');
                 const content = document.querySelector('.app-main .content-wrap');
+                const existingBackButton = pageHeader && Array.from(pageHeader.querySelectorAll('a, button'))
+                    .some(control => control.textContent.trim().toLowerCase().startsWith('back'));
+                if (existingBackButton) {
+                    button.remove();
+                    return;
+                }
                 if (pageHeader) {
-                    pageHeader.prepend(button);
+                    pageHeader.append(button);
                 } else if (content) {
                     const backRow = document.createElement('div');
                     backRow.className = 'content-back-row';

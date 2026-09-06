@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import java.util.Optional;
 import java.util.List;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
@@ -43,4 +45,22 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
               and (:branchId is null or e.branch.branchId = :branchId)
             """)
     Page<Employee> filter(String query, Long departmentId, Long designationId, Long branchId, Pageable pageable);
+
+    long countByCreatedAtGreaterThanEqualAndCreatedAtLessThan(LocalDateTime start, LocalDateTime end);
+    long countByUpdatedAtGreaterThanEqualAndUpdatedAtLessThan(LocalDateTime start, LocalDateTime end);
+
+    @Query("select count(e) from Employee e where e.signaturePath is not null or e.foreignSignaturePath is not null")
+    long countWithSignature();
+
+    @Query("select count(e) from Employee e where e.signaturePath is null and e.foreignSignaturePath is null")
+    long countMissingSignatures();
+
+    @Query("select count(e) from Employee e where (e.signaturePath is not null or e.foreignSignaturePath is not null) and e.signatureValidUntil is not null and e.signatureValidUntil < :today")
+    long countExpiredSignatures(LocalDate today);
+
+    @Query("select count(e) from Employee e where (e.signaturePath is not null or e.foreignSignaturePath is not null) and (e.signatureValidUntil is null or e.signatureValidUntil >= :today)")
+    long countValidSignatures(LocalDate today);
+
+    @Query("select e.department.departmentName, count(e) from Employee e group by e.department.departmentName order by count(e) desc")
+    List<Object[]> countByDepartment();
 }

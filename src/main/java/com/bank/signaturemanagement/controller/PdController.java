@@ -31,6 +31,7 @@ import com.bank.signaturemanagement.service.UserService;
 import com.bank.signaturemanagement.service.UserApprovalService;
 import com.bank.signaturemanagement.dto.UserForm;
 import com.bank.signaturemanagement.service.EmployeeChangeProposalService;
+import com.bank.signaturemanagement.service.DashboardService;
 
 
 @Controller
@@ -49,6 +50,7 @@ public class PdController {
     private final UserService userService;
     private final UserApprovalService userApprovalService;
     private final EmployeeChangeProposalService changeProposalService;
+    private final DashboardService dashboardService;
 
     public PdController(
             EmployeeRequestService requestService,
@@ -58,7 +60,7 @@ public class PdController {
             DesignationService designationService,
             DepartmentService departmentService,
             BranchService branchService, UserService userService, UserApprovalService userApprovalService,
-            EmployeeChangeProposalService changeProposalService) {
+            EmployeeChangeProposalService changeProposalService, DashboardService dashboardService) {
         this.requestService = requestService;
         this.employeeService = employeeService;
         this.pdfService = pdfService;
@@ -69,6 +71,7 @@ public class PdController {
         this.userService = userService;
         this.userApprovalService = userApprovalService;
         this.changeProposalService = changeProposalService;
+        this.dashboardService = dashboardService;
     }
 
     @GetMapping("/users/new")
@@ -82,6 +85,7 @@ public class PdController {
 
     @GetMapping("/dashboard")
     public String dashboard(Authentication authentication, Model model) {
+        model.addAttribute("dashboard", dashboardService.getDashboardData(authentication.getName(), "PD"));
         var changeProposals = changeProposalService.pendingPd(authentication.getName());
         model.addAttribute("changeProposals", changeProposals);
         model.addAttribute("changeProposalCount", changeProposals.size());

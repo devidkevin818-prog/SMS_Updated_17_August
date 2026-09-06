@@ -6,6 +6,7 @@
 <aside th:replace="~{fragments/sidebar :: sidebar('ADMIN','dashboard')}"></aside>
 <main class="app-main">
     <div class="content-wrap">
+        <div th:replace="~{fragments/dashboard-analytics :: analytics}"></div>
         <div class="dashboard-toolbar">
             <a class="btn btn-bank" th:href="@{/admin/users}"><i class="bi bi-person-plus-fill me-2"></i>Create user</a>
         </div>

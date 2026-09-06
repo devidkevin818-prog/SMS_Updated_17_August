@@ -6,6 +6,7 @@
 <aside th:replace="~{fragments/sidebar :: sidebar('BRANCH','dashboard')}"></aside>
 <main class="app-main">
     <div class="content-wrap">
+        <div th:replace="~{fragments/dashboard-analytics :: analytics}"></div>
         <section class="search-panel">
             <form class="branch-filter-grid" method="get" th:action="@{/branch/dashboard}">
                 <div>

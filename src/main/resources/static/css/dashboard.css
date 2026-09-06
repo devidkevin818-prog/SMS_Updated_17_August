@@ -234,3 +234,50 @@
 .file-upload,.media-panel,.signature-panel,.employee-photo-wrap { border-radius:3px; }
 .employee-id-card { border-radius:5px; border-top-width:4px; box-shadow:0 12px 30px rgba(20,53,36,.14); }
 .id-card-header,.id-card-footer { background:#f0f5f1; }
+
+/* Analytical dashboard */
+.dashboard-page { --dashboard-border:#DDE5E0; color:#1F2937; }
+.dashboard-page + .dashboard-toolbar,.dashboard-page ~ .dashboard-toolbar { margin-top:22px; }
+.dashboard-header { display:flex; align-items:flex-end; justify-content:space-between; gap:24px; margin-bottom:20px; }
+.dashboard-header h1 { margin:3px 0 4px; font-family:"IBM Plex Serif",Georgia,serif; font-size:1.8rem; color:#172d21; }
+.dashboard-header p { margin:0; color:#6B7280; }
+.dashboard-context { display:flex; flex-direction:column; align-items:flex-end; gap:4px; color:#6B7280; font-size:.78rem; }
+.dashboard-context span { color:#007A3D; font-weight:700; }
+.dashboard-kpi-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; margin-bottom:18px; }
+.dashboard-kpi-card { display:flex; align-items:center; gap:14px; min-height:116px; padding:18px; color:#1F2937; background:#fff; border:1px solid var(--dashboard-border); border-radius:10px; box-shadow:0 5px 16px rgba(16,52,32,.055); transition:transform .18s ease,box-shadow .18s ease; }
+a.dashboard-kpi-card:hover { color:#1F2937; transform:translateY(-2px); box-shadow:0 9px 22px rgba(16,52,32,.09); }
+.dashboard-kpi-icon { display:grid; place-items:center; width:44px; height:44px; flex:0 0 44px; color:#007A3D; background:#e4f5eb; border-radius:9px; font-size:1.12rem; }
+.dashboard-kpi-warning { color:#8a5a17; background:#fff1d8; }
+.dashboard-kpi-card > span:last-child { min-width:0; }
+.dashboard-kpi-card small,.dashboard-kpi-card strong,.dashboard-kpi-card em { display:block; }
+.dashboard-kpi-card small { color:#6B7280; font-size:.7rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; }
+.dashboard-kpi-card strong { margin:3px 0; color:#172d21; font-family:"IBM Plex Serif",Georgia,serif; font-size:1.75rem; line-height:1; }
+.dashboard-kpi-card em { color:#6B7280; font-size:.72rem; font-style:normal; }
+.dashboard-chart-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(290px,.52fr); gap:16px; margin-bottom:18px; }
+.dashboard-chart-card,.dashboard-activity-card { background:#fff; border:1px solid var(--dashboard-border); border-radius:10px; box-shadow:0 5px 16px rgba(16,52,32,.045); }
+.dashboard-chart-card > header,.dashboard-activity-card > header { display:flex; align-items:center; justify-content:space-between; gap:15px; padding:16px 18px; border-bottom:1px solid #edf1ee; }
+.dashboard-chart-card h2,.dashboard-activity-card h2 { margin:0; color:#1f382a; font-size:.96rem; font-weight:700; }
+.dashboard-chart-card p,.dashboard-activity-card p { margin:3px 0 0; color:#6B7280; font-size:.72rem; }
+.dashboard-chart-canvas { position:relative; height:255px; padding:16px; }
+.dashboard-chart-doughnut { height:255px; }
+.dashboard-activity-card { margin-bottom:22px; overflow:hidden; }
+.dashboard-activity-card > header a { color:#007A3D; font-size:.78rem; font-weight:700; }
+.dashboard-activity-row { display:grid; grid-template-columns:120px minmax(0,1fr) auto; align-items:center; gap:14px; padding:11px 18px; border-bottom:1px solid #edf1ee; }
+.dashboard-activity-row:last-child { border-bottom:0; }
+.dashboard-activity-row time { color:#6B7280; font-size:.7rem; }
+.dashboard-activity-row strong,.dashboard-activity-row small { display:block; }
+.dashboard-activity-row strong { font-size:.8rem; }
+.dashboard-activity-row small { margin-top:2px; color:#6B7280; font-size:.7rem; }
+.dashboard-empty { display:flex; flex-direction:column; align-items:center; padding:28px; color:#6B7280; text-align:center; }
+.dashboard-empty i { margin-bottom:7px; color:#00A651; font-size:1.5rem; }
+.dashboard-empty strong { color:#1F2937; }
+.dashboard-empty span { margin-top:3px; font-size:.75rem; }
+@media (max-width:1199.98px) { .dashboard-kpi-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media (max-width:767.98px) {
+    .dashboard-header { align-items:flex-start; flex-direction:column; }
+    .dashboard-context { align-items:flex-start; }
+    .dashboard-kpi-grid,.dashboard-chart-grid { grid-template-columns:1fr; }
+    .dashboard-activity-row { grid-template-columns:1fr auto; }
+    .dashboard-activity-row time { grid-column:1 / -1; }
+}
+@media (max-width:479.98px) { .dashboard-kpi-grid { grid-template-columns:1fr; } }

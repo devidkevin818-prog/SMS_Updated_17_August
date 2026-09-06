@@ -5,6 +5,7 @@ import com.bank.signaturemanagement.dto.UserUpdateForm;
 import com.bank.signaturemanagement.dto.AdminPasswordResetForm;
 import com.bank.signaturemanagement.service.UserService;
 import com.bank.signaturemanagement.service.UserApprovalService;
+import com.bank.signaturemanagement.service.DashboardService;
 import org.springframework.security.core.Authentication;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
@@ -21,14 +22,17 @@ import java.util.stream.IntStream;
 public class AdminController {
     private final UserService userService;
     private final UserApprovalService userApprovalService;
+    private final DashboardService dashboardService;
 
-    public AdminController(UserService userService, UserApprovalService userApprovalService) {
+    public AdminController(UserService userService, UserApprovalService userApprovalService, DashboardService dashboardService) {
         this.userService = userService;
         this.userApprovalService = userApprovalService;
+        this.dashboardService = dashboardService;
     }
 
     @GetMapping("/dashboard")
-    public String dashboard(Model model) {
+    public String dashboard(Authentication authentication, Model model) {
+        model.addAttribute("dashboard", dashboardService.getDashboardData(authentication.getName(), "ADMIN"));
         model.addAttribute("totalUsers", userService.getTotalUserCount());
         model.addAttribute("activeUsers", userService.getActiveUserCount());
         model.addAttribute("inactiveUsers", userService.getInactiveUserCount());

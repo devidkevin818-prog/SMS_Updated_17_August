@@ -24,9 +24,10 @@ public class DgmController {
     private final com.bank.signaturemanagement.service.BatchImportService batchImportService;
     private final com.bank.signaturemanagement.service.SignatureWorkflowService signatureWorkflowService;
     private final com.bank.signaturemanagement.service.EmployeeMediaRequestService mediaRequestService;
+    private final com.bank.signaturemanagement.service.DashboardService dashboardService;
 
 
-    public DgmController(EmployeeRequestService requestService, ApprovalHistoryService approvalHistoryService, EmployeeService employeeService, UserApprovalService userApprovalService, com.bank.signaturemanagement.service.EmployeeChangeProposalService changeProposalService, com.bank.signaturemanagement.service.BatchImportService batchImportService, com.bank.signaturemanagement.service.SignatureWorkflowService signatureWorkflowService,com.bank.signaturemanagement.service.EmployeeMediaRequestService mediaRequestService) {
+    public DgmController(EmployeeRequestService requestService, ApprovalHistoryService approvalHistoryService, EmployeeService employeeService, UserApprovalService userApprovalService, com.bank.signaturemanagement.service.EmployeeChangeProposalService changeProposalService, com.bank.signaturemanagement.service.BatchImportService batchImportService, com.bank.signaturemanagement.service.SignatureWorkflowService signatureWorkflowService,com.bank.signaturemanagement.service.EmployeeMediaRequestService mediaRequestService, com.bank.signaturemanagement.service.DashboardService dashboardService) {
         this.requestService = requestService;
         this.approvalHistoryService = approvalHistoryService;
         this.employeeService = employeeService;
@@ -35,10 +36,12 @@ public class DgmController {
         this.batchImportService = batchImportService;
         this.signatureWorkflowService = signatureWorkflowService;
         this.mediaRequestService = mediaRequestService;
+        this.dashboardService = dashboardService;
     }
 
     @GetMapping("/dashboard")
-    public String dashboard(@RequestParam(defaultValue = "0") int page, Model model) {
+    public String dashboard(@RequestParam(defaultValue = "0") int page, Authentication authentication, Model model) {
+        model.addAttribute("dashboard", dashboardService.getDashboardData(authentication.getName(), "DGM"));
         model.addAttribute("requests", requestService.getPendingRequests(RequestStatus.PENDING_DGM, page));
         model.addAttribute("userRequests", userApprovalService.pending("DGM"));
         model.addAttribute("batchRequests", batchImportService.pending("DGM"));

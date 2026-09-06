@@ -31,4 +31,7 @@ public interface EmployeeRequestRepository extends JpaRepository<EmployeeRequest
     boolean existsByEmployeeCodeAndStatusIn(String employeeCode, java.util.Collection<RequestStatus> statuses);
 
     boolean existsByTargetEmployeeIdAndStatusIn(Long employeeId, java.util.Collection<RequestStatus> statuses);
+
+    long countByStatus(RequestStatus status);
+    long countByRequestedByUsernameAndStatusIn(String username, Collection<RequestStatus> statuses);
 }
