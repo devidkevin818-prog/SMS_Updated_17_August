@@ -184,5 +184,11 @@ body { background-color:var(--app-bg); background-image:linear-gradient(rgba(18,
 }
 .page-header > .navbar-back-button { flex:0 0 auto; margin:0; }
 .page-header > .navbar-back-button + div { margin-right:auto; }
-.content-back-row { display:flex; margin-bottom:14px; }
+.content-back-row { display:flex; justify-content:flex-end; margin-bottom:8px; }
 .content-back-row .navbar-back-button { margin:0; }
+
+/* Dashboard controls share the card edges and use a tighter top rhythm. */
+.app-main:has(.dashboard-toolbar) { padding-top:16px; }
+@media (max-width:767.98px) {
+    .app-main:has(.dashboard-toolbar) { padding-top:12px; }
+}

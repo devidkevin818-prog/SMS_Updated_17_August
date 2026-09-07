@@ -3,15 +3,15 @@
 <head th:replace="~{fragments/head :: head('Employee Card')}"></head>
 <body>
 <header th:replace="~{fragments/navbar :: navbar('BRANCH')}"></header>
-<aside th:replace="~{fragments/sidebar :: sidebar('BRANCH','search')}"></aside>
+<aside th:replace="~{fragments/sidebar :: sidebar('BRANCH','dashboard')}"></aside>
 <main class="app-main">
     <div class="content-wrap">
         <div class="page-header">
             <div><span class="page-eyebrow">Verified Employee</span>
                 <h1 class="page-title">Official employee profile</h1>
-                <p class="page-subtitle">GM-approved information and specimen signature.</p></div>
+                <p class="page-subtitle">GM-approved employee information.</p></div>
             <a class="btn btn-soft" th:href="@{/branch/dashboard}"><i class="bi bi-arrow-left me-2"></i>Back to
-                search</a></div>
+                dashboard</a></div>
         <article class="employee-id-card">
             <header class="id-card-header">
                 <div class="id-bank-brand"><img th:src="@{/css/images/uttara-bank-limited-seeklogo.png}"
@@ -37,10 +37,6 @@
                             <td th:text="${employee.branch.branchName}"></td>
                         </tr>
                     </table>
-                    <div class="signature-panel" th:if="${canViewLocal and employee.signaturePath != null}"><span>Approved local signature</span><img
-                            th:src="@{'/media/'+${employee.signaturePath}}" alt="Approved local signature"></div>
-                    <div class="signature-panel" th:if="${canViewForeign and employee.foreignSignaturePath != null}"><span>Approved foreign signature</span><img
-                            th:src="@{'/media/'+${employee.foreignSignaturePath}}" alt="Approved foreign signature"></div>
                 </section>
             </div>
             <footer class="id-card-footer"><span>Employee Signature Management System</span><span>Authorized internal use only</span>

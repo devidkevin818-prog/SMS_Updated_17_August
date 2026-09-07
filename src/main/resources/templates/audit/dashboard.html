@@ -1,4 +1,4 @@
 <!DOCTYPE html><html lang="en" xmlns:th="http://www.thymeleaf.org"><head th:replace="~{fragments/head :: head('Audit Dashboard')}"></head><body>
 <header th:replace="~{fragments/navbar :: navbar('AUDIT')}"></header><aside th:replace="~{fragments/sidebar :: sidebar('AUDIT','dashboard')}"></aside>
-<main class="app-main"><div class="content-wrap"></div></main>
+<main class="app-main"><div class="content-wrap"><div th:replace="~{fragments/dashboard-analytics :: analytics}"></div></div></main>
 <footer th:replace="~{fragments/layout :: footer}"></footer><div th:replace="~{fragments/layout :: scripts}"></div></body></html>

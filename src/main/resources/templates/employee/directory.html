@@ -13,15 +13,21 @@
             <span class="status-badge status-active"><i class="bi bi-shield-check me-1"></i>Verified records</span>
         </div>
         <section class="search-panel">
-            <form class="row g-2 align-items-center" method="get" th:action="@{/employees}">
-                <div class="col">
+            <form class="directory-filter-grid" method="get" th:action="@{/employees}">
+                <div class="directory-filter-search">
+                    <label class="form-label" for="employeeQuery">Employee</label>
                     <div class="input-icon-group"><i class="bi bi-search"></i><input class="form-control" name="query"
+                                                                                     id="employeeQuery"
                                                                                      th:value="${query}"
                                                                                      placeholder="Search employee code or name"
                                                                                      aria-label="Search employee"></div>
                 </div>
-                <div class="col-auto">
-                    <button class="btn btn-bank" type="submit"><i class="bi bi-search me-2"></i>Search</button>
+                <div><label class="form-label" for="departmentId">Department</label><select class="form-select" id="departmentId" name="departmentId"><option value="">All departments</option><option th:each="item:${departments}" th:value="${item.departmentId}" th:text="${item.departmentName}" th:selected="${item.departmentId == departmentId}"></option></select></div>
+                <div><label class="form-label" for="designationId">Designation</label><select class="form-select" id="designationId" name="designationId"><option value="">All designations</option><option th:each="item:${designations}" th:value="${item.designationId}" th:text="${item.designationName}" th:selected="${item.designationId == designationId}"></option></select></div>
+                <div><label class="form-label" for="branchId">Branch</label><select class="form-select" id="branchId" name="branchId"><option value="">All branches</option><option th:each="item:${branches}" th:value="${item.branchId}" th:text="${item.branchName}" th:selected="${item.branchId == branchId}"></option></select></div>
+                <div class="directory-filter-actions d-flex gap-2">
+                    <a class="btn btn-soft" th:href="@{/employees}">Clear</a>
+                    <button class="btn btn-bank" type="submit"><i class="bi bi-funnel-fill me-2"></i>Apply filters</button>
                 </div>
             </form>
         </section>
@@ -51,7 +57,7 @@
                         <td th:text="${employee.department.departmentName}"></td>
                         <td th:text="${employee.branch.branchName}"></td>
                         <td class="text-end"><a class="btn btn-sm btn-primary"
-                                                th:href="@{/employees/{id}(id=${employee.id},returnTo=${'/employees?query='+query+'&page='+employees.number})}"><i
+                                                th:href="@{/employees/{id}(id=${employee.id})}"><i
                                 class="bi bi-person-vcard-fill me-1"></i>View card</a></td>
                     </tr>
                     <tr th:if="${employees.empty}">
@@ -62,7 +68,7 @@
                 </table>
             </div>
         </section>
-        <nav class="mt-3" th:if="${employees.totalPages > 1}" aria-label="Employee directory pages"><ul class="pagination justify-content-center"><li class="page-item" th:classappend="${employees.first}?' disabled'"><a class="page-link" th:href="@{/employees(query=${query},page=${employees.number-1})}">Previous</a></li><li class="page-item" th:each="pageNo:${#numbers.sequence(0,employees.totalPages-1)}" th:classappend="${pageNo == employees.number}?' active'"><a class="page-link" th:href="@{/employees(query=${query},page=${pageNo})}" th:text="${pageNo+1}"></a></li><li class="page-item" th:classappend="${employees.last}?' disabled'"><a class="page-link" th:href="@{/employees(query=${query},page=${employees.number+1})}">Next</a></li></ul></nav>
+        <nav class="mt-3" th:if="${employees.totalPages > 1}" aria-label="Employee directory pages"><ul class="pagination justify-content-center"><li class="page-item" th:classappend="${employees.first}?' disabled'"><a class="page-link" th:href="@{/employees(query=${query},departmentId=${departmentId},designationId=${designationId},branchId=${branchId},page=${employees.number-1})}">Previous</a></li><li class="page-item" th:each="pageNo:${#numbers.sequence(0,employees.totalPages-1)}" th:classappend="${pageNo == employees.number}?' active'"><a class="page-link" th:href="@{/employees(query=${query},departmentId=${departmentId},designationId=${designationId},branchId=${branchId},page=${pageNo})}" th:text="${pageNo+1}"></a></li><li class="page-item" th:classappend="${employees.last}?' disabled'"><a class="page-link" th:href="@{/employees(query=${query},departmentId=${departmentId},designationId=${designationId},branchId=${branchId},page=${employees.number+1})}">Next</a></li></ul></nav>
     </div>
 </main>
 <footer th:replace="~{fragments/layout :: footer}"></footer>

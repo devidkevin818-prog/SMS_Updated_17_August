@@ -20,7 +20,14 @@ public class EmployeeService {
     public Page<Employee> search(String query, int page) {
         String text = query == null ? "" : query.trim();
         return employeeRepository.findByEmployeeNumberContainingIgnoreCaseOrFullNameContainingIgnoreCase(
-                text, text, PageRequest.of(page, 20));
+                text, text, PageRequest.of(Math.max(page, 0), 20));
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Employee> filter(String query, Long departmentId, Long designationId, Long branchId, int page) {
+        String text = query == null ? "" : query.trim();
+        int safePage = Math.max(page, 0);
+        return employeeRepository.filter(text, departmentId, designationId, branchId, PageRequest.of(safePage, 20));
     }
 
     @Transactional(readOnly = true)

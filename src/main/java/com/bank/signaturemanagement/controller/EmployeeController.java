@@ -1,6 +1,9 @@
 package com.bank.signaturemanagement.controller;
 
 import com.bank.signaturemanagement.repository.EmployeeMediaVersionRepository;
+import com.bank.signaturemanagement.repository.BranchRepository;
+import com.bank.signaturemanagement.repository.DepartmentRepository;
+import com.bank.signaturemanagement.repository.DesignationRepository;
 import com.bank.signaturemanagement.service.EmployeeService;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -17,17 +20,34 @@ import java.net.URI;
 public class EmployeeController {
     private final EmployeeService employeeService;
     private final EmployeeMediaVersionRepository mediaVersionRepository;
+    private final DepartmentRepository departmentRepository;
+    private final DesignationRepository designationRepository;
+    private final BranchRepository branchRepository;
 
-    public EmployeeController(EmployeeService employeeService, EmployeeMediaVersionRepository mediaVersionRepository) { this.employeeService = employeeService;
+    public EmployeeController(EmployeeService employeeService, EmployeeMediaVersionRepository mediaVersionRepository,
+                              DepartmentRepository departmentRepository, DesignationRepository designationRepository,
+                              BranchRepository branchRepository) { this.employeeService = employeeService;
         this.mediaVersionRepository = mediaVersionRepository;
+        this.departmentRepository = departmentRepository;
+        this.designationRepository = designationRepository;
+        this.branchRepository = branchRepository;
     }
 
     @GetMapping
     public String directory(@RequestParam(defaultValue = "") String query,
+                            @RequestParam(required = false) Long departmentId,
+                            @RequestParam(required = false) Long designationId,
+                            @RequestParam(required = false) Long branchId,
                             @RequestParam(defaultValue = "0") int page,
                             Authentication authentication, Model model) {
         model.addAttribute("query", query);
-        model.addAttribute("employees", employeeService.search(query, page));
+        model.addAttribute("employees", employeeService.filter(query, departmentId, designationId, branchId, page));
+        model.addAttribute("departments", departmentRepository.findByActiveTrueOrderByDepartmentNameAsc());
+        model.addAttribute("designations", designationRepository.findByIsActiveTrueOrderByDesignationNameAsc());
+        model.addAttribute("branches", branchRepository.findByActiveTrueOrderByBranchNameAsc());
+        model.addAttribute("departmentId", departmentId);
+        model.addAttribute("designationId", designationId);
+        model.addAttribute("branchId", branchId);
         model.addAttribute("currentRole", roleName(authentication));
         return "employee/directory";
     }
