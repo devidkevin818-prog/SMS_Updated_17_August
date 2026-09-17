@@ -75,13 +75,32 @@ public class PdController {
     }
 
     @GetMapping("/users/new")
-    public String createUserForm(Model model){model.addAttribute("userForm",new UserForm());addUserReferenceData(model);return "admin/create-user";}
-    @PostMapping("/users")
-    public String createUser(@Valid @ModelAttribute UserForm form,BindingResult result,Authentication authentication,Model model,RedirectAttributes redirect){
-        if(!result.hasErrors())try{userApprovalService.propose(form,authentication.getName());redirect.addFlashAttribute("success","User request submitted for DGM approval");return "redirect:/pd/dashboard";}catch(IllegalArgumentException e){result.reject("user",e.getMessage());}
-        addUserReferenceData(model);return "admin/create-user";
+    public String createUserForm(Model model) {
+        model.addAttribute("userForm", new UserForm());
+        addUserReferenceData(model);
+        return "admin/create-user";
     }
-    private void addUserReferenceData(Model model){model.addAttribute("branches",userService.getBranches());model.addAttribute("roles",userService.getRoles().stream().filter(r->!"ADMIN".equals(r.getName())).toList());model.addAttribute("creatorRole","PD");model.addAttribute("creatorBackPath","/pd/dashboard");model.addAttribute("userCreateAction","/pd/users");}
+
+    @PostMapping("/users")
+    public String createUser(@Valid @ModelAttribute UserForm form, BindingResult result, Authentication authentication, Model model, RedirectAttributes redirect) {
+        if (!result.hasErrors()) try {
+            userApprovalService.propose(form, authentication.getName());
+            redirect.addFlashAttribute("success", "User request submitted for DGM approval");
+            return "redirect:/pd/dashboard";
+        } catch (IllegalArgumentException e) {
+            result.reject("user", e.getMessage());
+        }
+        addUserReferenceData(model);
+        return "admin/create-user";
+    }
+
+    private void addUserReferenceData(Model model) {
+        model.addAttribute("branches", userService.getBranches());
+        model.addAttribute("roles", userService.getRoles().stream().filter(r -> !"ADMIN".equals(r.getName())).toList());
+        model.addAttribute("creatorRole", "PD");
+        model.addAttribute("creatorBackPath", "/pd/dashboard");
+        model.addAttribute("userCreateAction", "/pd/users");
+    }
 
     @GetMapping("/dashboard")
     public String dashboard(Authentication authentication, Model model) {
@@ -103,8 +122,8 @@ public class PdController {
 
     @PostMapping("/change-proposals/{id}/accept")
     public String acceptProposal(@PathVariable Long id, Authentication authentication) {
-        var proposal=changeProposalService.acceptForEditing(id, authentication.getName());
-        return "redirect:/pd/employees/"+proposal.getEmployee().getId()+"/edit?proposalId="+id;
+        var proposal = changeProposalService.acceptForEditing(id, authentication.getName());
+        return "redirect:/pd/employees/" + proposal.getEmployee().getId() + "/edit?proposalId=" + id;
     }
 
     @GetMapping("/employees/new")
@@ -188,7 +207,7 @@ public class PdController {
 
     @GetMapping("/approved-signatures/{id}")
     public String approvedSignatureVersions(@PathVariable Long id, Model model) {
-        var employee=employeeService.getEmployee(id);
+        var employee = employeeService.getEmployee(id);
         model.addAttribute("employee", employee);
         model.addAttribute("versions", mediaVersionRepository.findByEmployeeIdOrderByVersionNumberDesc(id));
         return "pd/approved-signature-versions";
@@ -234,9 +253,10 @@ public class PdController {
             RedirectAttributes redirectAttributes) {
         if (!result.hasErrors()) {
             try {
-                var proposal=proposalId==null?null:changeProposalService.requireEditing(proposalId,id,authentication.getName());
-                if(proposal==null) throw new IllegalStateException("DGM or GM must initiate this employee update first");
-                requestService.createUpdateRequest(id, employeeUpdateForm, authentication.getName(),proposal);
+                var proposal = proposalId == null ? null : changeProposalService.requireEditing(proposalId, id, authentication.getName());
+                if (proposal == null)
+                    throw new IllegalStateException("DGM or GM must initiate this employee update first");
+                requestService.createUpdateRequest(id, employeeUpdateForm, authentication.getName(), proposal);
                 if (proposalId != null) changeProposalService.markSubmitted(proposalId, authentication.getName());
                 employeeService.updateRequestStatus(id, false);
                 if (rejectedRequestId != null) {

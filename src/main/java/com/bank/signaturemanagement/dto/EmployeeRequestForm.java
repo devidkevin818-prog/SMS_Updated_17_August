@@ -1,5 +1,6 @@
 package com.bank.signaturemanagement.dto;
 
+import com.bank.signaturemanagement.entity.Designation;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -13,12 +14,38 @@ public class EmployeeRequestForm {
     private String employeeCode;
     @NotBlank
     private String employeeName;
-    @NotBlank
-    private String designation;
-    @NotBlank
-    private String department;
-    @NotBlank
-    private String branch;
+    @NotNull(message = "Designation is required")
+    private Long designation;
+
+    public Long getDesignation() {
+        return designation;
+    }
+
+    public void setDesignation(Long designation) {
+        this.designation = designation;
+    }
+
+    @NotNull
+    private Long department;
+
+    public Long getDepartment() {
+        return department;
+    }
+
+    public void setDepartment(Long department) {
+        this.department = department;
+    }
+
+    public Long getBranch() {
+        return branch;
+    }
+
+    public void setBranch(Long branch) {
+        this.branch = branch;
+    }
+
+    @NotNull
+    private Long branch;
     @NotBlank
     private String remark;
     private MultipartFile photo;
@@ -60,29 +87,6 @@ public class EmployeeRequestForm {
         this.employeeName = employeeName;
     }
 
-    public String getDesignation() {
-        return designation;
-    }
-
-    public void setDesignation(String designation) {
-        this.designation = designation;
-    }
-
-    public String getDepartment() {
-        return department;
-    }
-
-    public void setDepartment(String department) {
-        this.department = department;
-    }
-
-    public String getBranch() {
-        return branch;
-    }
-
-    public void setBranch(String branch) {
-        this.branch = branch;
-    }
 
     public String getRemark() {
         return remark;

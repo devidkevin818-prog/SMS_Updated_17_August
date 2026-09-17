@@ -40,31 +40,76 @@ public class ReferenceDataAdminService {
     public List<Designation> designations() {
         return designations.findAllByOrderByDesignationNameAsc();
     }
-    @Transactional(readOnly = true) public List<Branch> branches() { return branches.findAllByOrderByBranchNameAsc(); }
-    @Transactional(readOnly = true) public List<EmployeeStatus> statuses() { return statuses.findAllByOrderByDisplayOrderAscStatusNameAsc(); }
 
-    @Transactional public void createBranch(ReferenceDataForm form) {
-        String name=normalizeName(form.getName());
-        if(branches.existsByBranchNameIgnoreCase(name)) throw new IllegalArgumentException("Branch already exists");
-        Branch value=new Branch(); value.setBranchName(name); value.setDescription(normalizeDescription(form.getDescription())); value.setActive(true); branches.save(value);
+    @Transactional(readOnly = true)
+    public List<Branch> branches() {
+        return branches.findAllByOrderByBranchNameAsc();
     }
-    @Transactional public void updateBranch(Long id, ReferenceDataForm form) {
-        Branch value=branches.findById(id).orElseThrow(()->new IllegalArgumentException("Branch not found")); String name=normalizeName(form.getName());
-        if(branches.existsByBranchNameIgnoreCaseAndBranchIdNot(name,id)) throw new IllegalArgumentException("Branch already exists");
-        value.setBranchName(name); value.setDescription(normalizeDescription(form.getDescription()));
-    }
-    @Transactional public void toggleBranch(Long id) { Branch value=branches.findById(id).orElseThrow(()->new IllegalArgumentException("Branch not found")); value.setActive(!value.isActive()); }
 
-    @Transactional public void createStatus(ReferenceDataForm form) {
-        String name=normalizeName(form.getName()); if(statuses.existsByStatusNameIgnoreCase(name)) throw new IllegalArgumentException("Employee status already exists");
-        EmployeeStatus value=new EmployeeStatus(); value.setStatusName(name); value.setDisplayOrder(form.getDisplayOrder()==null?100:form.getDisplayOrder()); value.setActive(true); statuses.save(value);
+    @Transactional(readOnly = true)
+    public List<EmployeeStatus> statuses() {
+        return statuses.findAllByOrderByDisplayOrderAscStatusNameAsc();
     }
-    @Transactional public void updateStatus(Long id, ReferenceDataForm form) {
-        EmployeeStatus value=statuses.findById(id).orElseThrow(()->new IllegalArgumentException("Employee status not found")); String name=normalizeName(form.getName());
-        if(statuses.existsByStatusNameIgnoreCaseAndStatusIdNot(name,id)) throw new IllegalArgumentException("Employee status already exists");
-        value.setStatusName(name); value.setDisplayOrder(form.getDisplayOrder()==null?100:form.getDisplayOrder());
+
+    @Transactional
+    public void createBranch(ReferenceDataForm form) {
+        String name = normalizeName(form.getName());
+        if (branches.existsByBranchNameIgnoreCase(name)) throw new IllegalArgumentException("Branch already exists");
+        Branch value = new Branch();
+
+        value.setBranchName(name);
+        value.setBranchCode(form.getBranchCode());
+        value.setZoneName(form.getZoneName());
+
+        value.setActive(true);
+
+        branches.save(value);
     }
-    @Transactional public void toggleStatus(Long id) { EmployeeStatus value=statuses.findById(id).orElseThrow(()->new IllegalArgumentException("Employee status not found")); value.setActive(!value.isActive()); }
+
+    @Transactional
+    public void updateBranch(Long id, ReferenceDataForm form) {
+        Branch value = branches.findById(id).orElseThrow(() -> new IllegalArgumentException("Branch not found"));
+        String name = normalizeName(form.getName());
+        if (branches.existsByBranchNameIgnoreCaseAndBranchIdNot(name, id))
+            throw new IllegalArgumentException("Branch already exists");
+        value.setBranchName(name);
+        value.setBranchCode(form.getBranchCode());
+        value.setZoneName(form.getZoneName());
+    }
+
+    @Transactional
+    public void toggleBranch(Long id) {
+        Branch value = branches.findById(id).orElseThrow(() -> new IllegalArgumentException("Branch not found"));
+        value.setActive(!value.isActive());
+    }
+
+    @Transactional
+    public void createStatus(ReferenceDataForm form) {
+        String name = normalizeName(form.getName());
+        if (statuses.existsByStatusNameIgnoreCase(name))
+            throw new IllegalArgumentException("Employee status already exists");
+        EmployeeStatus value = new EmployeeStatus();
+        value.setStatusName(name);
+        value.setDisplayOrder(form.getDisplayOrder() == null ? 100 : form.getDisplayOrder());
+        value.setActive(true);
+        statuses.save(value);
+    }
+
+    @Transactional
+    public void updateStatus(Long id, ReferenceDataForm form) {
+        EmployeeStatus value = statuses.findById(id).orElseThrow(() -> new IllegalArgumentException("Employee status not found"));
+        String name = normalizeName(form.getName());
+        if (statuses.existsByStatusNameIgnoreCaseAndStatusIdNot(name, id))
+            throw new IllegalArgumentException("Employee status already exists");
+        value.setStatusName(name);
+        value.setDisplayOrder(form.getDisplayOrder() == null ? 100 : form.getDisplayOrder());
+    }
+
+    @Transactional
+    public void toggleStatus(Long id) {
+        EmployeeStatus value = statuses.findById(id).orElseThrow(() -> new IllegalArgumentException("Employee status not found"));
+        value.setActive(!value.isActive());
+    }
 
     @Transactional
     public void createDepartment(ReferenceDataForm form) {
@@ -109,7 +154,7 @@ public class ReferenceDataAdminService {
         designation.setDescription(normalizeDescription(form.getDescription()));
         designation.setIsActive(true);
         designation.setCreatedAt(LocalDateTime.now());
-        designation.setHierarchyOrder(form.getDisplayOrder()==null?100:form.getDisplayOrder());
+        designation.setHierarchyOrder(form.getDisplayOrder() == null ? 100 : form.getDisplayOrder());
         designations.save(designation);
     }
 
@@ -123,7 +168,7 @@ public class ReferenceDataAdminService {
         }
         designation.setDesignationName(name);
         designation.setDescription(normalizeDescription(form.getDescription()));
-        designation.setHierarchyOrder(form.getDisplayOrder()==null?100:form.getDisplayOrder());
+        designation.setHierarchyOrder(form.getDisplayOrder() == null ? 100 : form.getDisplayOrder());
     }
 
     @Transactional

@@ -49,10 +49,12 @@
                             <option value="">Select Branch</option>
                             <option th:each="branch : ${branches}"
                                     th:value="${branch.branchId}"
-                                    th:text="${branch.branchName}">
+                                    th:text="${branch.branchName + ' | ' + branch.branchCode + ' | ' + branch.zoneName}"
+                            >
                             </option>
                         </select>
                     </div>
+
 
 
                     <div class="mb-3"><label class="form-label" for="email">Email</label><input class="form-control"

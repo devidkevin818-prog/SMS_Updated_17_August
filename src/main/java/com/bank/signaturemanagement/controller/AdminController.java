@@ -43,7 +43,7 @@ public class AdminController {
     @GetMapping("/users")
     public String users(@RequestParam(defaultValue = "") String query,
                         @RequestParam(defaultValue = "") String role,
-                        @RequestParam(defaultValue = "") String branch,
+                        @RequestParam(defaultValue = "") Long branch,
                         @RequestParam(defaultValue = "") String status,
                         @RequestParam(defaultValue = "0") int page, Model model) {
         Boolean active = "active".equalsIgnoreCase(status) ? Boolean.TRUE

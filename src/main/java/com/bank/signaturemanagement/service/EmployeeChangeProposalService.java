@@ -22,6 +22,7 @@ public class EmployeeChangeProposalService {
     private final AuditService audit;
     private final AccessControlService access;
 
+
     public EmployeeChangeProposalService(EmployeeChangeProposalRepository proposals, EmployeeRepository employees,
                                          UserRepository users, AuditService audit, AccessControlService access) {
         this.proposals = proposals; this.employees = employees; this.users = users; this.audit = audit; this.access = access;
