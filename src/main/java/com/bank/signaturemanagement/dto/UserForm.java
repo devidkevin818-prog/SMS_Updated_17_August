@@ -1,9 +1,6 @@
 package com.bank.signaturemanagement.dto;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
-import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.*;
 
 public class UserForm {
     @NotBlank @Size(max = 50, message = "Username must not exceed 50 characters") private String username;
@@ -13,17 +10,17 @@ public class UserForm {
     @Pattern(regexp = "\\d{6}", message = "Employee ID must contain exactly 6 digits")
     private String employeeNumber;
     @NotBlank @Email @Size(max = 100, message = "Email must not exceed 100 characters") private String email;
-    @NotBlank @Size(max = 100, message = "Branch must not exceed 100 characters") private String branchId;
+    @NotNull(message = "Branch value is required") private Long branchId;
     @NotBlank @Size(max = 30) private String roleName;
     @NotBlank @Pattern(regexp = "LOCAL|FOREIGN|BOTH", message = "Select a valid signature scope")
     private String signatureScope = "BOTH";
 
 
-    public String getBranchId() {
+    public Long getBranchId() {
         return branchId;
     }
 
-    public void setBranchId(String branchId) {
+    public void setBranchId(Long branchId) {
         this.branchId = branchId;
     }
 

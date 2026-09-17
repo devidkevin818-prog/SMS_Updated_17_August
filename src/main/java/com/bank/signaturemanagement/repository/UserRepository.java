@@ -37,11 +37,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
                 or lower(u.email) like lower(concat('%', :query, '%'))
                 or lower(coalesce(u.employeeNumber, '')) like lower(concat('%', :query, '%')))
               and (:role = '' or u.role.name = :role)
-              and (:branchId = '' or u.branchId = :branchId)
+              and (:branchId is null or u.branchId = :branchId)
               and (:active is null or u.active = :active)
             """)
     Page<User> search(@Param("query") String query, @Param("role") String role,
-                      @Param("branchId") String branchId, @Param("active") Boolean active,
+                      @Param("branchId") Long branchId, @Param("active") Boolean active,
                       Pageable pageable);
 
     @Query("""

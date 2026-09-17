@@ -24,7 +24,7 @@ public class UserCreationRequest {
     @Column(name = "proposed_email", nullable = false)
     private String proposedEmail;
     @Column(name = "proposed_branch_id", nullable = false)
-    private String proposedBranchId;
+    private Long proposedBranchId;
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "proposed_role_id")
     private Role proposedRole;
@@ -107,11 +107,11 @@ public class UserCreationRequest {
         proposedEmail = v;
     }
 
-    public String getProposedBranchId() {
+    public Long getProposedBranchId() {
         return proposedBranchId;
     }
 
-    public void setProposedBranchId(String v) {
+    public void setProposedBranchId(Long v) {
         proposedBranchId = v;
     }
 

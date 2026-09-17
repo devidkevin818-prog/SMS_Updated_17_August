@@ -65,7 +65,7 @@ public class UserService {
     public void createUser(UserForm form) {
         String username = form.getUsername().trim();
         String email = form.getEmail().trim();
-        String branchId = form.getBranchId().trim();
+        Long branchId = form.getBranchId();
         String employeeNumber = normalizeEmployeeNumber(form.getEmployeeNumber());
         if (userRepository.existsByUsername(username)) throw new IllegalArgumentException("Username already exists");
         if (userRepository.existsByEmail(email)) throw new IllegalArgumentException("Email already exists");
@@ -95,10 +95,10 @@ public class UserService {
     public Page<User> getUsers(int page) { return userRepository.findAll(PageRequest.of(page, 20)); }
 
     @Transactional(readOnly = true)
-    public Page<User> searchUsers(String query, String role, String branchId, Boolean active, int page) {
+    public Page<User> searchUsers(String query, String role, Long branchId, Boolean active, int page) {
         int safePage = Math.max(page, 0);
         return userRepository.search(normalizeFilter(query), normalizeFilter(role),
-                normalizeFilter(branchId), active,
+                branchId, active,
                 PageRequest.of(safePage, 20));
     }
 
@@ -118,10 +118,10 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public String getBranchName(String branchId) {
-        if (branchId == null || branchId.isBlank()) return "Not assigned";
+    public String getBranchName(Long branchId) {
+        if (branchId == null) return "Not assigned";
         try {
-            return branchRepository.findById(Long.valueOf(branchId))
+            return branchRepository.findById(branchId)
                     .map(Branch::getBranchName).orElse("Not assigned");
         } catch (NumberFormatException exception) {
             return "Not assigned";
@@ -204,7 +204,7 @@ public class UserService {
         }
         user.setFullName(form.getFullName().trim());
         user.setEmployeeNumber(employeeNumber);
-        user.setBranchId(form.getBranchId().trim());
+        user.setBranchId(form.getBranchId());
         user.setEmail(email);
         user.setRole(role);
         user.setActive(form.isActive());

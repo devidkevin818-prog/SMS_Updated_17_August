@@ -135,39 +135,41 @@ public class ApprovedSignaturePdfService {
         // =====================================================
 
         PdfPTable table =
-                new PdfPTable(9);
+                new PdfPTable(11);
 
 
         table.setWidthPercentage(100);
 
 
         table.setWidths(new float[]{
-                1.0f,
-                1.5f,
-                2.5f,
-                2.5f,
-                2.5f,
-                2.5f,
-                2.5f,
-                2.5f,
-                3.0f
+                1.0f,  // SL
+                1.5f,  // Employee Code
+                2.5f,  // Employee Name
+                2.5f,  // Designation
+                2.5f,  // Department
+                2.5f,  // Branch Name
+                1.8f,  // Branch Code
+                2.2f,  // Zone Name
+                2.5f,  // Signature Validity
+                2.5f,  // Photo
+                3.0f   // Signature
         });
 
 
         // =====================================================
         // Headers
         // =====================================================
-
         addHeader(table, "SL");
-        addHeader(table, "Code");
+        addHeader(table, "Employee Code");
         addHeader(table, "Name");
         addHeader(table, "Designation");
         addHeader(table, "Department");
-        addHeader(table, "Branch");
+        addHeader(table, "Branch Name");
+        addHeader(table, "Branch Code");
+        addHeader(table, "Zone Name");
         addHeader(table, "Signature Validity");
         addHeader(table, "Photo");
         addHeader(table, "Signature");
-
 
         // =====================================================
         // Employee Rows
@@ -254,20 +256,24 @@ public class ApprovedSignaturePdfService {
             // Branch
             // =================================================
 
+            // =================================================
+// Branch Information
+// =================================================
+
+            String branchName = "";
             String branchCode = "";
+            String zoneName = "";
 
             if (employee.getBranch() != null) {
 
-                branchCode =
-                        employee.getBranch()
-                                .getBranchName();
+                branchName = employee.getBranch().getBranchName();
+                branchCode = employee.getBranch().getBranchCode();
+                zoneName = employee.getBranch().getZoneName();
             }
 
-
-            addCell(
-                    table,
-                    branchCode
-            );
+            addCell(table, branchName);
+            addCell(table, branchCode);
+            addCell(table, zoneName);
 
 
             // =================================================

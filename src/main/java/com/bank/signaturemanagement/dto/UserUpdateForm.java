@@ -12,15 +12,15 @@ public class UserUpdateForm {
     @NotBlank private String roleName;
     private String password;
     private boolean active;
-    private String branchId;
+    private Long branchId;
     @NotBlank @Pattern(regexp = "LOCAL|FOREIGN|BOTH", message = "Select a valid signature scope")
     private String signatureScope = "BOTH";
 
-    public String getBranchId() {
+    public Long getBranchId() {
         return branchId;
     }
 
-    public void setBranchId(String branchId) {
+    public void setBranchId(Long branchId) {
         this.branchId = branchId;
     }
 

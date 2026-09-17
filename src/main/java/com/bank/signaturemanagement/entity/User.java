@@ -27,16 +27,17 @@ public class User {
     @Column(nullable = false, unique = true, length = 100)
     private String email;
 
-    @Column(name = "branch_id", nullable = false, length = 100)
-    private String branchId;
-
-    public String getBranchId() {
+    public Long getBranchId() {
         return branchId;
     }
 
-    public void setBranchId(String branchId) {
+    public void setBranchId(Long branchId) {
         this.branchId = branchId;
     }
+
+    @Column(name = "branch_id")
+    private Long branchId;
+
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "role_id", nullable = false)

@@ -78,7 +78,7 @@ public class UserApprovalService {
         request.setProposedBy(actor); request.setProposedUsername(username);
         request.setProposedPasswordHash(encoder.encode(form.getPassword()));
         request.setProposedFullName(form.getFullName().trim()); request.setProposedEmployeeNumber(employeeNumber);
-        request.setProposedEmail(email); request.setProposedBranchId(form.getBranchId().trim());
+        request.setProposedEmail(email); request.setProposedBranchId(form.getBranchId());
         request.setProposedRole(role); request.setProposedScope(scope);
         requests.saveAndFlush(request);
         audit.record(creator, "USER_PROPOSE", "USER_REQUEST", String.valueOf(request.getId()), null,
@@ -138,7 +138,7 @@ public class UserApprovalService {
     private User toUser(UserForm form, Role role, String employeeNumber, String scope, User creator) {
         User user = new User(); user.setUsername(form.getUsername().trim());
         user.setPasswordHash(encoder.encode(form.getPassword())); user.setFullName(form.getFullName().trim());
-        user.setEmployeeNumber(employeeNumber); user.setEmail(form.getEmail().trim()); user.setBranchId(form.getBranchId().trim());
+        user.setEmployeeNumber(employeeNumber); user.setEmail(form.getEmail().trim()); user.setBranchId(form.getBranchId());
         user.setRole(role); user.setSignatureScope(scope); user.setActive(true); user.setApprovalStatus("APPROVED"); user.setCreatedBy(creator);
         return user;
     }
@@ -151,7 +151,7 @@ public class UserApprovalService {
         return user;
     }
 
-    private void requireActiveBranch(String value) {
+    private void requireActiveBranch(Long value) {
         try {
             Branch branch = branches.findById(Long.valueOf(value)).orElseThrow();
             if (!branch.isActive()) throw new IllegalArgumentException("Selected branch is inactive");

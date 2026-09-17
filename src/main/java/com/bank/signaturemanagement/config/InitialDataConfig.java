@@ -4,6 +4,7 @@ import com.bank.signaturemanagement.entity.Role;
 import com.bank.signaturemanagement.entity.User;
 import com.bank.signaturemanagement.repository.RoleRepository;
 import com.bank.signaturemanagement.repository.UserRepository;
+import jakarta.validation.constraints.Null;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
@@ -33,7 +34,7 @@ public class InitialDataConfig {
                 admin.setPasswordHash(encoder.encode(adminPassword));
                 admin.setFullName("System Administrator");
                 admin.setEmail("admin@bank.local");
-                admin.setBranchId("SYSTEM");
+                admin.setBranchId(1L);
                 admin.setRole(roleRepository.findByName("ADMIN").orElseThrow());
                 userRepository.save(admin);
             }
@@ -43,7 +44,7 @@ public class InitialDataConfig {
                 audit.setPasswordHash(encoder.encode(auditPassword));
                 audit.setFullName("Audit User");
                 audit.setEmail("audit@bank.local");
-                audit.setBranchId("SYSTEM");
+                audit.setBranchId(1L);
                 audit.setRole(roleRepository.findByName("AUDIT").orElseThrow());
                 audit.setSignatureScope("BOTH");
                 audit.setApprovalStatus("APPROVED");
