@@ -18,7 +18,7 @@ import java.util.List;
 
 @Service
 public class EmployeeRequestService {
-    private static final List<RequestStatus> PENDING_STATUSES =
+   public static final List<RequestStatus> PENDING_STATUSES =
             List.of(RequestStatus.PENDING_DGM, RequestStatus.PENDING_GM);
 
     private final EmployeeRequestRepository requestRepository;
@@ -108,12 +108,12 @@ public class EmployeeRequestService {
         validateDates(form.getSignatureValidFrom(), form.getSignatureValidUntil());
         Employee employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new IllegalArgumentException("Employee not found"));
-        if (proposal == null) {
-            throw new IllegalArgumentException("DGM or GM must initiate every existing employee update before PD can edit it");
-        }
-        if (proposal != null && !proposal.getEmployee().getId().equals(employeeId)) {
-            throw new IllegalArgumentException("The change proposal does not belong to this employee");
-        }
+//        if (proposal == null) {
+//            throw new IllegalArgumentException("DGM or GM must initiate every existing employee update before PD can edit it");
+//        }
+//        if (proposal != null && !proposal.getEmployee().getId().equals(employeeId)) {
+//            throw new IllegalArgumentException("The change proposal does not belong to this employee");
+//        }
 
         if (requestRepository.existsByTargetEmployeeIdAndStatusIn(employeeId, PENDING_STATUSES)) {
             throw new IllegalArgumentException("A pending update request already exists for this employee");
@@ -486,4 +486,5 @@ public class EmployeeRequestService {
         version.setForeignSignaturePath(employee.getForeignSignaturePath());
         mediaVersionRepository.save(version);
     }
+
 }

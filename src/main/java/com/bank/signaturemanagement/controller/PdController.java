@@ -2,16 +2,23 @@ package com.bank.signaturemanagement.controller;
 
 import com.bank.signaturemanagement.dto.EmployeeRequestForm;
 import com.bank.signaturemanagement.dto.EmployeeUpdateForm;
+import com.bank.signaturemanagement.dto.UserForm;
 import com.bank.signaturemanagement.entity.Employee;
 import com.bank.signaturemanagement.entity.EmployeeRequest;
 import com.bank.signaturemanagement.repository.EmployeeMediaVersionRepository;
+import com.bank.signaturemanagement.repository.EmployeeRequestRepository;
+import com.bank.signaturemanagement.repository.EmployeeStatusRepository;
 import com.bank.signaturemanagement.service.ApprovedSignaturePdfService;
 import com.bank.signaturemanagement.service.BranchService;
+import com.bank.signaturemanagement.service.DashboardService;
 import com.bank.signaturemanagement.service.DepartmentService;
 import com.bank.signaturemanagement.service.DesignationService;
+import com.bank.signaturemanagement.service.EmployeeChangeProposalService;
 import com.bank.signaturemanagement.service.EmployeeNumberFormat;
 import com.bank.signaturemanagement.service.EmployeeRequestService;
 import com.bank.signaturemanagement.service.EmployeeService;
+import com.bank.signaturemanagement.service.UserApprovalService;
+import com.bank.signaturemanagement.service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
@@ -26,20 +33,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import com.bank.signaturemanagement.repository.EmployeeStatusRepository;
-import com.bank.signaturemanagement.service.UserService;
-import com.bank.signaturemanagement.service.UserApprovalService;
-import com.bank.signaturemanagement.dto.UserForm;
-import com.bank.signaturemanagement.service.EmployeeChangeProposalService;
-import com.bank.signaturemanagement.service.DashboardService;
 
+import static com.bank.signaturemanagement.service.EmployeeRequestService.PENDING_STATUSES;
 
 @Controller
 @RequestMapping("/pd")
 public class PdController {
 
-    @org.springframework.beans.factory.annotation.Autowired
-    private com.bank.signaturemanagement.repository.EmployeeStatusRepository employeeStatusRepository;
+    private final EmployeeStatusRepository employeeStatusRepository;
+    private final EmployeeRequestRepository requestRepository;
     private final EmployeeRequestService requestService;
     private final EmployeeService employeeService;
     private final ApprovedSignaturePdfService pdfService;
@@ -53,14 +55,22 @@ public class PdController {
     private final DashboardService dashboardService;
 
     public PdController(
+            EmployeeStatusRepository employeeStatusRepository,
+            EmployeeRequestRepository requestRepository,
             EmployeeRequestService requestService,
             EmployeeService employeeService,
             ApprovedSignaturePdfService pdfService,
             EmployeeMediaVersionRepository mediaVersionRepository,
             DesignationService designationService,
             DepartmentService departmentService,
-            BranchService branchService, UserService userService, UserApprovalService userApprovalService,
-            EmployeeChangeProposalService changeProposalService, DashboardService dashboardService) {
+            BranchService branchService,
+            UserService userService,
+            UserApprovalService userApprovalService,
+            EmployeeChangeProposalService changeProposalService,
+            DashboardService dashboardService) {
+
+        this.employeeStatusRepository = employeeStatusRepository;
+        this.requestRepository = requestRepository;
         this.requestService = requestService;
         this.employeeService = employeeService;
         this.pdfService = pdfService;
@@ -74,144 +84,311 @@ public class PdController {
         this.dashboardService = dashboardService;
     }
 
+    /*
+     * User creation
+     */
+
     @GetMapping("/users/new")
     public String createUserForm(Model model) {
         model.addAttribute("userForm", new UserForm());
         addUserReferenceData(model);
+
         return "admin/create-user";
     }
 
     @PostMapping("/users")
-    public String createUser(@Valid @ModelAttribute UserForm form, BindingResult result, Authentication authentication, Model model, RedirectAttributes redirect) {
-        if (!result.hasErrors()) try {
-            userApprovalService.propose(form, authentication.getName());
-            redirect.addFlashAttribute("success", "User request submitted for DGM approval");
-            return "redirect:/pd/dashboard";
-        } catch (IllegalArgumentException e) {
-            result.reject("user", e.getMessage());
+    public String createUser(
+            @Valid @ModelAttribute("userForm") UserForm form,
+            BindingResult result,
+            Authentication authentication,
+            Model model,
+            RedirectAttributes redirectAttributes) {
+
+        if (result.hasErrors()) {
+            addUserReferenceData(model);
+            return "admin/create-user";
         }
-        addUserReferenceData(model);
-        return "admin/create-user";
+
+        try {
+            userApprovalService.propose(
+                    form,
+                    authentication.getName()
+            );
+
+            redirectAttributes.addFlashAttribute(
+                    "success",
+                    "User request submitted for DGM approval"
+            );
+
+            return "redirect:/pd/dashboard";
+
+        } catch (IllegalArgumentException | IllegalStateException exception) {
+            result.reject("user", exception.getMessage());
+            addUserReferenceData(model);
+
+            return "admin/create-user";
+        }
     }
 
     private void addUserReferenceData(Model model) {
-        model.addAttribute("branches", userService.getBranches());
-        model.addAttribute("roles", userService.getRoles().stream().filter(r -> !"ADMIN".equals(r.getName())).toList());
+        model.addAttribute(
+                "branches",
+                userService.getBranches()
+        );
+
+        model.addAttribute(
+                "roles",
+                userService.getRoles()
+                        .stream()
+                        .filter(role -> !"ADMIN".equals(role.getName()))
+                        .toList()
+        );
+
         model.addAttribute("creatorRole", "PD");
         model.addAttribute("creatorBackPath", "/pd/dashboard");
         model.addAttribute("userCreateAction", "/pd/users");
     }
 
+    /*
+     * Dashboard
+     */
+
     @GetMapping("/dashboard")
-    public String dashboard(Authentication authentication, Model model) {
-        model.addAttribute("dashboard", dashboardService.getDashboardData(authentication.getName(), "PD"));
-        var changeProposals = changeProposalService.pendingPd(authentication.getName());
-        model.addAttribute("changeProposals", changeProposals);
-        model.addAttribute("changeProposalCount", changeProposals.size());
-        model.addAttribute("myRequestCount",
-                requestService.getRequestsForUser(authentication.getName(), 0).getTotalElements());
+    public String dashboard(
+            Authentication authentication,
+            Model model) {
+
+        model.addAttribute(
+                "dashboard",
+                dashboardService.getDashboardData(
+                        authentication.getName(),
+                        "PD"
+                )
+        );
+
+        var changeProposals =
+                changeProposalService.pendingPd(authentication.getName());
+
+        model.addAttribute(
+                "changeProposals",
+                changeProposals
+        );
+
+        model.addAttribute(
+                "changeProposalCount",
+                changeProposals.size()
+        );
+
+        model.addAttribute(
+                "myRequestCount",
+                requestService
+                        .getRequestsForUser(authentication.getName(), 0)
+                        .getTotalElements()
+        );
+
         return "pd/dashboard";
     }
 
+    /*
+     * Employee change proposals
+     */
+
     @PostMapping("/employees/{id}/toggle-lock")
-    public String toggleLock(@PathVariable Long id, Authentication authentication, RedirectAttributes redirect) {
-        changeProposalService.toggleLock(id, authentication.getName());
-        redirect.addFlashAttribute("success", "Employee edit lock updated");
+    public String toggleLock(
+            @PathVariable Long id,
+            Authentication authentication,
+            RedirectAttributes redirectAttributes) {
+
+        changeProposalService.toggleLock(
+                id,
+                authentication.getName()
+        );
+
+        redirectAttributes.addFlashAttribute(
+                "success",
+                "Employee edit lock updated"
+        );
+
         return "redirect:/pd/employees";
     }
 
     @PostMapping("/change-proposals/{id}/accept")
-    public String acceptProposal(@PathVariable Long id, Authentication authentication) {
-        var proposal = changeProposalService.acceptForEditing(id, authentication.getName());
-        return "redirect:/pd/employees/" + proposal.getEmployee().getId() + "/edit?proposalId=" + id;
+    public String acceptProposal(
+            @PathVariable Long id,
+            Authentication authentication) {
+
+        var proposal = changeProposalService.acceptForEditing(
+                id,
+                authentication.getName()
+        );
+
+        return "redirect:/pd/employees/"
+                + proposal.getEmployee().getId()
+                + "/edit?proposalId="
+                + proposal.getId();
     }
+
+    /*
+     * Create employee
+     */
 
     @GetMapping("/employees/new")
     public String createForm(Model model) {
 
         if (!model.containsAttribute("employeeRequestForm")) {
-
             EmployeeRequestForm form = new EmployeeRequestForm();
-            employeeStatusRepository.findByActiveTrueOrderByDisplayOrderAscStatusNameAsc().stream().findFirst()
-                    .ifPresent(status -> form.setStatusId(status.getStatusId()));
+
+            employeeStatusRepository
+                    .findByActiveTrueOrderByDisplayOrderAscStatusNameAsc()
+                    .stream()
+                    .findFirst()
+                    .ifPresent(
+                            status -> form.setStatusId(status.getStatusId())
+                    );
+
             model.addAttribute(
                     "employeeRequestForm",
                     form
             );
         }
+
         addReferenceData(model);
+
         return "pd/create-employee";
     }
 
-
     @PostMapping("/employees")
     public String create(
-            @Valid @ModelAttribute EmployeeRequestForm employeeRequestForm,
+            @Valid
+            @ModelAttribute("employeeRequestForm")
+            EmployeeRequestForm employeeRequestForm,
             BindingResult result,
             Authentication authentication,
             RedirectAttributes redirectAttributes,
             Model model) {
-        if (!result.hasErrors()) {
-            try {
-                requestService.createRequest(employeeRequestForm, authentication.getName());
-                redirectAttributes.addFlashAttribute("success", "Employee request submitted to DGM");
-                return "redirect:/pd/requests";
-            } catch (IllegalArgumentException | IllegalStateException exception) {
 
-                result.reject(
-                        "request",
-                        exception.getMessage()
-                );
-            }
+        if (result.hasErrors()) {
+            addReferenceData(model);
+            return "pd/create-employee";
         }
-        addReferenceData(model);
-        return "pd/create-employee";
+
+        try {
+            requestService.createRequest(
+                    employeeRequestForm,
+                    authentication.getName()
+            );
+
+            redirectAttributes.addFlashAttribute(
+                    "success",
+                    "Employee request submitted to DGM"
+            );
+
+            return "redirect:/pd/requests";
+
+        } catch (IllegalArgumentException | IllegalStateException exception) {
+            result.reject("request", exception.getMessage());
+            addReferenceData(model);
+
+            return "pd/create-employee";
+        }
     }
 
+    /*
+     * Request list
+     */
 
     @GetMapping("/requests")
     public String requests(
             @RequestParam(defaultValue = "0") int page,
             Authentication authentication,
             Model model) {
-        model.addAttribute("requests", requestService.getRequestsForUser(authentication.getName(), page));
+
+        model.addAttribute(
+                "requests",
+                requestService.getRequestsForUser(
+                        authentication.getName(),
+                        page
+                )
+        );
+
         return "pd/request-list";
     }
+
+    /*
+     * Employee list
+     */
 
     @GetMapping("/employees")
     public String employees(
             @RequestParam(defaultValue = "") String query,
             @RequestParam(defaultValue = "0") int page,
             Model model) {
+
         model.addAttribute("query", query);
-        model.addAttribute("employees", employeeService.search(query, page));
+        model.addAttribute(
+                "employees",
+                employeeService.search(query, page)
+        );
+
         return "pd/employee-list";
     }
+
+    /*
+     * Approved signatures
+     */
 
     @GetMapping("/approved-signatures")
     public String approvedSignatures(
             @RequestParam(defaultValue = "") String query,
             @RequestParam(defaultValue = "0") int page,
             Model model) {
+
         model.addAttribute("query", query);
-        model.addAttribute("employees", employeeService.search(query, page));
+        model.addAttribute(
+                "employees",
+                employeeService.search(query, page)
+        );
+
         return "pd/approved-signatures";
     }
 
     @GetMapping("/approved-signatures/pdf")
-    public void downloadApprovedPdf(HttpServletResponse response) throws Exception {
+    public void downloadApprovedPdf(
+            HttpServletResponse response) throws Exception {
+
         response.setContentType("application/pdf");
-        response.setHeader("Content-Disposition", "attachment; filename=approved-signatures.pdf");
-        pdfService.generateApprovedPdf(response.getOutputStream());
+
+        response.setHeader(
+                "Content-Disposition",
+                "attachment; filename=\"approved-signatures.pdf\""
+        );
+
+        pdfService.generateApprovedPdf(
+                response.getOutputStream()
+        );
     }
 
     @GetMapping("/approved-signatures/{id}")
-    public String approvedSignatureVersions(@PathVariable Long id, Model model) {
-        var employee = employeeService.getEmployee(id);
+    public String approvedSignatureVersions(
+            @PathVariable Long id,
+            Model model) {
+
+        Employee employee = employeeService.getEmployee(id);
+
         model.addAttribute("employee", employee);
-        model.addAttribute("versions", mediaVersionRepository.findByEmployeeIdOrderByVersionNumberDesc(id));
+
+        model.addAttribute(
+                "versions",
+                mediaVersionRepository
+                        .findByEmployeeIdOrderByVersionNumberDesc(id)
+        );
+
         return "pd/approved-signature-versions";
     }
+
+    /*
+     * Edit employee
+     */
 
     @GetMapping("/employees/{id}/edit")
     public String editEmployeeForm(
@@ -220,24 +397,59 @@ public class PdController {
             @RequestParam(required = false) Long proposalId,
             Authentication authentication,
             Model model) {
-        var employee = employeeService.getEmployee(id);
-        if (proposalId == null) {
-            throw new IllegalStateException("DGM or GM must initiate this employee update first");
-        }
-        changeProposalService.requireEditing(proposalId, id, authentication.getName());
-        model.addAttribute("employee", employee);
-        model.addAttribute("employeeUpdateForm", employeeService.getUpdateForm(id));
-        model.addAttribute("proposalId", proposalId);
-        addReferenceData(model);
+
+        /*
+         * Enable this requirement if edits must always originate from a
+         * DGM or GM change proposal.
+         *
+         * if (proposalId == null) {
+         *     throw new IllegalStateException(
+         *         "DGM or GM must initiate this employee update first"
+         *     );
+         * }
+         *
+         * changeProposalService.requireEditing(
+         *     proposalId,
+         *     id,
+         *     authentication.getName()
+         * );
+         */
 
         if (rejectedRequestId != null) {
-            Long targetEmployeeId = requestService.getTargetEmployeeIdForUpdate(
-                    rejectedRequestId, authentication.getName());
-            if (!targetEmployeeId.equals(id)) {
-                throw new IllegalArgumentException("Invalid employee update request");
+            Long targetEmployeeId =
+                    requestService.getTargetEmployeeIdForUpdate(
+                            rejectedRequestId,
+                            authentication.getName()
+                    );
+
+            if (!id.equals(targetEmployeeId)) {
+                throw new IllegalArgumentException(
+                        "Invalid employee update request"
+                );
             }
-            model.addAttribute("rejectedRequestId", rejectedRequestId);
         }
+
+        model.addAttribute(
+                "employee",
+                employeeService.getEmployee(id)
+        );
+
+        model.addAttribute(
+                "employeeUpdateForm",
+                employeeService.getUpdateForm(id)
+        );
+
+        model.addAttribute("proposalId", proposalId);
+
+        if (rejectedRequestId != null) {
+            model.addAttribute(
+                    "rejectedRequestId",
+                    rejectedRequestId
+            );
+        }
+
+        addReferenceData(model);
+
         return "pd/edit-employee";
     }
 
@@ -246,120 +458,330 @@ public class PdController {
             @PathVariable Long id,
             @RequestParam(required = false) Long rejectedRequestId,
             @RequestParam(required = false) Long proposalId,
-            @Valid @ModelAttribute EmployeeUpdateForm employeeUpdateForm,
+            @Valid
+            @ModelAttribute("employeeUpdateForm")
+            EmployeeUpdateForm employeeUpdateForm,
             BindingResult result,
             Model model,
             Authentication authentication,
             RedirectAttributes redirectAttributes) {
-        if (!result.hasErrors()) {
-            try {
-                var proposal = proposalId == null ? null : changeProposalService.requireEditing(proposalId, id, authentication.getName());
-                if (proposal == null)
-                    throw new IllegalStateException("DGM or GM must initiate this employee update first");
-                requestService.createUpdateRequest(id, employeeUpdateForm, authentication.getName(), proposal);
-                if (proposalId != null) changeProposalService.markSubmitted(proposalId, authentication.getName());
-                employeeService.updateRequestStatus(id, false);
-                if (rejectedRequestId != null) {
-                    requestService.markUpdateRequestCompleted(rejectedRequestId);
-                }
-                redirectAttributes.addFlashAttribute(
-                        "success", "Employee update submitted to DGM for approval");
-                return "redirect:/pd/requests";
-            } catch (IllegalArgumentException | IllegalStateException exception) {
-                result.reject("employee", exception.getMessage());
-            }
+
+        if (result.hasErrors()) {
+            prepareEmployeeEditPage(
+                    id,
+                    rejectedRequestId,
+                    proposalId,
+                    model
+            );
+
+            return "pd/edit-employee";
         }
 
-        model.addAttribute("employee", employeeService.getEmployee(id));
-        if (rejectedRequestId != null) {
-            model.addAttribute("rejectedRequestId", rejectedRequestId);
+        try {
+            /*
+             * The path-variable ID is the Employee entity's database ID.
+             * Do not convert employeeCode to Long for this query.
+             */
+            boolean pendingRequestExists =
+                    requestRepository
+                            .existsByTargetEmployeeIdAndStatusIn(
+                                    id,
+                                    PENDING_STATUSES
+                            );
+
+            if (pendingRequestExists) {
+                throw new IllegalStateException(
+                        "A pending update request already exists for this employee"
+                );
+            }
+
+            /*
+             * If proposal-based editing is mandatory, restore:
+             *
+             * var proposal = changeProposalService.requireEditing(
+             *     proposalId,
+             *     id,
+             *     authentication.getName()
+             * );
+             *
+             * Then pass proposal to the relevant service overload.
+             */
+
+            requestService.createUpdateRequest(
+                    id,
+                    employeeUpdateForm,
+                    authentication.getName()
+            );
+
+            /*
+             * This assumes true means that an update request is pending.
+             * Change it if your service uses the opposite Boolean meaning.
+             */
+            employeeService.updateRequestStatus(id, true);
+
+            if (rejectedRequestId != null) {
+                requestService.markUpdateRequestCompleted(
+                        rejectedRequestId
+                );
+            }
+
+            if (proposalId != null) {
+                changeProposalService.markSubmitted(
+                        proposalId,
+                        authentication.getName()
+                );
+            }
+
+            redirectAttributes.addFlashAttribute(
+                    "success",
+                    "Employee update submitted to DGM for approval"
+            );
+
+            return "redirect:/pd/requests";
+
+        } catch (IllegalArgumentException | IllegalStateException exception) {
+            result.reject(
+                    "employee",
+                    exception.getMessage()
+            );
+
+            prepareEmployeeEditPage(
+                    id,
+                    rejectedRequestId,
+                    proposalId,
+                    model
+            );
+
+            return "pd/edit-employee";
         }
-        addReferenceData(model);
-        return "pd/edit-employee";
     }
+
+    private void prepareEmployeeEditPage(
+            Long employeeId,
+            Long rejectedRequestId,
+            Long proposalId,
+            Model model) {
+
+        model.addAttribute(
+                "employee",
+                employeeService.getEmployee(employeeId)
+        );
+
+        model.addAttribute("proposalId", proposalId);
+
+        if (rejectedRequestId != null) {
+            model.addAttribute(
+                    "rejectedRequestId",
+                    rejectedRequestId
+            );
+        }
+
+        addReferenceData(model);
+    }
+
+    /*
+     * Update and resubmit rejected request
+     */
 
     @GetMapping("/requests/{id}/update")
     public String updateRejectedRequest(
             @PathVariable Long id,
             Authentication authentication,
             Model model) {
-        EmployeeRequest request = requestService.getRequest(id);
-        requireOriginalRequester(request, authentication.getName());
+
+        EmployeeRequest request =
+                requestService.getRequest(id);
+
+        requireOriginalRequester(
+                request,
+                authentication.getName()
+        );
 
         Employee employee = request.getTargetEmployee();
+
         if (employee == null) {
-            throw new IllegalStateException("This request is not linked to an existing employee");
+            throw new IllegalStateException(
+                    "This request is not linked to an existing employee"
+            );
         }
 
-        request.setEmployeeCode(EmployeeNumberFormat.editablePart(request.getEmployeeCode()));
+        request.setEmployeeCode(
+                EmployeeNumberFormat.editablePart(
+                        request.getEmployeeCode()
+                )
+        );
+
         request.setRemark("");
+
         model.addAttribute("request", request);
         model.addAttribute("employee", employee);
+
         return "pd/update-request";
     }
 
     @PostMapping("/requests/{id}/update")
     public String updateRejectedRequest(
             @PathVariable Long id,
-            @Valid @ModelAttribute("request") EmployeeRequest updatedRequest,
+            @Valid
+            @ModelAttribute("request")
+            EmployeeRequest updatedRequest,
             BindingResult result,
-            @RequestParam(value = "foreignSignature", required = false) MultipartFile foreignSignature,
+            @RequestParam(
+                    value = "foreignSignature",
+                    required = false
+            )
+            MultipartFile foreignSignature,
             Authentication authentication,
             Model model,
             RedirectAttributes redirectAttributes) {
-        EmployeeRequest existingRequest = requestService.getRequest(id);
-        preserveFilePaths(updatedRequest, existingRequest);
+
+        EmployeeRequest existingRequest =
+                requestService.getRequest(id);
+
+        requireOriginalRequester(
+                existingRequest,
+                authentication.getName()
+        );
+
+        preserveFilePaths(
+                updatedRequest,
+                existingRequest
+        );
 
         if (result.hasErrors()) {
             model.addAttribute("request", updatedRequest);
-            model.addAttribute("employee", existingRequest.getTargetEmployee());
+            model.addAttribute(
+                    "employee",
+                    existingRequest.getTargetEmployee()
+            );
+
             return "pd/update-request";
         }
 
         try {
             requestService.updateRequest(
-                    id, updatedRequest, foreignSignature, authentication.getName());
+                    id,
+                    updatedRequest,
+                    foreignSignature,
+                    authentication.getName()
+            );
+
             redirectAttributes.addFlashAttribute(
-                    "success", "Rejected request updated and resubmitted to DGM");
+                    "success",
+                    "Rejected request updated and resubmitted to DGM"
+            );
+
             return "redirect:/pd/requests";
+
         } catch (IllegalArgumentException | IllegalStateException exception) {
-            result.reject("request", exception.getMessage());
+            result.reject(
+                    "request",
+                    exception.getMessage()
+            );
+
             model.addAttribute("request", updatedRequest);
-            model.addAttribute("employee", existingRequest.getTargetEmployee());
+
+            model.addAttribute(
+                    "employee",
+                    existingRequest.getTargetEmployee()
+            );
+
             return "pd/update-request";
         }
     }
 
     @GetMapping("/request/{id}/edit")
-    public String editEmployeeRequest(@PathVariable("id") Long id, Model model) {
-        EmployeeRequest request = requestService.getRequest(id);
+    public String editEmployeeRequest(
+            @PathVariable("id") Long id,
+            Authentication authentication,
+            Model model) {
+
+        EmployeeRequest request =
+                requestService.getRequest(id);
+
+        requireOriginalRequester(
+                request,
+                authentication.getName()
+        );
+
         model.addAttribute("request", request);
-        model.addAttribute("employee", request.getTargetEmployee());
+        model.addAttribute(
+                "employee",
+                request.getTargetEmployee()
+        );
+
         return "pd/update-request";
     }
 
+    /*
+     * Shared helper methods
+     */
+
     private void addReferenceData(Model model) {
-        model.addAttribute("designations", designationService.findAll());
-        model.addAttribute("departments", departmentService.findAll());
-        model.addAttribute("branches", branchService.findAll());
-        model.addAttribute("employeeStatuses", employeeStatusRepository.findByActiveTrueOrderByDisplayOrderAscStatusNameAsc());
+        model.addAttribute(
+                "designations",
+                designationService.findAll()
+        );
+
+        model.addAttribute(
+                "departments",
+                departmentService.findAll()
+        );
+
+        model.addAttribute(
+                "branches",
+                branchService.findAll()
+        );
+
+        model.addAttribute(
+                "employeeStatuses",
+                employeeStatusRepository
+                        .findByActiveTrueOrderByDisplayOrderAscStatusNameAsc()
+        );
     }
 
-    private void requireOriginalRequester(EmployeeRequest request, String username) {
-        if (!request.getRequestedBy().getUsername().equals(username)) {
-            throw new IllegalArgumentException("You are not authorized to update this request");
+    private void requireOriginalRequester(
+            EmployeeRequest request,
+            String username) {
+
+        if (request.getRequestedBy() == null
+                || request.getRequestedBy().getUsername() == null
+                || !request.getRequestedBy()
+                .getUsername()
+                .equals(username)) {
+
+            throw new IllegalArgumentException(
+                    "You are not authorized to update this request"
+            );
         }
     }
 
-    private void preserveFilePaths(EmployeeRequest updated, EmployeeRequest existing) {
-        if (updated.getPhotoPath() == null) {
-            updated.setPhotoPath(existing.getPhotoPath());
+    private void preserveFilePaths(
+            EmployeeRequest updated,
+            EmployeeRequest existing) {
+
+        if (updated.getPhotoPath() == null
+                || updated.getPhotoPath().isBlank()) {
+
+            updated.setPhotoPath(
+                    existing.getPhotoPath()
+            );
         }
-        if (updated.getSignaturePath() == null) {
-            updated.setSignaturePath(existing.getSignaturePath());
+
+        if (updated.getSignaturePath() == null
+                || updated.getSignaturePath().isBlank()) {
+
+            updated.setSignaturePath(
+                    existing.getSignaturePath()
+            );
         }
-        if (updated.getForeignSignaturePath() == null) {
-            updated.setForeignSignaturePath(existing.getForeignSignaturePath());
+
+        if (updated.getForeignSignaturePath() == null
+                || updated.getForeignSignaturePath().isBlank()) {
+
+            updated.setForeignSignaturePath(
+                    existing.getForeignSignaturePath()
+            );
         }
     }
 }
