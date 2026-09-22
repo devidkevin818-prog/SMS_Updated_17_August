@@ -7,27 +7,27 @@
         <div class="dashboard-context"><span th:text="${'Role: ' + dashboard.role}">Role</span><time th:text="${#temporals.format(#temporals.createToday(),'dd MMMM yyyy')}">Date</time></div>
     </header>
 
-    <section class="dashboard-kpi-grid" aria-label="Dashboard summary">
-        <a class="dashboard-kpi-card" th:href="@{/employees}"><span class="dashboard-kpi-icon"><i class="bi bi-people-fill"></i></span><span><small>Total employees</small><strong th:text="${dashboard.totalEmployees}">0</strong><em th:text="${dashboard.newEmployeesThisMonth + ' added this month'}">0 added this month</em></span></a>
-        <a class="dashboard-kpi-card" th:href="@{/books}"><span class="dashboard-kpi-icon"><i class="bi bi-pen-fill"></i></span><span><small>Active signatures</small><strong th:text="${dashboard.activeSignatures}">0</strong><em th:text="${dashboard.signatureCoverage + '% signature coverage'}">0% coverage</em></span></a>
-        <div class="dashboard-kpi-card"><span class="dashboard-kpi-icon dashboard-kpi-warning"><i class="bi bi-hourglass-split"></i></span><span><small th:text="${dashboard.role == 'PD' ? 'My pending requests' : 'Pending approvals'}">Pending approvals</small><strong th:text="${dashboard.pendingActions}">0</strong><em>Requires attention</em></span></div>
-        <div class="dashboard-kpi-card"><span class="dashboard-kpi-icon"><i class="bi bi-person-plus-fill"></i></span><span><small>New employees</small><strong th:text="${dashboard.newEmployeesThisMonth}">0</strong><em>This month</em></span></div>
-    </section>
+<!--    <section class="dashboard-kpi-grid" aria-label="Dashboard summary">-->
+<!--        <a class="dashboard-kpi-card" th:href="@{/employees}"><span class="dashboard-kpi-icon"><i class="bi bi-people-fill"></i></span><span><small>Total employees</small><strong th:text="${dashboard.totalEmployees}">0</strong><em th:text="${dashboard.newEmployeesThisMonth + ' added this month'}">0 added this month</em></span></a>-->
+<!--        <a class="dashboard-kpi-card" th:href="@{/books}"><span class="dashboard-kpi-icon"><i class="bi bi-pen-fill"></i></span><span><small>Active signatures</small><strong th:text="${dashboard.activeSignatures}">0</strong><em th:text="${dashboard.signatureCoverage + '% signature coverage'}">0% coverage</em></span></a>-->
+<!--        <div class="dashboard-kpi-card"><span class="dashboard-kpi-icon dashboard-kpi-warning"><i class="bi bi-hourglass-split"></i></span><span><small th:text="${dashboard.role == 'PD' ? 'My pending requests' : 'Pending approvals'}">Pending approvals</small><strong th:text="${dashboard.pendingActions}">0</strong><em>Requires attention</em></span></div>-->
+<!--        <div class="dashboard-kpi-card"><span class="dashboard-kpi-icon"><i class="bi bi-person-plus-fill"></i></span><span><small>New employees</small><strong th:text="${dashboard.newEmployeesThisMonth}">0</strong><em>This month</em></span></div>-->
+<!--    </section>-->
 
-    <section class="dashboard-chart-grid">
-        <article class="dashboard-chart-card dashboard-chart-wide"><header><div><h2>Employee Activity</h2><p>Created and updated during the last 6 months</p></div></header><div class="dashboard-chart-canvas"><canvas id="employeeActivityChart"></canvas></div></article>
-        <article class="dashboard-chart-card"><header><div><h2>Signature Status</h2><p>Current coverage and validity</p></div></header><div class="dashboard-chart-canvas dashboard-chart-doughnut"><canvas id="signatureStatusChart"></canvas></div></article>
-        <article class="dashboard-chart-card"><header><div><h2>Approval Workload</h2><p>Existing employee request stages</p></div></header><div class="dashboard-chart-canvas"><canvas id="approvalWorkloadChart"></canvas></div></article>
-        <article class="dashboard-chart-card dashboard-chart-wide"><header><div><h2>Employees by Department</h2><p>Distribution from current employee records</p></div></header><div class="dashboard-chart-canvas"><canvas id="departmentChart"></canvas></div></article>
-    </section>
+<!--    <section class="dashboard-chart-grid">-->
+<!--        <article class="dashboard-chart-card dashboard-chart-wide"><header><div><h2>Employee Activity</h2><p>Created and updated during the last 6 months</p></div></header><div class="dashboard-chart-canvas"><canvas id="employeeActivityChart"></canvas></div></article>-->
+<!--        <article class="dashboard-chart-card"><header><div><h2>Signature Status</h2><p>Current coverage and validity</p></div></header><div class="dashboard-chart-canvas dashboard-chart-doughnut"><canvas id="signatureStatusChart"></canvas></div></article>-->
+<!--        <article class="dashboard-chart-card"><header><div><h2>Approval Workload</h2><p>Existing employee request stages</p></div></header><div class="dashboard-chart-canvas"><canvas id="approvalWorkloadChart"></canvas></div></article>-->
+<!--        <article class="dashboard-chart-card dashboard-chart-wide"><header><div><h2>Employees by Department</h2><p>Distribution from current employee records</p></div></header><div class="dashboard-chart-canvas"><canvas id="departmentChart"></canvas></div></article>-->
+<!--    </section>-->
 
-    <section class="dashboard-activity-card">
-        <header><div><h2>Recent Activity</h2><p>Latest recorded system events</p></div><a th:if="${dashboard.role == 'AUDIT'}" th:href="@{/audit/trail}">View audit trail</a></header>
-        <div th:if="${dashboard.recentActivity.empty}" class="dashboard-empty"><i class="bi bi-check2-circle"></i><strong>No recent activity</strong><span>New system events will appear here.</span></div>
-        <div th:unless="${dashboard.recentActivity.empty}" class="dashboard-activity-list">
-            <div class="dashboard-activity-row" th:each="item:${dashboard.recentActivity}"><time th:text="${item.time == null ? '—' : #temporals.format(item.time,'dd MMM, HH:mm')}">Time</time><span><strong th:text="${item.action}">Action</strong><small th:text="${(item.actor == null ? 'System' : item.actor) + (item.target == null ? '' : ' · ' + item.target)}">Details</small></span><span class="status-badge" th:classappend="${item.result == 'SUCCESS' ? ' status-approved' : ' status-rejected'}" th:text="${item.result}">Result</span></div>
-        </div>
-    </section>
+<!--    <section class="dashboard-activity-card">-->
+<!--        <header><div><h2>Recent Activity</h2><p>Latest recorded system events</p></div><a th:if="${dashboard.role == 'AUDIT'}" th:href="@{/audit/trail}">View audit trail</a></header>-->
+<!--        <div th:if="${dashboard.recentActivity.empty}" class="dashboard-empty"><i class="bi bi-check2-circle"></i><strong>No recent activity</strong><span>New system events will appear here.</span></div>-->
+<!--        <div th:unless="${dashboard.recentActivity.empty}" class="dashboard-activity-list">-->
+<!--            <div class="dashboard-activity-row" th:each="item:${dashboard.recentActivity}"><time th:text="${item.time == null ? '—' : #temporals.format(item.time,'dd MMM, HH:mm')}">Time</time><span><strong th:text="${item.action}">Action</strong><small th:text="${(item.actor == null ? 'System' : item.actor) + (item.target == null ? '' : ' · ' + item.target)}">Details</small></span><span class="status-badge" th:classappend="${item.result == 'SUCCESS' ? ' status-approved' : ' status-rejected'}" th:text="${item.result}">Result</span></div>-->
+<!--        </div>-->
+<!--    </section>-->
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.min.js"></script>
     <script th:inline="javascript">window.dashboardData={months:/*[[${dashboard.monthLabels}]]*/[],created:/*[[${dashboard.employeeCreated}]]*/[],updated:/*[[${dashboard.employeeUpdated}]]*/[],signatureLabels:/*[[${dashboard.signatureLabels}]]*/[],signatureValues:/*[[${dashboard.signatureValues}]]*/[],approvalLabels:/*[[${dashboard.approvalLabels}]]*/[],approvalValues:/*[[${dashboard.approvalValues}]]*/[],departmentLabels:/*[[${dashboard.departmentLabels}]]*/[],departmentValues:/*[[${dashboard.departmentValues}]]*/[]};</script>
