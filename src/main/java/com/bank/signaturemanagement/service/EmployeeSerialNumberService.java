@@ -1,160 +1,294 @@
 package com.bank.signaturemanagement.service;
+
+import com.bank.signaturemanagement.entity.Employee;
+import com.bank.signaturemanagement.entity.EmployeeSerialNumber;
+import com.bank.signaturemanagement.repository.EmployeeRepository;
 import com.bank.signaturemanagement.repository.EmployeeSerialNumberRepository;
 import org.springframework.stereotype.Service;
-import com.bank.signaturemanagement.entity.EmployeeSerialNumber;
-import com.bank.signaturemanagement.repository.EmployeeSerialNumberRepository;
+import java.util.Optional;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
-
-
 
 @Service
 public class EmployeeSerialNumberService {
 
     private final EmployeeSerialNumberRepository serialNumberRepository;
+    private final EmployeeRepository employeeRepository;
 
     public EmployeeSerialNumberService(
-            EmployeeSerialNumberRepository serialNumberRepository) {
-
+            EmployeeSerialNumberRepository serialNumberRepository,
+            EmployeeRepository employeeRepository
+    ) {
         this.serialNumberRepository = serialNumberRepository;
+        this.employeeRepository = employeeRepository;
     }
 
+    /*
+     * Saves a new local serial-number history record.
+     */
     @Transactional
-    public EmployeeSerialNumber addSerialNumber(
+    public EmployeeSerialNumber addLocalSerialNumber(
             Long employeeId,
-            Integer serialNumber) {
-
+            Integer localSerialNumber
+    ) {
         validateEmployeeId(employeeId);
-        validateSerialNumber(serialNumber);
+        validateSerialNumber(localSerialNumber, "Local serial number");
 
-        if (serialNumberRepository.existsByEmployeeId(employeeId)) {
-            throw new IllegalStateException(
-                    "A serial-number record already exists for employee ID: "
-                            + employeeId
-                            + ". Use the update operation instead."
-            );
-        }
+        Employee employee = getEmployee(employeeId);
 
-        if (serialNumberRepository.existsByNewSerialNumber(serialNumber)) {
-            throw new IllegalStateException(
-                    "Serial number " + serialNumber
-                            + " is already assigned to another employee."
-            );
-        }
+        EmployeeSerialNumber latestRecord =
+                serialNumberRepository
+                        .findTopByEmployee_IdOrderByCreatedAtDesc(employeeId)
+                        .orElse(null);
 
-        EmployeeSerialNumber record = new EmployeeSerialNumber();
+        Integer currentLocalSerial = latestRecord != null
+                ? latestRecord.getNewLocalSerial()
+                : null;
 
-        record.setEmployeeId(employeeId);
-        record.setNewSerialNumber(serialNumber);
-        record.setOldSerialNumber(null);
-
-        return serialNumberRepository.save(record);
-    }
-
-    @Transactional
-    public EmployeeSerialNumber updateSerialNumber(
-            Long employeeId,
-            Integer newSerialNumber) {
-
-        validateEmployeeId(employeeId);
-        validateSerialNumber(newSerialNumber);
-
-        EmployeeSerialNumber record = serialNumberRepository
-                .findByEmployeeId(employeeId)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "No serial-number record found for employee ID: "
-                                + employeeId
-                ));
-
-        Integer currentSerialNumber = record.getNewSerialNumber();
-
-        if (newSerialNumber.equals(currentSerialNumber)) {
+        if (localSerialNumber.equals(currentLocalSerial)) {
             throw new IllegalArgumentException(
-                    "The new serial number is the same as the current serial number."
+                    "The new local serial number is the same as "
+                            + "the employee's current local serial number."
             );
         }
 
-        if (serialNumberRepository.existsByNewSerialNumber(newSerialNumber)) {
+        if (serialNumberRepository
+                .existsByNewLocalSerial(localSerialNumber)) {
+
             throw new IllegalStateException(
-                    "Serial number " + newSerialNumber
-                            + " is already assigned to another employee."
+                    "Local serial number " + localSerialNumber
+                            + " is already assigned."
             );
         }
 
-        record.setOldSerialNumber(currentSerialNumber);
-        record.setNewSerialNumber(newSerialNumber);
+        EmployeeSerialNumber history = new EmployeeSerialNumber();
 
-        return serialNumberRepository.save(record);
+        history.setEmployee(employee);
+        history.setOldLocalSerial(currentLocalSerial);
+        history.setNewLocalSerial(localSerialNumber);
+
+        copyForeignSerials(latestRecord, history);
+
+        return serialNumberRepository.save(history);
     }
 
+    /*
+     * Saves a new foreign serial-number history record.
+     */
     @Transactional
-    public EmployeeSerialNumber addOrUpdateSerialNumber(
+    public EmployeeSerialNumber addForeignSerialNumber(
             Long employeeId,
-            Integer serialNumber) {
-
+            Integer foreignSerialNumber
+    ) {
         validateEmployeeId(employeeId);
-        validateSerialNumber(serialNumber);
+        validateSerialNumber(foreignSerialNumber, "Foreign serial number");
 
-        return serialNumberRepository
-                .findByEmployeeId(employeeId)
-                .map(existingRecord -> {
-                    Integer currentSerialNumber =
-                            existingRecord.getNewSerialNumber();
+        Employee employee = getEmployee(employeeId);
 
-                    if (serialNumber.equals(currentSerialNumber)) {
-                        return existingRecord;
-                    }
+        EmployeeSerialNumber latestRecord =
+                serialNumberRepository
+                        .findTopByEmployee_IdOrderByCreatedAtDesc(employeeId)
+                        .orElse(null);
 
-                    if (serialNumberRepository
-                            .existsByNewSerialNumber(serialNumber)) {
+        Integer currentForeignSerial = latestRecord != null
+                ? latestRecord.getNewForeignSerial()
+                : null;
 
-                        throw new IllegalStateException(
-                                "Serial number " + serialNumber
-                                        + " is already assigned to another employee."
-                        );
-                    }
+        if (foreignSerialNumber.equals(currentForeignSerial)) {
+            throw new IllegalArgumentException(
+                    "The new foreign serial number is the same as "
+                            + "the employee's current foreign serial number."
+            );
+        }
 
-                    existingRecord.setOldSerialNumber(currentSerialNumber);
-                    existingRecord.setNewSerialNumber(serialNumber);
+        if (serialNumberRepository
+                .existsByNewForeignSerial(foreignSerialNumber)) {
 
-                    return serialNumberRepository.save(existingRecord);
-                })
-                .orElseGet(() -> {
-                    if (serialNumberRepository
-                            .existsByNewSerialNumber(serialNumber)) {
+            throw new IllegalStateException(
+                    "Foreign serial number " + foreignSerialNumber
+                            + " is already assigned."
+            );
+        }
 
-                        throw new IllegalStateException(
-                                "Serial number " + serialNumber
-                                        + " is already assigned to another employee."
-                        );
-                    }
+        EmployeeSerialNumber history = new EmployeeSerialNumber();
 
-                    EmployeeSerialNumber newRecord =
-                            new EmployeeSerialNumber();
+        history.setEmployee(employee);
+        history.setOldForeignSerial(currentForeignSerial);
+        history.setNewForeignSerial(foreignSerialNumber);
 
-                    newRecord.setEmployeeId(employeeId);
-                    newRecord.setNewSerialNumber(serialNumber);
-                    newRecord.setOldSerialNumber(null);
+        copyLocalSerials(latestRecord, history);
 
-                    return serialNumberRepository.save(newRecord);
-                });
+        return serialNumberRepository.save(history);
     }
 
+    /*
+     * Updates local and foreign serial numbers together.
+     *
+     * A null value means that serial type should not be changed.
+     */
+    @Transactional
+    public EmployeeSerialNumber updateSerialNumbers(
+            Long employeeId,
+            Integer newLocalSerial,
+            Integer newForeignSerial
+    ) {
+        validateEmployeeId(employeeId);
+
+        if (newLocalSerial == null && newForeignSerial == null) {
+            throw new IllegalArgumentException(
+                    "At least one serial number must be provided."
+            );
+        }
+
+        if (newLocalSerial != null) {
+            validateSerialNumber(
+                    newLocalSerial,
+                    "Local serial number"
+            );
+        }
+
+        if (newForeignSerial != null) {
+            validateSerialNumber(
+                    newForeignSerial,
+                    "Foreign serial number"
+            );
+        }
+
+        Employee employee = getEmployee(employeeId);
+
+        EmployeeSerialNumber latestRecord =
+                serialNumberRepository
+                        .findTopByEmployee_IdOrderByCreatedAtDesc(employeeId)
+                        .orElse(null);
+
+        Integer currentLocalSerial = latestRecord != null
+                ? latestRecord.getNewLocalSerial()
+                : null;
+
+        Integer currentForeignSerial = latestRecord != null
+                ? latestRecord.getNewForeignSerial()
+                : null;
+
+        Integer resultingLocalSerial = newLocalSerial != null
+                ? newLocalSerial
+                : currentLocalSerial;
+
+        Integer resultingForeignSerial = newForeignSerial != null
+                ? newForeignSerial
+                : currentForeignSerial;
+
+        boolean localChanged = newLocalSerial != null
+                && !newLocalSerial.equals(currentLocalSerial);
+
+        boolean foreignChanged = newForeignSerial != null
+                && !newForeignSerial.equals(currentForeignSerial);
+
+        if (!localChanged && !foreignChanged) {
+            throw new IllegalArgumentException(
+                    "The provided serial numbers are the same as "
+                            + "the employee's current serial numbers."
+            );
+        }
+
+        if (localChanged
+                && serialNumberRepository
+                .existsByNewLocalSerial(newLocalSerial)) {
+
+            throw new IllegalStateException(
+                    "Local serial number " + newLocalSerial
+                            + " is already assigned."
+            );
+        }
+
+        if (foreignChanged
+                && serialNumberRepository
+                .existsByNewForeignSerial(newForeignSerial)) {
+
+            throw new IllegalStateException(
+                    "Foreign serial number " + newForeignSerial
+                            + " is already assigned."
+            );
+        }
+
+        EmployeeSerialNumber history = new EmployeeSerialNumber();
+
+        history.setEmployee(employee);
+
+        history.setOldLocalSerial(
+                localChanged ? currentLocalSerial : null
+        );
+        history.setNewLocalSerial(resultingLocalSerial);
+
+        history.setOldForeignSerial(
+                foreignChanged ? currentForeignSerial : null
+        );
+        history.setNewForeignSerial(resultingForeignSerial);
+
+        return serialNumberRepository.save(history);
+    }
+
+    /*
+     * Returns the latest serial-number record for an employee.
+     */
     @Transactional(readOnly = true)
-    public EmployeeSerialNumber getByEmployeeId(Long employeeId) {
+    public EmployeeSerialNumber getLatestByEmployeeId(Long employeeId) {
         validateEmployeeId(employeeId);
 
         return serialNumberRepository
-                .findByEmployeeId(employeeId)
+                .findTopByEmployee_IdOrderByCreatedAtDesc(employeeId)
                 .orElseThrow(() -> new IllegalArgumentException(
-                        "No serial-number record found for employee ID: "
+                        "No serial-number history found for employee ID: "
                                 + employeeId
                 ));
     }
 
+    /*
+     * Returns the complete history for an employee.
+     */
+    @Transactional(readOnly = true)
+    public List<EmployeeSerialNumber> getHistoryByEmployeeId(
+            Long employeeId
+    ) {
+        validateEmployeeId(employeeId);
+
+        return serialNumberRepository
+                .findByEmployee_IdOrderByCreatedAtDesc(employeeId);
+    }
+
+    /*
+     * Returns all serial-number history records.
+     */
     @Transactional(readOnly = true)
     public List<EmployeeSerialNumber> getAll() {
-        return serialNumberRepository.findAll();
+        return serialNumberRepository
+                .findAllByOrderByCreatedAtDesc();
+    }
+
+    private Employee getEmployee(Long employeeId) {
+        return employeeRepository
+                .findById(employeeId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Employee not found with ID: " + employeeId
+                ));
+    }
+
+    private void copyLocalSerials(
+            EmployeeSerialNumber source,
+            EmployeeSerialNumber target
+    ) {
+        if (source != null) {
+            target.setNewLocalSerial(source.getNewLocalSerial());
+        }
+    }
+
+    private void copyForeignSerials(
+            EmployeeSerialNumber source,
+            EmployeeSerialNumber target
+    ) {
+        if (source != null) {
+            target.setNewForeignSerial(source.getNewForeignSerial());
+        }
     }
 
     private void validateEmployeeId(Long employeeId) {
@@ -165,17 +299,30 @@ public class EmployeeSerialNumberService {
         }
     }
 
-    private void validateSerialNumber(Integer serialNumber) {
+    private void validateSerialNumber(
+            Integer serialNumber,
+            String fieldName
+    ) {
         if (serialNumber == null) {
             throw new IllegalArgumentException(
-                    "Serial number is required."
+                    fieldName + " is required."
             );
         }
 
         if (serialNumber <= 0) {
             throw new IllegalArgumentException(
-                    "Serial number must be greater than zero."
+                    fieldName + " must be greater than zero."
             );
         }
     }
+    @Transactional(readOnly = true)
+    public Optional<EmployeeSerialNumber> findLatestByEmployeeId(
+            Long employeeId
+    ) {
+        validateEmployeeId(employeeId);
+
+        return serialNumberRepository
+                .findTopByEmployee_IdOrderByCreatedAtDesc(employeeId);
+    }
+
 }
