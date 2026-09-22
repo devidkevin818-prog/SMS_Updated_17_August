@@ -2,10 +2,26 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/head :: head('DGM Approval')}"></head>
 <body>
-<header th:replace="~{fragments/navbar :: navbar('DGM')}"></header>
+<header th:replace="~{fragments/navbar :: navbar('DGM')}">
+    <div><span class="page-eyebrow">Dashboard overview</span><h1>Dashboard</h1>
+        <p>Welcome back, <strong th:text="${dashboard.username}">User</strong></p></div>
+    <div class="dashboard-context"><span th:text="${'Role: ' + dashboard.role}">Role</span><time th:text="${#temporals.format(#temporals.createToday(),'dd MMMM yyyy')}">Date</time></div>
+</header>
 <aside th:replace="~{fragments/sidebar :: sidebar('DGM','approval')}"></aside>
 <main class="app-main">
     <div class="content-wrap">
+        <div th:replace="~{fragments/dashboard-analytics :: analytics}"></div>
+        <div class="dashboard-toolbar">
+<!--            <a class="btn btn-bank" th:href="@{/pd/employees/new}"><i class="bi bi-person-plus-fill me-2"></i>Create-->
+<!--                employee</a>
+</div>-->
+        </div>
+        <section class="dashboard-kpi-grid" aria-label="Dashboard summary">
+            <a class="dashboard-kpi-card" th:href="@{/employees}"><span class="dashboard-kpi-icon"><i class="bi bi-people-fill"></i></span><span><small>Total employees</small><strong th:text="${dashboard.totalEmployees}">0</strong><em th:text="${dashboard.newEmployeesThisMonth + ' added this month'}">0 added this month</em></span></a>
+            <a class="dashboard-kpi-card" th:href="@{/books}"><span class="dashboard-kpi-icon"><i class="bi bi-pen-fill"></i></span><span><small>Active signatures</small><strong th:text="${dashboard.activeSignatures}">0</strong><em th:text="${dashboard.signatureCoverage + '% signature coverage'}">0% coverage</em></span></a>
+            <div class="dashboard-kpi-card"><span class="dashboard-kpi-icon dashboard-kpi-warning"><i class="bi bi-hourglass-split"></i></span><span><small th:text="${dashboard.role == 'PD' ? 'My pending requests' : 'Pending approvals'}">Pending approvals</small><strong th:text="${dashboard.pendingActions}">0</strong><em>Requires attention</em></span></div>
+            <div class="dashboard-kpi-card"><span class="dashboard-kpi-icon"><i class="bi bi-person-plus-fill"></i></span><span><small>New employees</small><strong th:text="${dashboard.newEmployeesThisMonth}">0</strong><em>This month</em></span></div>
+        </section>
         <div th:replace="~{fragments/dashboard-analytics :: analytics}"></div>
         <div class="dashboard-toolbar">
 	            <span class="status-badge status-pending"><i class="bi bi-hourglass-split me-1"></i><span

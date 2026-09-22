@@ -20,7 +20,7 @@ class UserServiceEmployeeNumberTest {
         UserForm form = new UserForm();
         form.setUsername("new-user");
         form.setEmail("new-user@bank.local");
-        form.setBranchId("1");
+        form.setBranchId(1L);
         form.setEmployeeNumber("123456");
         when(users.existsByEmployeeNumber("UB_PLC123456")).thenReturn(true);
 

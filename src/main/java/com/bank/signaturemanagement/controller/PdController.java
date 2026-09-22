@@ -5,6 +5,7 @@ import com.bank.signaturemanagement.dto.EmployeeUpdateForm;
 import com.bank.signaturemanagement.dto.UserForm;
 import com.bank.signaturemanagement.entity.Employee;
 import com.bank.signaturemanagement.entity.EmployeeRequest;
+import com.bank.signaturemanagement.entity.EmployeeSerialNumber;
 import com.bank.signaturemanagement.repository.EmployeeMediaVersionRepository;
 import com.bank.signaturemanagement.repository.EmployeeRequestRepository;
 import com.bank.signaturemanagement.repository.EmployeeStatusRepository;
@@ -19,6 +20,8 @@ import com.bank.signaturemanagement.service.EmployeeRequestService;
 import com.bank.signaturemanagement.service.EmployeeService;
 import com.bank.signaturemanagement.service.UserApprovalService;
 import com.bank.signaturemanagement.service.UserService;
+import com.bank.signaturemanagement.service.EmployeeSerialNumberService;
+
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
@@ -33,6 +36,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
 
 import static com.bank.signaturemanagement.service.EmployeeRequestService.PENDING_STATUSES;
 
@@ -53,7 +57,7 @@ public class PdController {
     private final UserApprovalService userApprovalService;
     private final EmployeeChangeProposalService changeProposalService;
     private final DashboardService dashboardService;
-
+    private final EmployeeSerialNumberService employeeSerialNumberService;
     public PdController(
             EmployeeStatusRepository employeeStatusRepository,
             EmployeeRequestRepository requestRepository,
@@ -67,7 +71,7 @@ public class PdController {
             UserService userService,
             UserApprovalService userApprovalService,
             EmployeeChangeProposalService changeProposalService,
-            DashboardService dashboardService) {
+            DashboardService dashboardService, EmployeeSerialNumberService employeeSerialNumberService) {
 
         this.employeeStatusRepository = employeeStatusRepository;
         this.requestRepository = requestRepository;
@@ -82,6 +86,7 @@ public class PdController {
         this.userApprovalService = userApprovalService;
         this.changeProposalService = changeProposalService;
         this.dashboardService = dashboardService;
+        this.employeeSerialNumberService = employeeSerialNumberService;
     }
 
     /*
