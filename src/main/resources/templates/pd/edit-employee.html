@@ -1,104 +1,377 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org">
+
 <head th:replace="~{fragments/head :: head('Edit Employee')}"></head>
+
 <body>
+
 <header th:replace="~{fragments/navbar :: navbar('PD')}"></header>
+
 <aside th:replace="~{fragments/sidebar :: sidebar('PD','update')}"></aside>
+
 <main class="app-main">
+
     <div class="content-wrap">
+
         <div class="page-header">
-            <div><span class="page-eyebrow">Employee Maintenance</span>
-                <h1 class="page-title" th:text="'Edit ' + ${employee.fullName}">Edit employee</h1>
-                <p class="page-subtitle">Changes are saved as a request and applied after DGM and GM approval. Leave
-                    image fields empty to keep the existing images.</p></div>
-            <a class="btn btn-soft" th:href="@{/pd/employees}"><i class="bi bi-x-lg me-2"></i>Cancel</a></div>
-        <form th:action="@{/pd/employees/{id}/edit(id=${employee.id},rejectedRequestId=${rejectedRequestId},proposalId=${proposalId})}" th:object="${employeeUpdateForm}" method="post"
+
+            <div>
+
+                <span class="page-eyebrow">
+                    Employee Maintenance
+                </span>
+
+                <h1 class="page-title"
+                    th:text="'Edit ' + ${employee.fullName}">
+                    Edit employee
+                </h1>
+
+                <p class="page-subtitle">
+                    Changes are saved as a request and applied after DGM and GM approval.
+                    Leave image fields empty to keep the existing images.
+                    New signature validity dates must be entered for this request.
+                </p>
+
+            </div>
+
+            <a class="btn btn-soft"
+               th:href="@{/pd/employees}">
+
+                <i class="bi bi-x-lg me-2"></i>
+                Cancel
+
+            </a>
+
+        </div>
+
+        <form id="employeeUpdateForm"
+              th:action="@{/pd/employees/{id}/edit(
+                    id=${employee.id},
+                    rejectedRequestId=${rejectedRequestId},
+                    proposalId=${proposalId}
+              )}"
+              th:object="${employeeUpdateForm}"
+              method="post"
               enctype="multipart/form-data">
-            <div class="alert alert-danger app-alert" th:if="${#fields.hasAnyErrors()}">
+
+            <!-- ==================== VALIDATION SUMMARY ==================== -->
+
+            <div class="alert alert-danger app-alert"
+                 role="alert"
+                 th:if="${#fields.hasAnyErrors()}">
+
                 <i class="bi bi-exclamation-triangle-fill"></i>
-                <div>
 
-                    <strong>Please correct the form</strong>
+                <div class="flex-grow-1">
 
-                    <div th:each="error : ${#fields.errors('employeeCode')}"
-                         th:text="'Employee code: ' + ${error}">
-                    </div>
+                    <strong>Please correct the following fields:</strong>
 
-                    <div th:each="error : ${#fields.errors('employeeName')}"
-                         th:text="'Employee name: ' + ${error}">
-                    </div>
+                    <ul class="mb-0 mt-2">
 
-                    <div th:each="error : ${#fields.errors('designationId')}"
-                         th:text="'Designation: ' + ${error}">
-                    </div>
+                        <li th:each="error : ${#fields.allErrors()}"
+                            th:text="${error}">
+                            Validation error
+                        </li>
 
-                    <div th:each="error : ${#fields.errors('departmentId')}"
-                         th:text="'Department: ' + ${error}">
-                    </div>
-
-                    <div th:each="error : ${#fields.errors('branchId')}"
-                         th:text="'Branch: ' + ${error}">
-                    </div>
-
-                    <div th:each="error : ${#fields.errors('remark')}"
-                         th:text="'Remark: ' + ${error}">
-                    </div>
-
-                    <div th:each="error : ${#fields.errors('signatureValidFrom')}"
-                         th:text="'Valid from: ' + ${error}">
-                    </div>
-
-                    <div th:each="error : ${#fields.errors('signatureValidUntil')}"
-                         th:text="'Valid until: ' + ${error}">
-                    </div>
+                    </ul>
 
                 </div>
 
             </div>
 
-
             <!-- ==================== MAIN CONTENT ==================== -->
 
             <div class="row g-4">
+
                 <section class="col-xl-8">
+
                     <div class="surface-card">
-                        <div class="card-header"><h2 class="h5 mb-0"><i
-                                class="bi bi-pencil-square text-success me-2"></i>Employee information</h2></div>
+
+                        <div class="card-header">
+
+                            <h2 class="h5 mb-0">
+
+                                <i class="bi bi-pencil-square text-success me-2"></i>
+                                Employee information
+
+                            </h2>
+
+                        </div>
+
                         <div class="card-body">
+
                             <div class="row g-3">
 
+                                <!-- Employee Code -->
+
                                 <div class="col-md-6">
-                                    <label class="form-label" for="employeeCode">
+
+                                    <label class="form-label"
+                                           for="employeeCode">
                                         Employee code
                                     </label>
+
                                     <input class="form-control"
+                                           th:classappend="${#fields.hasErrors('employeeCode')}
+                                               ? ' is-invalid'
+                                               : ''"
                                            id="employeeCode"
+                                           type="text"
+                                           inputmode="numeric"
+                                           maxlength="6"
+                                           pattern="[0-9]{6}"
                                            th:field="*{employeeCode}"
                                            required>
+
+                                    <div class="invalid-feedback"
+                                         th:if="${#fields.hasErrors('employeeCode')}"
+                                         th:errors="*{employeeCode}">
+                                        Invalid employee code
+                                    </div>
+
                                 </div>
 
-                                <div class="col-md-6"><label class="form-label" for="classification">Signature classification</label><select class="form-select" id="classification" th:field="*{classification}" required><option value="LOCAL">Local</option><option value="FOREIGN">Foreign</option><option value="BOTH">Both</option></select></div>
-                                <div class="col-md-6"><label class="form-label" for="joiningDate">Date of joining</label><input class="form-control" id="joiningDate" type="date" th:field="*{joiningDate}" required></div>
+                                <!-- Signature Classification -->
 
                                 <div class="col-md-6">
-                                    <label class="form-label" for="employeeName">
+
+                                    <label class="form-label"
+                                           for="classification">
+                                        Signature classification
+                                    </label>
+
+                                    <select class="form-select"
+                                            th:classappend="${#fields.hasErrors('classification')}
+                                                ? ' is-invalid'
+                                                : ''"
+                                            id="classification"
+                                            th:field="*{classification}"
+                                            required>
+
+                                        <option value="">
+                                            Select classification
+                                        </option>
+
+                                        <option value="LOCAL">
+                                            Local
+                                        </option>
+
+                                        <option value="FOREIGN">
+                                            Foreign
+                                        </option>
+
+                                        <option value="BOTH">
+                                            Both
+                                        </option>
+
+                                    </select>
+
+                                    <div class="invalid-feedback"
+                                         th:if="${#fields.hasErrors('classification')}"
+                                         th:errors="*{classification}">
+                                        Invalid classification
+                                    </div>
+
+                                </div>
+
+                                <!-- ==================== SERIAL NUMBERS ==================== -->
+
+                                <div class="col-12">
+
+                                    <div class="border rounded-3 p-3">
+
+                                        <div class="d-flex align-items-center mb-2">
+
+                                            <i class="bi bi-list-ol text-success me-2"></i>
+
+                                            <h3 class="h6 mb-0">
+                                                Signature Serial Numbers
+                                            </h3>
+
+                                        </div>
+
+                                        <p class="form-hint mb-3">
+                                            Missing signature serial numbers are displayed as 0.
+                                        </p>
+
+                                        <div class="row g-3">
+
+                                            <div class="col-md-6">
+
+                                                <label class="form-label"
+                                                       for="newLocalSerial">
+                                                    New Local Signature Serial
+                                                </label>
+
+                                                <input class="form-control"
+                                                       id="newLocalSerial"
+                                                       type="number"
+                                                       min="0"
+                                                       step="1"
+                                                       inputmode="numeric"
+                                                       th:value="${employeeSerialNumber != null
+                                                               and employeeSerialNumber.newLocalSerial != null
+                                                               ? employeeSerialNumber.newLocalSerial
+                                                               : 0}"
+                                                       value="0"
+                                                       readonly
+                                                       aria-readonly="true">
+
+                                            </div>
+
+                                            <div class="col-md-6">
+
+                                                <label class="form-label"
+                                                       for="oldLocalSerial">
+                                                    Old Local Signature Serial
+                                                </label>
+
+                                                <input class="form-control"
+                                                       id="oldLocalSerial"
+                                                       type="number"
+                                                       min="0"
+                                                       step="1"
+                                                       inputmode="numeric"
+                                                       th:value="${employeeSerialNumber != null
+                                                               and employeeSerialNumber.oldLocalSerial != null
+                                                               ? employeeSerialNumber.oldLocalSerial
+                                                               : 0}"
+                                                       value="0"
+                                                       readonly
+                                                       aria-readonly="true">
+
+                                            </div>
+
+                                            <div class="col-md-6">
+
+                                                <label class="form-label"
+                                                       for="newForeignSerial">
+                                                    New Foreign Signature Serial
+                                                </label>
+
+                                                <input class="form-control"
+                                                       id="newForeignSerial"
+                                                       type="number"
+                                                       min="0"
+                                                       step="1"
+                                                       inputmode="numeric"
+                                                       th:value="${employeeSerialNumber != null
+                                                               and employeeSerialNumber.newForeignSerial != null
+                                                               ? employeeSerialNumber.newForeignSerial
+                                                               : 0}"
+                                                       value="0"
+                                                       readonly
+                                                       aria-readonly="true">
+
+                                            </div>
+
+                                            <div class="col-md-6">
+
+                                                <label class="form-label"
+                                                       for="oldForeignSerial">
+                                                    Old Foreign Signature Serial
+                                                </label>
+
+                                                <input class="form-control"
+                                                       id="oldForeignSerial"
+                                                       type="number"
+                                                       min="0"
+                                                       step="1"
+                                                       inputmode="numeric"
+                                                       th:value="${employeeSerialNumber != null
+                                                               and employeeSerialNumber.oldForeignSerial != null
+                                                               ? employeeSerialNumber.oldForeignSerial
+                                                               : 0}"
+                                                       value="0"
+                                                       readonly
+                                                       aria-readonly="true">
+
+                                            </div>
+
+                                        </div>
+
+                                        <small class="form-hint d-block mt-3">
+                                            These values come from the employee's latest
+                                            signature serial-number history record.
+                                        </small>
+
+                                    </div>
+
+                                </div>
+
+                                <!-- Joining Date -->
+
+                                <div class="col-md-6">
+
+                                    <label class="form-label"
+                                           for="joiningDate">
+                                        Date of joining
+                                    </label>
+
+                                    <input class="form-control"
+                                           th:classappend="${#fields.hasErrors('joiningDate')}
+                                               ? ' is-invalid'
+                                               : ''"
+                                           id="joiningDate"
+                                           type="date"
+                                           th:field="*{joiningDate}"
+                                           required>
+
+                                    <div class="invalid-feedback"
+                                         th:if="${#fields.hasErrors('joiningDate')}"
+                                         th:errors="*{joiningDate}">
+                                        Invalid joining date
+                                    </div>
+
+                                </div>
+
+                                <!-- Employee Name -->
+
+                                <div class="col-md-6">
+
+                                    <label class="form-label"
+                                           for="employeeName">
                                         Employee name
                                     </label>
+
                                     <input class="form-control"
+                                           th:classappend="${#fields.hasErrors('employeeName')}
+                                               ? ' is-invalid'
+                                               : ''"
                                            id="employeeName"
+                                           type="text"
                                            th:field="*{employeeName}"
                                            required>
 
+                                    <div class="invalid-feedback"
+                                         th:if="${#fields.hasErrors('employeeName')}"
+                                         th:errors="*{employeeName}">
+                                        Invalid employee name
+                                    </div>
+
                                 </div>
 
+                                <!-- Designation -->
+
                                 <div class="col-md-6">
-                                    <label class="form-label" for="designation">
+
+                                    <label class="form-label"
+                                           for="designation">
                                         Designation
                                     </label>
 
-                                    <select class="form-select" id="designation" th:field="*{designationId}" required>
+                                    <select class="form-select"
+                                            th:classappend="${#fields.hasErrors('designationId')}
+                                                ? ' is-invalid'
+                                                : ''"
+                                            id="designation"
+                                            th:field="*{designationId}"
+                                            required>
 
-                                        <option value="">-- Select Designation --</option>
+                                        <option value="">
+                                            Select designation
+                                        </option>
 
                                         <option th:each="designation : ${designations}"
                                                 th:value="${designation.designationId}"
@@ -106,16 +379,35 @@
                                         </option>
 
                                     </select>
+
+                                    <div class="invalid-feedback"
+                                         th:if="${#fields.hasErrors('designationId')}"
+                                         th:errors="*{designationId}">
+                                        Invalid designation
+                                    </div>
+
                                 </div>
 
+                                <!-- Department -->
+
                                 <div class="col-md-6">
-                                    <label class="form-label" for="department">
+
+                                    <label class="form-label"
+                                           for="department">
                                         Department
                                     </label>
 
-                                    <select class="form-select" id="department" th:field="*{departmentId}" required>
+                                    <select class="form-select"
+                                            th:classappend="${#fields.hasErrors('departmentId')}
+                                                ? ' is-invalid'
+                                                : ''"
+                                            id="department"
+                                            th:field="*{departmentId}"
+                                            required>
 
-                                        <option value="">-- Select Department --</option>
+                                        <option value="">
+                                            Select department
+                                        </option>
 
                                         <option th:each="department : ${departments}"
                                                 th:value="${department.departmentId}"
@@ -123,15 +415,35 @@
                                         </option>
 
                                     </select>
+
+                                    <div class="invalid-feedback"
+                                         th:if="${#fields.hasErrors('departmentId')}"
+                                         th:errors="*{departmentId}">
+                                        Invalid department
+                                    </div>
+
                                 </div>
+
+                                <!-- Branch -->
+
                                 <div class="col-md-6">
-                                    <label class="form-label" for="branch">
+
+                                    <label class="form-label"
+                                           for="branch">
                                         Branch
                                     </label>
 
-                                    <select class="form-select" id="branch" th:field="*{branchId}" required>
+                                    <select class="form-select"
+                                            th:classappend="${#fields.hasErrors('branchId')}
+                                                ? ' is-invalid'
+                                                : ''"
+                                            id="branch"
+                                            th:field="*{branchId}"
+                                            required>
 
-                                        <option value="">-- Select Branch --</option>
+                                        <option value="">
+                                            Select branch
+                                        </option>
 
                                         <option th:each="branch : ${branches}"
                                                 th:value="${branch.branchId}"
@@ -139,8 +451,17 @@
                                         </option>
 
                                     </select>
+
+                                    <div class="invalid-feedback"
+                                         th:if="${#fields.hasErrors('branchId')}"
+                                         th:errors="*{branchId}">
+                                        Invalid branch
+                                    </div>
+
                                 </div>
+
                                 <!-- Activity Status -->
+
                                 <div class="col-md-6">
 
                                     <label class="form-label"
@@ -149,6 +470,9 @@
                                     </label>
 
                                     <select class="form-select"
+                                            th:classappend="${#fields.hasErrors('statusId')}
+                                                ? ' is-invalid'
+                                                : ''"
                                             id="statusId"
                                             th:field="*{statusId}"
                                             required>
@@ -164,73 +488,124 @@
 
                                     </select>
 
-                                    <div class="text-danger"
+                                    <div class="invalid-feedback"
                                          th:if="${#fields.hasErrors('statusId')}"
                                          th:errors="*{statusId}">
+                                        Invalid activity status
                                     </div>
 
                                 </div>
 
-                                <!-- VALID FROM -->
+                                <!-- Signature Valid From -->
+
                                 <div class="col-md-6">
-                                    <label class="form-label" for="signatureValidFrom">
+
+                                    <label class="form-label"
+                                           for="signatureValidFrom">
                                         Signature Valid From
+                                        <span class="text-danger">*</span>
                                     </label>
 
+                                    <!--
+                                        Intentionally not bound using th:field.
+
+                                        This prevents the existing database date from
+                                        appearing in the input. The submitted name still
+                                        binds to EmployeeUpdateForm.signatureValidFrom.
+                                    -->
+
                                     <input class="form-control"
+                                           th:classappend="${#fields.hasErrors('signatureValidFrom')}
+                                               ? ' is-invalid'
+                                               : ''"
                                            type="date"
                                            id="signatureValidFrom"
                                            name="signatureValidFrom"
-                                           th:value="${employeeUpdateForm.signatureValidFrom != null
-                          ? employeeUpdateForm.signatureValidFrom.toString()
-                          : ''}"
+                                           value=""
+                                           autocomplete="off"
                                            required>
 
-                                    <div class="text-danger"
+                                    <div class="invalid-feedback"
                                          th:if="${#fields.hasErrors('signatureValidFrom')}"
                                          th:errors="*{signatureValidFrom}">
+                                        Signature Valid From is required
                                     </div>
+
+                                    <small class="form-hint">
+                                        Enter a new validity start date for this request.
+                                    </small>
 
                                 </div>
 
-                                <!-- VALID UNTIL -->
+                                <!-- Signature Valid Until -->
+
                                 <div class="col-md-6">
-                                    <label class="form-label" for="signatureValidUntil">
+
+                                    <label class="form-label"
+                                           for="signatureValidUntil">
                                         Signature Valid Until
+                                        <span class="text-danger">*</span>
                                     </label>
 
+                                    <!--
+                                        Intentionally not bound using th:field.
+
+                                        This prevents the existing database date from
+                                        appearing in the input. The submitted name still
+                                        binds to EmployeeUpdateForm.signatureValidUntil.
+                                    -->
+
                                     <input class="form-control"
+                                           th:classappend="${#fields.hasErrors('signatureValidUntil')}
+                                               ? ' is-invalid'
+                                               : ''"
                                            type="date"
                                            id="signatureValidUntil"
                                            name="signatureValidUntil"
-                                           th:value="${employeeUpdateForm.signatureValidUntil != null
-                          ? employeeUpdateForm.signatureValidUntil.toString()
-                          : ''}"
+                                           value=""
+                                           autocomplete="off"
                                            required>
 
-                                    <div class="text-danger"
+                                    <div class="invalid-feedback"
                                          th:if="${#fields.hasErrors('signatureValidUntil')}"
                                          th:errors="*{signatureValidUntil}">
+                                        Signature Valid Until is required
                                     </div>
+
+                                    <small class="form-hint">
+                                        Enter a new validity end date for this request.
+                                    </small>
+
+                                    <small class="upload-error d-block mt-1"
+                                           id="signatureDateError"
+                                           role="alert">
+                                    </small>
 
                                 </div>
 
-                                <!-- REMARK -->
+                                <!-- Update Reason -->
+
                                 <div class="col-12">
-                                    <label class="form-label" for="remark">
+
+                                    <label class="form-label"
+                                           for="remark">
                                         Update reason
                                     </label>
 
                                     <textarea class="form-control"
+                                              th:classappend="${#fields.hasErrors('remark')}
+                                                  ? ' is-invalid'
+                                                  : ''"
                                               id="remark"
                                               rows="3"
                                               th:field="*{remark}"
                                               placeholder="Enter reason for this update"
                                               required></textarea>
 
-                                    <div class="text-danger"
+                                    <div class="invalid-feedback"
                                          th:if="${#fields.hasErrors('remark')}"
                                          th:errors="*{remark}">
+                                        Invalid update reason
                                     </div>
 
                                 </div>
@@ -240,52 +615,460 @@
                         </div>
 
                     </div>
-                 </section>
-                 <aside class="col-xl-4">
-                     <div class="surface-card">
-                         <div class="card-header"><h2 class="h5 mb-0"><i class="bi bi-images text-success me-2"></i>Current
-                             and replacement images</h2></div>
-                         <div class="card-body">
-                             <div class="file-upload mb-4"><label class="form-label">Current employee photo</label>
-                                 <div class="upload-preview"><img th:src="@{'/media/'+${employee.photoPath}}"
-                                                                  alt="Current employee photo"></div>
-                                 <label class="form-label mt-3" for="photo">New employee photo</label><input
-                                         class="form-control image-preview-input" id="photo" type="file"
-                                         th:field="*{photo}" accept="image/jpeg,image/png"
-                                         data-preview-target="photoPreview" data-error-target="photoError"><small
-                                         class="form-hint">Optional. JPG or PNG.</small><small class="upload-error"
-                                                                                               id="photoError"
-                                                                                               role="alert"></small>
-                                 <div class="upload-preview" id="photoPreview" hidden><img
-                                         alt="New employee photo preview"></div>
-                             </div>
-                             <div class="file-upload"><label class="form-label">Current signature</label>
-                                 <div class="upload-preview upload-preview-signature"><img
-                                         th:src="@{'/media/'+${employee.signaturePath}}"
-                                         alt="Current employee signature"></div>
-                                 <label class="form-label mt-3" for="signature">New signature</label><input
-                                         class="form-control image-preview-input" id="signature" type="file"
-                                         th:field="*{signature}" accept="image/jpeg,image/png"
-                                         data-preview-target="signaturePreview" data-error-target="signatureError"><small
-                                         class="form-hint">Optional. JPG or PNG.</small><small class="upload-error"
-                                                                                               id="signatureError"
-                                                                                               role="alert"></small>
-                                 <div class="upload-preview upload-preview-signature" id="signaturePreview" hidden><img
-                                         alt="New employee signature preview"></div>
-                             </div>
-                         </div>
-                     </div>
-                 </aside>
-             </div>
-             <div class="d-flex justify-content-end gap-2 mt-4"><a class="btn btn-soft"
-                                                                   th:href="@{/pd/employees}">Cancel</a>
-                 <button class="btn btn-bank" type="submit"><i class="bi bi-check-lg me-2"></i>Submit for approval
-                 </button>
-             </div>
-         </form>
-     </div>
- </main>
- <footer th:replace="~{fragments/layout :: footer}"></footer>
- <div th:replace="~{fragments/layout :: scripts}"></div>
- </body>
- </html>
+
+                </section>
+
+                <aside class="col-xl-4">
+
+                    <div class="surface-card">
+
+                        <div class="card-header">
+
+                            <h2 class="h5 mb-0">
+
+                                <i class="bi bi-images text-success me-2"></i>
+                                Current and replacement images
+
+                            </h2>
+
+                        </div>
+
+                        <div class="card-body">
+
+                            <!-- Employee Photo -->
+
+                            <div class="file-upload mb-4">
+
+                                <label class="form-label">
+                                    Current employee photo
+                                </label>
+
+                                <div class="upload-preview"
+                                     th:if="${employee.photoPath != null
+                                             and !#strings.isEmpty(employee.photoPath)}">
+
+                                    <img th:src="@{'/media/' + ${employee.photoPath}}"
+                                         alt="Current employee photo">
+
+                                </div>
+
+                                <div class="text-danger small fw-semibold"
+                                     th:if="${employee.photoPath == null
+                                             or #strings.isEmpty(employee.photoPath)}">
+
+                                    <i class="bi bi-exclamation-circle me-1"></i>
+                                    Not uploaded
+
+                                </div>
+
+                                <label class="form-label mt-3"
+                                       for="photo">
+                                    New employee photo
+                                </label>
+
+                                <input class="form-control image-preview-input"
+                                       th:classappend="${#fields.hasErrors('photo')}
+                                           ? ' is-invalid'
+                                           : ''"
+                                       id="photo"
+                                       type="file"
+                                       th:field="*{photo}"
+                                       accept="image/jpeg,image/png"
+                                       data-preview-target="photoPreview"
+                                       data-error-target="photoError">
+
+                                <small class="form-hint">
+                                    Optional. JPG or PNG. Leave empty to keep the current photo.
+                                </small>
+
+                                <div class="invalid-feedback"
+                                     th:if="${#fields.hasErrors('photo')}"
+                                     th:errors="*{photo}">
+                                    Invalid employee photo
+                                </div>
+
+                                <small class="upload-error"
+                                       id="photoError"
+                                       role="alert">
+                                </small>
+
+                                <div class="upload-preview"
+                                     id="photoPreview"
+                                     hidden>
+
+                                    <img alt="New employee photo preview">
+
+                                </div>
+
+                            </div>
+
+                            <!-- Local Signature -->
+
+                            <div class="file-upload mb-4">
+
+                                <label class="form-label">
+                                    Current local signature
+                                </label>
+
+                                <div class="upload-preview upload-preview-signature"
+                                     th:if="${employee.signaturePath != null
+                                             and !#strings.isEmpty(employee.signaturePath)}">
+
+                                    <img th:src="@{'/media/' + ${employee.signaturePath}}"
+                                         alt="Current employee local signature">
+
+                                </div>
+
+                                <div class="text-danger small fw-semibold"
+                                     th:if="${employee.signaturePath == null
+                                             or #strings.isEmpty(employee.signaturePath)}">
+
+                                    <i class="bi bi-exclamation-circle me-1"></i>
+                                    Not uploaded
+
+                                </div>
+
+                                <label class="form-label mt-3"
+                                       for="signature">
+                                    New local signature
+                                </label>
+
+                                <input class="form-control image-preview-input"
+                                       th:classappend="${#fields.hasErrors('signature')}
+                                           ? ' is-invalid'
+                                           : ''"
+                                       id="signature"
+                                       type="file"
+                                       th:field="*{signature}"
+                                       accept="image/jpeg,image/png"
+                                       data-preview-target="signaturePreview"
+                                       data-error-target="signatureError">
+
+                                <small class="form-hint">
+                                    Optional. Leave empty to keep the current local signature.
+                                </small>
+
+                                <div class="invalid-feedback"
+                                     th:if="${#fields.hasErrors('signature')}"
+                                     th:errors="*{signature}">
+                                    Invalid local signature
+                                </div>
+
+                                <small class="upload-error"
+                                       id="signatureError"
+                                       role="alert">
+                                </small>
+
+                                <div class="upload-preview upload-preview-signature"
+                                     id="signaturePreview"
+                                     hidden>
+
+                                    <img alt="New employee local signature preview">
+
+                                </div>
+
+                            </div>
+
+                            <!-- Foreign Signature -->
+
+                            <div class="file-upload">
+
+                                <label class="form-label">
+                                    Current foreign signature
+                                </label>
+
+                                <div class="upload-preview upload-preview-signature"
+                                     th:if="${employee.foreignSignaturePath != null
+                                             and !#strings.isEmpty(employee.foreignSignaturePath)}">
+
+                                    <img th:src="@{'/media/' + ${employee.foreignSignaturePath}}"
+                                         alt="Current employee foreign signature">
+
+                                </div>
+
+                                <div class="text-danger small fw-semibold"
+                                     th:if="${employee.foreignSignaturePath == null
+                                             or #strings.isEmpty(employee.foreignSignaturePath)}">
+
+                                    <i class="bi bi-exclamation-circle me-1"></i>
+                                    Not uploaded
+
+                                </div>
+
+                                <label class="form-label mt-3"
+                                       for="foreignSignature">
+                                    New foreign signature
+                                </label>
+
+                                <input class="form-control image-preview-input"
+                                       th:classappend="${#fields.hasErrors('foreignSignature')}
+                                           ? ' is-invalid'
+                                           : ''"
+                                       id="foreignSignature"
+                                       type="file"
+                                       th:field="*{foreignSignature}"
+                                       accept="image/jpeg,image/png"
+                                       data-preview-target="foreignSignaturePreview"
+                                       data-error-target="foreignSignatureError">
+
+                                <small class="form-hint">
+                                    Optional. Leave empty to keep the current foreign signature.
+                                </small>
+
+                                <div class="invalid-feedback"
+                                     th:if="${#fields.hasErrors('foreignSignature')}"
+                                     th:errors="*{foreignSignature}">
+                                    Invalid foreign signature
+                                </div>
+
+                                <small class="upload-error"
+                                       id="foreignSignatureError"
+                                       role="alert">
+                                </small>
+
+                                <div class="upload-preview upload-preview-signature"
+                                     id="foreignSignaturePreview"
+                                     hidden>
+
+                                    <img alt="New employee foreign signature preview">
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </aside>
+
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 mt-4">
+
+                <a class="btn btn-soft"
+                   th:href="@{/pd/employees}">
+                    Cancel
+                </a>
+
+                <button class="btn btn-bank"
+                        type="submit">
+
+                    <i class="bi bi-check-lg me-2"></i>
+                    Submit for approval
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+
+<div th:replace="~{fragments/layout :: scripts}"></div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+        const form =
+            document.getElementById('employeeUpdateForm');
+
+        const validFrom =
+            document.getElementById('signatureValidFrom');
+
+        const validUntil =
+            document.getElementById('signatureValidUntil');
+
+        const dateError =
+            document.getElementById('signatureDateError');
+
+        const employeeCode =
+            document.getElementById('employeeCode');
+
+        function clearDateValidation() {
+
+            if (validFrom) {
+                validFrom.setCustomValidity('');
+            }
+
+            if (validUntil) {
+                validUntil.setCustomValidity('');
+                validUntil.classList.remove('is-invalid');
+            }
+
+            if (dateError) {
+                dateError.textContent = '';
+            }
+
+        }
+
+        function validateSignaturePeriod() {
+
+            if (!validFrom || !validUntil || !dateError) {
+                return true;
+            }
+
+            clearDateValidation();
+
+            if (!validFrom.value) {
+
+                validFrom.setCustomValidity(
+                    'Signature Valid From is required.'
+                );
+
+                return false;
+            }
+
+            if (!validUntil.value) {
+
+                validUntil.setCustomValidity(
+                    'Signature Valid Until is required.'
+                );
+
+                return false;
+            }
+
+            if (validUntil.value < validFrom.value) {
+
+                const errorMessage =
+                    'Signature Valid Until must be on or after Signature Valid From.';
+
+                dateError.textContent = errorMessage;
+
+                validUntil.setCustomValidity(errorMessage);
+                validUntil.classList.add('is-invalid');
+
+                return false;
+            }
+
+            return true;
+        }
+
+        if (validFrom) {
+
+            validFrom.addEventListener('change', function () {
+
+                clearDateValidation();
+
+                if (validFrom.value && validUntil) {
+                    validUntil.min = validFrom.value;
+                }
+
+                if (validUntil && validUntil.value) {
+                    validateSignaturePeriod();
+                }
+
+            });
+
+        }
+
+        if (validUntil) {
+
+            validUntil.addEventListener('change', function () {
+
+                clearDateValidation();
+
+                if (validFrom && validFrom.value) {
+                    validateSignaturePeriod();
+                }
+
+            });
+
+        }
+
+        if (employeeCode) {
+
+            employeeCode.addEventListener('input', function () {
+
+                this.value = this.value
+                    .replace(/\D/g, '')
+                    .slice(0, 6);
+
+                this.setCustomValidity('');
+
+                if (
+                    this.value.length > 0 &&
+                    this.value.length !== 6
+                ) {
+                    this.setCustomValidity(
+                        'Employee number must contain exactly 6 digits.'
+                    );
+                }
+
+            });
+
+            employeeCode.addEventListener('blur', function () {
+
+                this.value = this.value.trim();
+
+                if (
+                    this.value &&
+                    !/^\d{6}$/.test(this.value)
+                ) {
+                    this.setCustomValidity(
+                        'Employee number must contain exactly 6 digits.'
+                    );
+                } else {
+                    this.setCustomValidity('');
+                }
+
+            });
+
+        }
+
+        if (form) {
+
+            form.addEventListener('submit', function (event) {
+
+                if (employeeCode) {
+
+                    employeeCode.value =
+                        employeeCode.value.trim();
+
+                    if (!/^\d{6}$/.test(employeeCode.value)) {
+
+                        event.preventDefault();
+
+                        employeeCode.setCustomValidity(
+                            'Employee number must contain exactly 6 digits.'
+                        );
+
+                        employeeCode.reportValidity();
+                        employeeCode.focus();
+
+                        return;
+                    }
+
+                }
+
+                const datePeriodValid =
+                    validateSignaturePeriod();
+
+                if (!datePeriodValid) {
+
+                    event.preventDefault();
+
+                    if (!validFrom.value) {
+                        validFrom.reportValidity();
+                        validFrom.focus();
+                        return;
+                    }
+
+                    validUntil.reportValidity();
+                    validUntil.focus();
+
+                }
+
+            });
+
+        }
+
+    });
+</script>
+
+</body>
+</html>

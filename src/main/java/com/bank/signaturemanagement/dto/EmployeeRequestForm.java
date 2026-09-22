@@ -1,6 +1,6 @@
 package com.bank.signaturemanagement.dto;
 
-import com.bank.signaturemanagement.entity.Designation;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -9,67 +9,72 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDate;
 
 public class EmployeeRequestForm {
+
     @NotBlank
-    @Pattern(regexp = "\\d{6}", message = "Employee number must contain exactly 6 digits")
+    @Pattern(
+            regexp = "\\d{6}",
+            message = "Employee number must contain exactly 6 digits"
+    )
     private String employeeCode;
+
     @NotBlank
     private String employeeName;
+
     @NotNull(message = "Designation is required")
     private Long designation;
 
-    public Long getDesignation() {
-        return designation;
-    }
-
-    public void setDesignation(Long designation) {
-        this.designation = designation;
-    }
-
-    @NotNull
+    @NotNull(message = "Department is required")
     private Long department;
 
-    public Long getDepartment() {
-        return department;
-    }
-
-    public void setDepartment(Long department) {
-        this.department = department;
-    }
-
-    public Long getBranch() {
-        return branch;
-    }
-
-    public void setBranch(Long branch) {
-        this.branch = branch;
-    }
-
-    @NotNull
+    @NotNull(message = "Branch is required")
     private Long branch;
+
     @NotBlank
     private String remark;
+
     private MultipartFile photo;
+
     private MultipartFile signature;
+
     private MultipartFile foreignSignature;
+
     private Long statusId;
+
     @NotBlank
-    @Pattern(regexp = "LOCAL|FOREIGN|BOTH", message = "Select a valid classification")
+    @Pattern(
+            regexp = "LOCAL|FOREIGN|BOTH",
+            message = "Select a valid classification"
+    )
     private String classification = "BOTH";
+
     @NotNull(message = "Joining date is required")
     private LocalDate joiningDate;
-
-    public MultipartFile getForeignSignature() {
-        return foreignSignature;
-    }
-
-    public void setForeignSignature(MultipartFile foreignSignature) {
-        this.foreignSignature = foreignSignature;
-    }
-
 
     private LocalDate signatureValidFrom;
 
     private LocalDate signatureValidUntil;
+
+    /*
+     * A value of 0 means that the employee does not have
+     * a local signature serial number.
+     */
+    @NotNull(message = "Local signature serial number is required")
+    @Min(
+            value = 0,
+            message = "Local signature serial number cannot be negative"
+    )
+    private Integer localSerialNumber = 0;
+
+    /*
+     * A value of 0 means that the employee does not have
+     * a foreign signature serial number.
+     */
+    @NotNull(message = "Foreign signature serial number is required")
+    @Min(
+            value = 0,
+            message = "Foreign signature serial number cannot be negative"
+    )
+    private Integer foreignSerialNumber = 0;
 
     public String getEmployeeCode() {
         return employeeCode;
@@ -87,6 +92,29 @@ public class EmployeeRequestForm {
         this.employeeName = employeeName;
     }
 
+    public Long getDesignation() {
+        return designation;
+    }
+
+    public void setDesignation(Long designation) {
+        this.designation = designation;
+    }
+
+    public Long getDepartment() {
+        return department;
+    }
+
+    public void setDepartment(Long department) {
+        this.department = department;
+    }
+
+    public Long getBranch() {
+        return branch;
+    }
+
+    public void setBranch(Long branch) {
+        this.branch = branch;
+    }
 
     public String getRemark() {
         return remark;
@@ -112,20 +140,14 @@ public class EmployeeRequestForm {
         this.signature = signature;
     }
 
-    public LocalDate getSignatureValidFrom() {
-        return signatureValidFrom;
+    public MultipartFile getForeignSignature() {
+        return foreignSignature;
     }
 
-    public void setSignatureValidFrom(LocalDate signatureValidFrom) {
-        this.signatureValidFrom = signatureValidFrom;
-    }
-
-    public LocalDate getSignatureValidUntil() {
-        return signatureValidUntil;
-    }
-
-    public void setSignatureValidUntil(LocalDate signatureValidUntil) {
-        this.signatureValidUntil = signatureValidUntil;
+    public void setForeignSignature(
+            MultipartFile foreignSignature
+    ) {
+        this.foreignSignature = foreignSignature;
     }
 
     public Long getStatusId() {
@@ -150,5 +172,51 @@ public class EmployeeRequestForm {
 
     public void setJoiningDate(LocalDate joiningDate) {
         this.joiningDate = joiningDate;
+    }
+
+    public LocalDate getSignatureValidFrom() {
+        return signatureValidFrom;
+    }
+
+    public void setSignatureValidFrom(
+            LocalDate signatureValidFrom
+    ) {
+        this.signatureValidFrom = signatureValidFrom;
+    }
+
+    public LocalDate getSignatureValidUntil() {
+        return signatureValidUntil;
+    }
+
+    public void setSignatureValidUntil(
+            LocalDate signatureValidUntil
+    ) {
+        this.signatureValidUntil = signatureValidUntil;
+    }
+
+    public Integer getLocalSerialNumber() {
+        return localSerialNumber;
+    }
+
+    public void setLocalSerialNumber(
+            Integer localSerialNumber
+    ) {
+        this.localSerialNumber =
+                localSerialNumber != null
+                        ? localSerialNumber
+                        : 0;
+    }
+
+    public Integer getForeignSerialNumber() {
+        return foreignSerialNumber;
+    }
+
+    public void setForeignSerialNumber(
+            Integer foreignSerialNumber
+    ) {
+        this.foreignSerialNumber =
+                foreignSerialNumber != null
+                        ? foreignSerialNumber
+                        : 0;
     }
 }

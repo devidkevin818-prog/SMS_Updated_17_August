@@ -1,119 +1,457 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
+
 <body>
-<section th:fragment="review(request, basePath)" class="content-wrap">
+
+<section th:fragment="review(request, basePath)"
+         class="content-wrap">
+
     <div class="page-header">
-        <div><span class="page-eyebrow"
-                   th:text="${request.updateRequest ? 'Employee Update Review' : 'New Employee Review'}">Approval Review</span>
-            <h1 class="page-title" th:text="${request.employeeName}">Employee name</h1>
-            <p class="page-subtitle">Confirm the submitted information and verification images.</p></div>
+
+        <div>
+
+            <span class="page-eyebrow"
+                  th:text="${request.updateRequest
+                          ? 'Employee Update Review'
+                          : 'New Employee Review'}">
+                Approval Review
+            </span>
+
+            <h1 class="page-title"
+                th:text="${request.employeeName}">
+                Employee name
+            </h1>
+
+            <p class="page-subtitle">
+                Confirm the submitted information and verification images.
+            </p>
+
+        </div>
+
         <span class="status-badge status-pending"
-              th:text="${#strings.replace(request.status.name(),'_',' ')}">PENDING</span></div>
+              th:text="${#strings.replace(
+                      request.status.name(),
+                      '_',
+                      ' '
+              )}">
+            PENDING
+        </span>
+
+    </div>
+
     <div th:replace="~{fragments/layout :: messages}"></div>
+
     <div class="row g-4">
+
         <div class="col-xl-8">
+
             <article class="surface-card">
-                <div class="card-header"><h2 class="h5 mb-1"><i class="bi bi-person-vcard-fill text-success me-2"></i>Employee
-                    details</h2>
-                    <p class="page-subtitle mb-0">Submitted by <strong class="text-light"
-                                                                       th:text="${request.requestedBy.username}"></strong>
-                    </p></div>
+
+                <div class="card-header">
+
+                    <h2 class="h5 mb-1">
+
+                        <i class="bi bi-person-vcard-fill text-success me-2"></i>
+                        Employee details
+
+                    </h2>
+
+                    <p class="page-subtitle mb-0">
+
+                        Submitted by
+
+                        <strong class="text-light"
+                                th:text="${request.requestedBy.username}">
+                        </strong>
+
+                    </p>
+
+                </div>
+
                 <div class="card-body">
+
                     <dl class="detail-list">
+
                         <div class="detail-item">
+
                             <dt>Employee code</dt>
-                            <dd th:text="${request.employeeCode}"></dd>
+
+                            <dd th:text="${request.employeeCode}">
+                            </dd>
+
                         </div>
+
                         <div class="detail-item">
+
                             <dt>Employee name</dt>
-                            <dd th:text="${request.employeeName}"></dd>
+
+                            <dd th:text="${request.employeeName}">
+                            </dd>
+
                         </div>
+
                         <div class="detail-item">
+
                             <dt>Designation</dt>
-                            <dd th:text="${request.designation.designationName}"></dd>
+
+                            <dd th:text="${request.designation.designationName}">
+                            </dd>
+
                         </div>
+
                         <div class="detail-item">
+
                             <dt>Department</dt>
-                            <dd th:text="${request.department.departmentName}"></dd>
+
+                            <dd th:text="${request.department.departmentName}">
+                            </dd>
+
                         </div>
+
                         <div class="detail-item">
+
                             <dt>Branch</dt>
-                            <dd th:text="${request.branch.branchName}"></dd>
+
+                            <dd th:text="${request.branch.branchName}">
+                            </dd>
+
                         </div>
+
                         <div class="detail-item">
+
                             <dt>Status</dt>
-                            <dd th:text="${request.employeeStatus != null ? request.employeeStatus.statusName : 'Not assigned'}"></dd>
+
+                            <dd th:text="${request.employeeStatus != null
+                                    ? request.employeeStatus.statusName
+                                    : 'Not assigned'}">
+                            </dd>
+
                         </div>
+
+                        <!-- New Local Signature Serial -->
                         <div class="detail-item">
+
+                            <dt>New Local Signature Serial</dt>
+
+                            <dd th:text="${request.newLocalSerial != null
+                                    ? request.newLocalSerial
+                                    : 0}">
+                                0
+                            </dd>
+
+                        </div>
+
+                        <!-- Old Local Signature Serial -->
+                        <div class="detail-item">
+
+                            <dt>Old Local Signature Serial</dt>
+
+                            <dd th:text="${request.oldLocalSerial != null
+                                    ? request.oldLocalSerial
+                                    : 0}">
+                                0
+                            </dd>
+
+                        </div>
+
+                        <!-- New Foreign Signature Serial -->
+                        <div class="detail-item">
+
+                            <dt>New Foreign Signature Serial</dt>
+
+                            <dd th:text="${request.newForeignSerial != null
+                                    ? request.newForeignSerial
+                                    : 0}">
+                                0
+                            </dd>
+
+                        </div>
+
+                        <!-- Old Foreign Signature Serial -->
+                        <div class="detail-item">
+
+                            <dt>Old Foreign Signature Serial</dt>
+
+                            <dd th:text="${request.oldForeignSerial != null
+                                    ? request.oldForeignSerial
+                                    : 0}">
+                                0
+                            </dd>
+
+                        </div>
+
+                        <div class="detail-item">
+
                             <dt>PD remark</dt>
-                            <dd th:text="${request.remark}"></dd>
+
+                            <dd th:text="${request.remark}">
+                            </dd>
+
                         </div>
+
                         <div class="detail-item">
+
                             <dt>Signature Valid From</dt>
-                            <dd th:text="${#temporals.format(request.signatureValidFrom, 'dd-MMM-yyyy')}"></dd>
+
+                            <dd th:text="${request.signatureValidFrom != null
+                                    ? #temporals.format(
+                                        request.signatureValidFrom,
+                                        'dd-MMM-yyyy'
+                                    )
+                                    : 'Not provided'}">
+                                Not provided
+                            </dd>
+
                         </div>
+
                         <div class="detail-item">
+
                             <dt>Signature Valid Until</dt>
-                            <dd th:text="${#temporals.format(request.signatureValidUntil, 'dd-MMM-yyyy')}"></dd>
+
+                            <dd th:text="${request.signatureValidUntil != null
+                                    ? #temporals.format(
+                                        request.signatureValidUntil,
+                                        'dd-MMM-yyyy'
+                                    )
+                                    : 'Not provided'}">
+                                Not provided
+                            </dd>
+
                         </div>
 
                     </dl>
-                    <h3 class="form-section-title"><i class="bi bi-images"></i>Verification images</h3>
+
+                    <h3 class="form-section-title">
+
+                        <i class="bi bi-images"></i>
+                        Verification images
+
+                    </h3>
+
                     <div class="review-media">
-                        <div><p class="form-label">Employee photo</p>
-                            <div class="media-panel"><img class="review-image"
-                                                          th:src="@{'/media/'+${request.photoPath}}"
-                                                          alt="Employee photo"></div>
-                        </div>
-                        <div th:if="${canViewLocal}"><p class="form-label">Local signature</p>
-                            <div class="media-panel"><img class="signature-image"
-                                                          th:src="@{'/media/'+${request.signaturePath}}"
-                                                          alt="Employee signature"></div>
-                        </div>
-                        <div th:if="${canViewForeign and request.foreignSignaturePath != null
-                 and !#strings.isEmpty(request.foreignSignaturePath)}">
+
+                        <!-- Employee Photo -->
+                        <div>
 
                             <p class="form-label">
-                                Foreign Signature
+                                Employee photo
                             </p>
 
                             <div class="media-panel">
-                                <img class="signature-image"
-                                     th:src="@{'/media/' + ${request.foreignSignaturePath}}"
-                                     alt="Foreign signature">
+
+                                <img class="review-image"
+                                     th:if="${request.photoPath != null
+                                             and !#strings.isEmpty(
+                                                 request.photoPath
+                                             )}"
+                                     th:src="@{'/media/' + ${request.photoPath}}"
+                                     alt="Employee photo"
+                                     onerror="
+                                         this.style.display='none';
+                                         this.nextElementSibling.classList.remove('d-none');
+                                     ">
+
+                                <div class="alert alert-info text-center mb-0"
+                                     th:classappend="${request.photoPath != null
+                                             and !#strings.isEmpty(
+                                                 request.photoPath
+                                             )}
+                                             ? ' d-none'
+                                             : ''">
+
+                                    <i class="bi bi-camera-fill fs-3 d-block mb-2"></i>
+
+                                    <strong>
+                                        Employee photo not uploaded
+                                    </strong>
+
+                                </div>
+
                             </div>
 
                         </div>
-                    </div>
-                </div>
-            </article>
-        </div>
-        <aside class="col-xl-4">
-            <article class="surface-card decision-card">
-                <div class="card-header"><h2 class="h5 mb-1"><i
-                        class="bi bi-clipboard2-check-fill text-success me-2"></i>Approval decision</h2>
-                    <p class="page-subtitle mb-0">Your remark is mandatory</p></div>
-                <div class="card-body">
-                    <form th:object="${approvalForm}" th:action="@{|${basePath}/requests/${request.id}/decision|}"
-                          method="post"><label class="form-label" for="approvalRemark">Decision remark</label><textarea
-                            class="form-control mb-3" id="approvalRemark" rows="5" th:field="*{remark}"
-                            placeholder="Add a clear reason for this decision" required></textarea>
-                        <div class="d-grid gap-2">
-                            <button class="btn btn-bank" type="submit" name="action" value="approve"><i
-                                    class="bi bi-check-circle-fill me-2"></i>Approve request
-                            </button>
-                            <button class="btn btn-outline-danger" type="submit" name="action" value="reject"><i
-                                    class="bi bi-x-circle-fill me-2"></i>Reject request
-                            </button>
+
+                        <!-- Local Signature -->
+                        <div th:if="${canViewLocal}">
+
+                            <p class="form-label">
+                                Local signature
+                            </p>
+
+                            <div class="media-panel">
+
+                                <img class="signature-image"
+                                     th:if="${request.signaturePath != null
+                                             and !#strings.isEmpty(
+                                                 request.signaturePath
+                                             )}"
+                                     th:src="@{'/media/' + ${request.signaturePath}}"
+                                     alt="Local signature"
+                                     onerror="
+                                         this.style.display='none';
+                                         this.nextElementSibling.classList.remove('d-none');
+                                     ">
+
+                                <div class="alert alert-warning text-center mb-0"
+                                     th:classappend="${request.signaturePath != null
+                                             and !#strings.isEmpty(
+                                                 request.signaturePath
+                                             )}
+                                             ? ' d-none'
+                                             : ''">
+
+                                    <i class="bi bi-pen-fill fs-3 d-block mb-2"></i>
+
+                                    <strong>
+                                        Local signature not uploaded
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
                         </div>
-                    </form>
-                    <div class="sidebar-security mt-3"><i class="bi bi-info-circle-fill"></i>
-                        <div><strong>Decision is recorded</strong><small>Verify all information first</small></div>
+
+                        <!-- Foreign Signature -->
+                        <div th:if="${canViewForeign}">
+
+                            <p class="form-label">
+                                Foreign signature
+                            </p>
+
+                            <div class="media-panel">
+
+                                <img class="signature-image"
+                                     th:if="${request.foreignSignaturePath != null
+                                             and !#strings.isEmpty(
+                                                 request.foreignSignaturePath
+                                             )}"
+                                     th:src="@{'/media/' + ${request.foreignSignaturePath}}"
+                                     alt="Foreign signature"
+                                     onerror="
+                                         this.style.display='none';
+                                         this.nextElementSibling.classList.remove('d-none');
+                                     ">
+
+                                <div class="alert alert-danger text-center mb-0"
+                                     th:classappend="${request.foreignSignaturePath != null
+                                             and !#strings.isEmpty(
+                                                 request.foreignSignaturePath
+                                             )}
+                                             ? ' d-none'
+                                             : ''">
+
+                                    <i class="bi bi-pen fs-3 d-block mb-2"></i>
+
+                                    <strong>
+                                        Foreign signature not uploaded
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
                     </div>
+
                 </div>
+
             </article>
+
+        </div>
+
+        <aside class="col-xl-4">
+
+            <article class="surface-card decision-card">
+
+                <div class="card-header">
+
+                    <h2 class="h5 mb-1">
+
+                        <i class="bi bi-clipboard2-check-fill text-success me-2"></i>
+                        Approval decision
+
+                    </h2>
+
+                    <p class="page-subtitle mb-0">
+                        Your remark is mandatory
+                    </p>
+
+                </div>
+
+                <div class="card-body">
+
+                    <form th:object="${approvalForm}"
+                          th:action="@{|${basePath}/requests/${request.id}/decision|}"
+                          method="post">
+
+                        <label class="form-label"
+                               for="approvalRemark">
+                            Decision remark
+                        </label>
+
+                        <textarea class="form-control mb-3"
+                                  id="approvalRemark"
+                                  rows="5"
+                                  th:field="*{remark}"
+                                  placeholder="Add a clear reason for this decision"
+                                  required></textarea>
+
+                        <div class="d-grid gap-2">
+
+                            <button class="btn btn-bank"
+                                    type="submit"
+                                    name="action"
+                                    value="approve">
+
+                                <i class="bi bi-check-circle-fill me-2"></i>
+                                Approve request
+
+                            </button>
+
+                            <button class="btn btn-outline-danger"
+                                    type="submit"
+                                    name="action"
+                                    value="reject">
+
+                                <i class="bi bi-x-circle-fill me-2"></i>
+                                Reject request
+
+                            </button>
+
+                        </div>
+
+                    </form>
+
+                    <div class="sidebar-security mt-3">
+
+                        <i class="bi bi-info-circle-fill"></i>
+
+                        <div>
+
+                            <strong>
+                                Decision is recorded
+                            </strong>
+
+                            <small>
+                                Verify all information first
+                            </small>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </article>
+
         </aside>
+
     </div>
+
 </section>
+
 </body>
+
 </html>

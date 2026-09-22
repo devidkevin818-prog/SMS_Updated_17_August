@@ -3,9 +3,9 @@
 <head th:replace="~{fragments/head :: head('DGM Approval')}"></head>
 <body>
 <header th:replace="~{fragments/navbar :: navbar('DGM')}">
-    <div><span class="page-eyebrow">Dashboard overview</span><h1>Dashboard</h1>
-        <p>Welcome back, <strong th:text="${dashboard.username}">User</strong></p></div>
-    <div class="dashboard-context"><span th:text="${'Role: ' + dashboard.role}">Role</span><time th:text="${#temporals.format(#temporals.createToday(),'dd MMMM yyyy')}">Date</time></div>
+<!--    <div><span class="page-eyebrow">Dashboard overview</span><h1>Dashboard</h1>-->
+<!--        <p>Welcome back, <strong th:text="${dashboard.username}">User</strong></p></div>-->
+<!--    <div class="dashboard-context"><span th:text="${'Role: ' + dashboard.role}">Role</span><time th:text="${#temporals.format(#temporals.createToday(),'dd MMMM yyyy')}">Date</time></div>-->
 </header>
 <aside th:replace="~{fragments/sidebar :: sidebar('DGM','approval')}"></aside>
 <main class="app-main">

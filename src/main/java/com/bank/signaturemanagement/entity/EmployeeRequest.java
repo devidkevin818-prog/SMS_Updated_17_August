@@ -10,6 +10,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
 import java.time.LocalDate;
@@ -18,6 +19,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "employee_requests")
 public class EmployeeRequest {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -41,15 +43,24 @@ public class EmployeeRequest {
     private String employeeName;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "designation", referencedColumnName = "DesignationId")
+    @JoinColumn(
+            name = "designation",
+            referencedColumnName = "DesignationId"
+    )
     private Designation designation;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "department", referencedColumnName = "DepartmentId")
+    @JoinColumn(
+            name = "department",
+            referencedColumnName = "DepartmentId"
+    )
     private Department department;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "branch", referencedColumnName = "branch_id")
+    @JoinColumn(
+            name = "branch",
+            referencedColumnName = "branch_id"
+    )
     private Branch branch;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -77,6 +88,24 @@ public class EmployeeRequest {
     @Column(name = "signature_valid_until")
     private LocalDate signatureValidUntil;
 
+    /*
+     * Signature serial numbers.
+     *
+     * A value of 0 means that the applicable signature
+     * serial number is not assigned.
+     */
+    @Column(name = "new_local_serial", nullable = false)
+    private Integer newLocalSerial = 0;
+
+    @Column(name = "old_local_serial", nullable = false)
+    private Integer oldLocalSerial = 0;
+
+    @Column(name = "new_foreign_serial", nullable = false)
+    private Integer newForeignSerial = 0;
+
+    @Column(name = "old_foreign_serial", nullable = false)
+    private Integer oldForeignSerial = 0;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
     private RequestStatus status = RequestStatus.PENDING_DGM;
@@ -90,13 +119,48 @@ public class EmployeeRequest {
     @Column(nullable = false, length = 500)
     private String remark;
 
-    @Column(name = "requested_at", nullable = false, updatable = false)
+    @Column(
+            name = "requested_at",
+            nullable = false,
+            updatable = false
+    )
     private LocalDateTime requestedAt = LocalDateTime.now();
 
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
 
     public EmployeeRequest() {
+    }
+
+    @PrePersist
+    public void prePersist() {
+        if (newLocalSerial == null) {
+            newLocalSerial = 0;
+        }
+
+        if (oldLocalSerial == null) {
+            oldLocalSerial = 0;
+        }
+
+        if (newForeignSerial == null) {
+            newForeignSerial = 0;
+        }
+
+        if (oldForeignSerial == null) {
+            oldForeignSerial = 0;
+        }
+
+        if (requestedAt == null) {
+            requestedAt = LocalDateTime.now();
+        }
+
+        if (classification == null || classification.isBlank()) {
+            classification = "BOTH";
+        }
+
+        if (status == null) {
+            status = RequestStatus.PENDING_DGM;
+        }
     }
 
     public Long getId() {
@@ -118,8 +182,16 @@ public class EmployeeRequest {
     public void setTargetEmployee(Employee targetEmployee) {
         this.targetEmployee = targetEmployee;
     }
-    public EmployeeChangeProposal getChangeProposal() { return changeProposal; }
-    public void setChangeProposal(EmployeeChangeProposal changeProposal) { this.changeProposal = changeProposal; }
+
+    public EmployeeChangeProposal getChangeProposal() {
+        return changeProposal;
+    }
+
+    public void setChangeProposal(
+            EmployeeChangeProposal changeProposal
+    ) {
+        this.changeProposal = changeProposal;
+    }
 
     public boolean isUpdateRequest() {
         return targetEmployee != null;
@@ -164,12 +236,32 @@ public class EmployeeRequest {
     public void setBranch(Branch branch) {
         this.branch = branch;
     }
-    public EmployeeStatus getEmployeeStatus() { return employeeStatus; }
-    public void setEmployeeStatus(EmployeeStatus employeeStatus) { this.employeeStatus = employeeStatus; }
-    public String getClassification() { return classification; }
-    public void setClassification(String classification) { this.classification = classification; }
-    public LocalDate getJoiningDate() { return joiningDate; }
-    public void setJoiningDate(LocalDate joiningDate) { this.joiningDate = joiningDate; }
+
+    public EmployeeStatus getEmployeeStatus() {
+        return employeeStatus;
+    }
+
+    public void setEmployeeStatus(
+            EmployeeStatus employeeStatus
+    ) {
+        this.employeeStatus = employeeStatus;
+    }
+
+    public String getClassification() {
+        return classification;
+    }
+
+    public void setClassification(String classification) {
+        this.classification = classification;
+    }
+
+    public LocalDate getJoiningDate() {
+        return joiningDate;
+    }
+
+    public void setJoiningDate(LocalDate joiningDate) {
+        this.joiningDate = joiningDate;
+    }
 
     public String getPhotoPath() {
         return photoPath;
@@ -191,7 +283,9 @@ public class EmployeeRequest {
         return foreignSignaturePath;
     }
 
-    public void setForeignSignaturePath(String foreignSignaturePath) {
+    public void setForeignSignaturePath(
+            String foreignSignaturePath
+    ) {
         this.foreignSignaturePath = foreignSignaturePath;
     }
 
@@ -199,7 +293,9 @@ public class EmployeeRequest {
         return signatureValidFrom;
     }
 
-    public void setSignatureValidFrom(LocalDate signatureValidFrom) {
+    public void setSignatureValidFrom(
+            LocalDate signatureValidFrom
+    ) {
         this.signatureValidFrom = signatureValidFrom;
     }
 
@@ -207,8 +303,46 @@ public class EmployeeRequest {
         return signatureValidUntil;
     }
 
-    public void setSignatureValidUntil(LocalDate signatureValidUntil) {
+    public void setSignatureValidUntil(
+            LocalDate signatureValidUntil
+    ) {
         this.signatureValidUntil = signatureValidUntil;
+    }
+
+    public Integer getNewLocalSerial() {
+        return newLocalSerial != null ? newLocalSerial : 0;
+    }
+
+    public void setNewLocalSerial(Integer newLocalSerial) {
+        this.newLocalSerial =
+                newLocalSerial != null ? newLocalSerial : 0;
+    }
+
+    public Integer getOldLocalSerial() {
+        return oldLocalSerial != null ? oldLocalSerial : 0;
+    }
+
+    public void setOldLocalSerial(Integer oldLocalSerial) {
+        this.oldLocalSerial =
+                oldLocalSerial != null ? oldLocalSerial : 0;
+    }
+
+    public Integer getNewForeignSerial() {
+        return newForeignSerial != null ? newForeignSerial : 0;
+    }
+
+    public void setNewForeignSerial(Integer newForeignSerial) {
+        this.newForeignSerial =
+                newForeignSerial != null ? newForeignSerial : 0;
+    }
+
+    public Integer getOldForeignSerial() {
+        return oldForeignSerial != null ? oldForeignSerial : 0;
+    }
+
+    public void setOldForeignSerial(Integer oldForeignSerial) {
+        this.oldForeignSerial =
+                oldForeignSerial != null ? oldForeignSerial : 0;
     }
 
     public RequestStatus getStatus() {
@@ -223,7 +357,9 @@ public class EmployeeRequest {
         return updateRequestStatus;
     }
 
-    public void setUpdateRequestStatus(boolean updateRequestStatus) {
+    public void setUpdateRequestStatus(
+            boolean updateRequestStatus
+    ) {
         this.updateRequestStatus = updateRequestStatus;
     }
 
@@ -231,7 +367,9 @@ public class EmployeeRequest {
         return updatedAfterRejection;
     }
 
-    public void setUpdatedAfterRejection(boolean updatedAfterRejection) {
+    public void setUpdatedAfterRejection(
+            boolean updatedAfterRejection
+    ) {
         this.updatedAfterRejection = updatedAfterRejection;
     }
 

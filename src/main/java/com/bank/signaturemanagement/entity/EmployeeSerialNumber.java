@@ -1,19 +1,13 @@
 package com.bank.signaturemanagement.entity;
 
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
 
+import java.time.LocalDateTime;
 
 @Entity
 @Table(
         name = "employee_serial_number_history",
-        schema = "dbo",
-        uniqueConstraints = {
-                @UniqueConstraint(
-                        name = "UK_employee_serial_employee_id",
-                        columnNames = "employee_id"
-                )
-        }
+        schema = "dbo"
 )
 public class EmployeeSerialNumber {
 
@@ -22,14 +16,36 @@ public class EmployeeSerialNumber {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "employee_id", nullable = false)
-    private Long employeeId;
+    /*
+     * Foreign key:
+     * employee_serial_number_history.employee_id
+     *     -> employees.id
+     *
+     * Constraint:
+     * FK_employee_serial_history_employees
+     */
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(
+            name = "employee_id",
+            referencedColumnName = "id",
+            nullable = false,
+            foreignKey = @ForeignKey(
+                    name = "FK_employee_serial_history_employees"
+            )
+    )
+    private Employee employee;
 
-    @Column(name = "new_serial_number", nullable = false)
-    private Integer newSerialNumber;
+    @Column(name = "new_local_serial")
+    private Integer newLocalSerial;
 
-    @Column(name = "old_serial_number")
-    private Integer oldSerialNumber;
+    @Column(name = "old_local_serial")
+    private Integer oldLocalSerial;
+
+    @Column(name = "new_foreign_serial")
+    private Integer newForeignSerial;
+
+    @Column(name = "old_foreign_serial")
+    private Integer oldForeignSerial;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
@@ -38,13 +54,17 @@ public class EmployeeSerialNumber {
     }
 
     public EmployeeSerialNumber(
-            Long employeeId,
-            Integer newSerialNumber,
-            Integer oldSerialNumber) {
-
-        this.employeeId = employeeId;
-        this.newSerialNumber = newSerialNumber;
-        this.oldSerialNumber = oldSerialNumber;
+            Employee employee,
+            Integer newLocalSerial,
+            Integer oldLocalSerial,
+            Integer newForeignSerial,
+            Integer oldForeignSerial
+    ) {
+        this.employee = employee;
+        this.newLocalSerial = newLocalSerial;
+        this.oldLocalSerial = oldLocalSerial;
+        this.newForeignSerial = newForeignSerial;
+        this.oldForeignSerial = oldForeignSerial;
     }
 
     @PrePersist
@@ -62,28 +82,44 @@ public class EmployeeSerialNumber {
         this.id = id;
     }
 
-    public Long getEmployeeId() {
-        return employeeId;
+    public Employee getEmployee() {
+        return employee;
     }
 
-    public void setEmployeeId(Long employeeId) {
-        this.employeeId = employeeId;
+    public void setEmployee(Employee employee) {
+        this.employee = employee;
     }
 
-    public Integer getNewSerialNumber() {
-        return newSerialNumber;
+    public Integer getNewLocalSerial() {
+        return newLocalSerial;
     }
 
-    public void setNewSerialNumber(Integer newSerialNumber) {
-        this.newSerialNumber = newSerialNumber;
+    public void setNewLocalSerial(Integer newLocalSerial) {
+        this.newLocalSerial = newLocalSerial;
     }
 
-    public Integer getOldSerialNumber() {
-        return oldSerialNumber;
+    public Integer getOldLocalSerial() {
+        return oldLocalSerial;
     }
 
-    public void setOldSerialNumber(Integer oldSerialNumber) {
-        this.oldSerialNumber = oldSerialNumber;
+    public void setOldLocalSerial(Integer oldLocalSerial) {
+        this.oldLocalSerial = oldLocalSerial;
+    }
+
+    public Integer getNewForeignSerial() {
+        return newForeignSerial;
+    }
+
+    public void setNewForeignSerial(Integer newForeignSerial) {
+        this.newForeignSerial = newForeignSerial;
+    }
+
+    public Integer getOldForeignSerial() {
+        return oldForeignSerial;
+    }
+
+    public void setOldForeignSerial(Integer oldForeignSerial) {
+        this.oldForeignSerial = oldForeignSerial;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -92,5 +128,13 @@ public class EmployeeSerialNumber {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    /**
+     * Convenience method for retrieving the foreign-key value
+     * without exposing it as a separate writable JPA field.
+     */
+    public Long getEmployeeId() {
+        return employee != null ? employee.getId() : null;
     }
 }

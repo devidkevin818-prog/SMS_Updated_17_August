@@ -28,7 +28,7 @@
         <a th:if="${role == 'PD'}" th:href="@{/pd/batches}" th:classappend="${activePage == 'batches'} ? ' active'" class="sidebar-link"><i class="bi bi-file-earmark-spreadsheet"></i><span>Import Employee</span></a>
         <a th:if="${role == 'PD'}" th:href="@{/pd/employees}" th:classappend="${activePage == 'update'} ? ' active'" class="sidebar-link"><i class="bi bi-pencil-square"></i><span>Update Details & Signature</span></a>
         <a th:if="${role == 'PD'}" th:href="@{/pd/signatures}" th:classappend="${activePage == 'signatures'} ? ' active'" class="sidebar-link"><i class="bi bi-pen-fill"></i><span>Upload Missing Signatures</span></a>
-        <a th:if="${role == 'PD'}" th:href="@{/pd/users/new}" th:classappend="${activePage == 'users'} ? ' active'" class="sidebar-link"><i class="bi bi-person-plus"></i><span>Create New User</span></a>
+<!--        <a th:if="${role == 'PD'}" th:href="@{/pd/users/new}" th:classappend="${activePage == 'users'} ? ' active'" class="sidebar-link"><i class="bi bi-person-plus"></i><span>Create New User</span></a>-->
         <a th:if="${role == 'PD'}" th:href="@{/pd/reference-data}" th:classappend="${activePage == 'reference-data'} ? ' active'" class="sidebar-link"><i class="bi bi-sliders"></i><span>Manage Dropdowns</span></a>
 
 <!--        <a th:if="${role == 'DGM'}" th:href="@{/dgm/dashboard}" th:classappend="${activePage == 'dashboard'} ? ' active'" class="sidebar-link"><i class="bi bi-grid-1x2-fill"></i><span>Dashboard</span></a>-->

@@ -17,13 +17,14 @@ import com.bank.signaturemanagement.service.DesignationService;
 import com.bank.signaturemanagement.service.EmployeeChangeProposalService;
 import com.bank.signaturemanagement.service.EmployeeNumberFormat;
 import com.bank.signaturemanagement.service.EmployeeRequestService;
+import com.bank.signaturemanagement.service.EmployeeSerialNumberService;
 import com.bank.signaturemanagement.service.EmployeeService;
 import com.bank.signaturemanagement.service.UserApprovalService;
 import com.bank.signaturemanagement.service.UserService;
-import com.bank.signaturemanagement.service.EmployeeSerialNumberService;
 
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -37,6 +38,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import static com.bank.signaturemanagement.service.EmployeeRequestService.PENDING_STATUSES;
 
@@ -58,6 +61,7 @@ public class PdController {
     private final EmployeeChangeProposalService changeProposalService;
     private final DashboardService dashboardService;
     private final EmployeeSerialNumberService employeeSerialNumberService;
+
     public PdController(
             EmployeeStatusRepository employeeStatusRepository,
             EmployeeRequestRepository requestRepository,
@@ -71,8 +75,9 @@ public class PdController {
             UserService userService,
             UserApprovalService userApprovalService,
             EmployeeChangeProposalService changeProposalService,
-            DashboardService dashboardService, EmployeeSerialNumberService employeeSerialNumberService) {
-
+            DashboardService dashboardService,
+            EmployeeSerialNumberService employeeSerialNumberService
+    ) {
         this.employeeStatusRepository = employeeStatusRepository;
         this.requestRepository = requestRepository;
         this.requestService = requestService;
@@ -96,6 +101,7 @@ public class PdController {
     @GetMapping("/users/new")
     public String createUserForm(Model model) {
         model.addAttribute("userForm", new UserForm());
+
         addUserReferenceData(model);
 
         return "admin/create-user";
@@ -103,14 +109,17 @@ public class PdController {
 
     @PostMapping("/users")
     public String createUser(
-            @Valid @ModelAttribute("userForm") UserForm form,
+            @Valid
+            @ModelAttribute("userForm")
+            UserForm form,
             BindingResult result,
             Authentication authentication,
             Model model,
-            RedirectAttributes redirectAttributes) {
-
+            RedirectAttributes redirectAttributes
+    ) {
         if (result.hasErrors()) {
             addUserReferenceData(model);
+
             return "admin/create-user";
         }
 
@@ -128,7 +137,11 @@ public class PdController {
             return "redirect:/pd/dashboard";
 
         } catch (IllegalArgumentException | IllegalStateException exception) {
-            result.reject("user", exception.getMessage());
+            result.reject(
+                    "user",
+                    exception.getMessage()
+            );
+
             addUserReferenceData(model);
 
             return "admin/create-user";
@@ -145,13 +158,26 @@ public class PdController {
                 "roles",
                 userService.getRoles()
                         .stream()
-                        .filter(role -> !"ADMIN".equals(role.getName()))
+                        .filter(role ->
+                                !"ADMIN".equals(role.getName())
+                        )
                         .toList()
         );
 
-        model.addAttribute("creatorRole", "PD");
-        model.addAttribute("creatorBackPath", "/pd/dashboard");
-        model.addAttribute("userCreateAction", "/pd/users");
+        model.addAttribute(
+                "creatorRole",
+                "PD"
+        );
+
+        model.addAttribute(
+                "creatorBackPath",
+                "/pd/dashboard"
+        );
+
+        model.addAttribute(
+                "userCreateAction",
+                "/pd/users"
+        );
     }
 
     /*
@@ -161,8 +187,8 @@ public class PdController {
     @GetMapping("/dashboard")
     public String dashboard(
             Authentication authentication,
-            Model model) {
-
+            Model model
+    ) {
         model.addAttribute(
                 "dashboard",
                 dashboardService.getDashboardData(
@@ -172,7 +198,9 @@ public class PdController {
         );
 
         var changeProposals =
-                changeProposalService.pendingPd(authentication.getName());
+                changeProposalService.pendingPd(
+                        authentication.getName()
+                );
 
         model.addAttribute(
                 "changeProposals",
@@ -187,7 +215,10 @@ public class PdController {
         model.addAttribute(
                 "myRequestCount",
                 requestService
-                        .getRequestsForUser(authentication.getName(), 0)
+                        .getRequestsForUser(
+                                authentication.getName(),
+                                0
+                        )
                         .getTotalElements()
         );
 
@@ -202,8 +233,8 @@ public class PdController {
     public String toggleLock(
             @PathVariable Long id,
             Authentication authentication,
-            RedirectAttributes redirectAttributes) {
-
+            RedirectAttributes redirectAttributes
+    ) {
         changeProposalService.toggleLock(
                 id,
                 authentication.getName()
@@ -220,12 +251,13 @@ public class PdController {
     @PostMapping("/change-proposals/{id}/accept")
     public String acceptProposal(
             @PathVariable Long id,
-            Authentication authentication) {
-
-        var proposal = changeProposalService.acceptForEditing(
-                id,
-                authentication.getName()
-        );
+            Authentication authentication
+    ) {
+        var proposal =
+                changeProposalService.acceptForEditing(
+                        id,
+                        authentication.getName()
+                );
 
         return "redirect:/pd/employees/"
                 + proposal.getEmployee().getId()
@@ -239,16 +271,16 @@ public class PdController {
 
     @GetMapping("/employees/new")
     public String createForm(Model model) {
-
         if (!model.containsAttribute("employeeRequestForm")) {
-            EmployeeRequestForm form = new EmployeeRequestForm();
+            EmployeeRequestForm form =
+                    new EmployeeRequestForm();
 
             employeeStatusRepository
                     .findByActiveTrueOrderByDisplayOrderAscStatusNameAsc()
                     .stream()
                     .findFirst()
-                    .ifPresent(
-                            status -> form.setStatusId(status.getStatusId())
+                    .ifPresent(status ->
+                            form.setStatusId(status.getStatusId())
                     );
 
             model.addAttribute(
@@ -270,10 +302,11 @@ public class PdController {
             BindingResult result,
             Authentication authentication,
             RedirectAttributes redirectAttributes,
-            Model model) {
-
+            Model model
+    ) {
         if (result.hasErrors()) {
             addReferenceData(model);
+
             return "pd/create-employee";
         }
 
@@ -291,7 +324,11 @@ public class PdController {
             return "redirect:/pd/requests";
 
         } catch (IllegalArgumentException | IllegalStateException exception) {
-            result.reject("request", exception.getMessage());
+            result.reject(
+                    "request",
+                    exception.getMessage()
+            );
+
             addReferenceData(model);
 
             return "pd/create-employee";
@@ -306,8 +343,8 @@ public class PdController {
     public String requests(
             @RequestParam(defaultValue = "0") int page,
             Authentication authentication,
-            Model model) {
-
+            Model model
+    ) {
         model.addAttribute(
                 "requests",
                 requestService.getRequestsForUser(
@@ -327,12 +364,24 @@ public class PdController {
     public String employees(
             @RequestParam(defaultValue = "") String query,
             @RequestParam(defaultValue = "0") int page,
-            Model model) {
+            Model model
+    ) {
+        var employeePage =
+                employeeService.search(query, page);
 
-        model.addAttribute("query", query);
+        model.addAttribute(
+                "query",
+                query
+        );
+
         model.addAttribute(
                 "employees",
-                employeeService.search(query, page)
+                employeePage
+        );
+
+        addLatestSerialNumbers(
+                model,
+                employeePage.getContent()
         );
 
         return "pd/employee-list";
@@ -346,12 +395,24 @@ public class PdController {
     public String approvedSignatures(
             @RequestParam(defaultValue = "") String query,
             @RequestParam(defaultValue = "0") int page,
-            Model model) {
+            Model model
+    ) {
+        var employeePage =
+                employeeService.search(query, page);
 
-        model.addAttribute("query", query);
+        model.addAttribute(
+                "query",
+                query
+        );
+
         model.addAttribute(
                 "employees",
-                employeeService.search(query, page)
+                employeePage
+        );
+
+        addLatestSerialNumbers(
+                model,
+                employeePage.getContent()
         );
 
         return "pd/approved-signatures";
@@ -359,8 +420,8 @@ public class PdController {
 
     @GetMapping("/approved-signatures/pdf")
     public void downloadApprovedPdf(
-            HttpServletResponse response) throws Exception {
-
+            HttpServletResponse response
+    ) throws Exception {
         response.setContentType("application/pdf");
 
         response.setHeader(
@@ -376,11 +437,20 @@ public class PdController {
     @GetMapping("/approved-signatures/{id}")
     public String approvedSignatureVersions(
             @PathVariable Long id,
-            Model model) {
+            Model model
+    ) {
+        Employee employee =
+                employeeService.getEmployee(id);
 
-        Employee employee = employeeService.getEmployee(id);
+        model.addAttribute(
+                "employee",
+                employee
+        );
 
-        model.addAttribute("employee", employee);
+        addLatestSerialNumber(
+                model,
+                id
+        );
 
         model.addAttribute(
                 "versions",
@@ -398,25 +468,27 @@ public class PdController {
     @GetMapping("/employees/{id}/edit")
     public String editEmployeeForm(
             @PathVariable Long id,
-            @RequestParam(required = false) Long rejectedRequestId,
-            @RequestParam(required = false) Long proposalId,
+            @RequestParam(required = false)
+            Long rejectedRequestId,
+            @RequestParam(required = false)
+            Long proposalId,
             Authentication authentication,
-            Model model) {
-
+            Model model
+    ) {
         /*
-         * Enable this requirement if edits must always originate from a
-         * DGM or GM change proposal.
+         * Enable this requirement if edits must always originate from
+         * a DGM or GM change proposal.
          *
          * if (proposalId == null) {
          *     throw new IllegalStateException(
-         *         "DGM or GM must initiate this employee update first"
+         *             "DGM or GM must initiate this employee update first"
          *     );
          * }
          *
          * changeProposalService.requireEditing(
-         *     proposalId,
-         *     id,
-         *     authentication.getName()
+         *         proposalId,
+         *         id,
+         *         authentication.getName()
          * );
          */
 
@@ -434,9 +506,17 @@ public class PdController {
             }
         }
 
+        Employee employee =
+                employeeService.getEmployee(id);
+
         model.addAttribute(
                 "employee",
-                employeeService.getEmployee(id)
+                employee
+        );
+
+        addLatestSerialNumber(
+                model,
+                id
         );
 
         model.addAttribute(
@@ -444,7 +524,10 @@ public class PdController {
                 employeeService.getUpdateForm(id)
         );
 
-        model.addAttribute("proposalId", proposalId);
+        model.addAttribute(
+                "proposalId",
+                proposalId
+        );
 
         if (rejectedRequestId != null) {
             model.addAttribute(
@@ -461,16 +544,18 @@ public class PdController {
     @PostMapping("/employees/{id}/edit")
     public String updateEmployee(
             @PathVariable Long id,
-            @RequestParam(required = false) Long rejectedRequestId,
-            @RequestParam(required = false) Long proposalId,
+            @RequestParam(required = false)
+            Long rejectedRequestId,
+            @RequestParam(required = false)
+            Long proposalId,
             @Valid
             @ModelAttribute("employeeUpdateForm")
             EmployeeUpdateForm employeeUpdateForm,
             BindingResult result,
             Model model,
             Authentication authentication,
-            RedirectAttributes redirectAttributes) {
-
+            RedirectAttributes redirectAttributes
+    ) {
         if (result.hasErrors()) {
             prepareEmployeeEditPage(
                     id,
@@ -496,20 +581,22 @@ public class PdController {
 
             if (pendingRequestExists) {
                 throw new IllegalStateException(
-                        "A pending update request already exists for this employee"
+                        "A pending update request already exists "
+                                + "for this employee"
                 );
             }
 
             /*
              * If proposal-based editing is mandatory, restore:
              *
-             * var proposal = changeProposalService.requireEditing(
-             *     proposalId,
-             *     id,
-             *     authentication.getName()
-             * );
+             * var proposal =
+             *         changeProposalService.requireEditing(
+             *                 proposalId,
+             *                 id,
+             *                 authentication.getName()
+             *         );
              *
-             * Then pass proposal to the relevant service overload.
+             * Then pass proposal to the appropriate service method.
              */
 
             requestService.createUpdateRequest(
@@ -519,10 +606,13 @@ public class PdController {
             );
 
             /*
-             * This assumes true means that an update request is pending.
-             * Change it if your service uses the opposite Boolean meaning.
+             * This assumes true means that an update request
+             * is currently pending.
              */
-            employeeService.updateRequestStatus(id, true);
+            employeeService.updateRequestStatus(
+                    id,
+                    true
+            );
 
             if (rejectedRequestId != null) {
                 requestService.markUpdateRequestCompleted(
@@ -565,14 +655,22 @@ public class PdController {
             Long employeeId,
             Long rejectedRequestId,
             Long proposalId,
-            Model model) {
-
+            Model model
+    ) {
         model.addAttribute(
                 "employee",
                 employeeService.getEmployee(employeeId)
         );
 
-        model.addAttribute("proposalId", proposalId);
+        addLatestSerialNumber(
+                model,
+                employeeId
+        );
+
+        model.addAttribute(
+                "proposalId",
+                proposalId
+        );
 
         if (rejectedRequestId != null) {
             model.addAttribute(
@@ -592,8 +690,8 @@ public class PdController {
     public String updateRejectedRequest(
             @PathVariable Long id,
             Authentication authentication,
-            Model model) {
-
+            Model model
+    ) {
         EmployeeRequest request =
                 requestService.getRequest(id);
 
@@ -602,7 +700,8 @@ public class PdController {
                 authentication.getName()
         );
 
-        Employee employee = request.getTargetEmployee();
+        Employee employee =
+                request.getTargetEmployee();
 
         if (employee == null) {
             throw new IllegalStateException(
@@ -618,8 +717,20 @@ public class PdController {
 
         request.setRemark("");
 
-        model.addAttribute("request", request);
-        model.addAttribute("employee", employee);
+        model.addAttribute(
+                "request",
+                request
+        );
+
+        model.addAttribute(
+                "employee",
+                employee
+        );
+
+        addLatestSerialNumber(
+                model,
+                employee.getId()
+        );
 
         return "pd/update-request";
     }
@@ -638,8 +749,8 @@ public class PdController {
             MultipartFile foreignSignature,
             Authentication authentication,
             Model model,
-            RedirectAttributes redirectAttributes) {
-
+            RedirectAttributes redirectAttributes
+    ) {
         EmployeeRequest existingRequest =
                 requestService.getRequest(id);
 
@@ -653,11 +764,14 @@ public class PdController {
                 existingRequest
         );
 
+        Employee targetEmployee =
+                existingRequest.getTargetEmployee();
+
         if (result.hasErrors()) {
-            model.addAttribute("request", updatedRequest);
-            model.addAttribute(
-                    "employee",
-                    existingRequest.getTargetEmployee()
+            prepareRejectedRequestPage(
+                    model,
+                    updatedRequest,
+                    targetEmployee
             );
 
             return "pd/update-request";
@@ -684,11 +798,10 @@ public class PdController {
                     exception.getMessage()
             );
 
-            model.addAttribute("request", updatedRequest);
-
-            model.addAttribute(
-                    "employee",
-                    existingRequest.getTargetEmployee()
+            prepareRejectedRequestPage(
+                    model,
+                    updatedRequest,
+                    targetEmployee
             );
 
             return "pd/update-request";
@@ -699,8 +812,8 @@ public class PdController {
     public String editEmployeeRequest(
             @PathVariable("id") Long id,
             Authentication authentication,
-            Model model) {
-
+            Model model
+    ) {
         EmployeeRequest request =
                 requestService.getRequest(id);
 
@@ -709,18 +822,111 @@ public class PdController {
                 authentication.getName()
         );
 
-        model.addAttribute("request", request);
+        Employee employee =
+                request.getTargetEmployee();
+
+        model.addAttribute(
+                "request",
+                request
+        );
+
         model.addAttribute(
                 "employee",
-                request.getTargetEmployee()
+                employee
         );
+
+        if (employee != null) {
+            addLatestSerialNumber(
+                    model,
+                    employee.getId()
+            );
+        } else {
+            model.addAttribute(
+                    "employeeSerialNumber",
+                    null
+            );
+        }
 
         return "pd/update-request";
     }
 
     /*
-     * Shared helper methods
+     * Serial-number model helper methods
      */
+
+    private void addLatestSerialNumber(
+            Model model,
+            Long employeeId
+    ) {
+        EmployeeSerialNumber serialNumber =
+                employeeSerialNumberService
+                        .findLatestByEmployeeId(employeeId)
+                        .orElse(null);
+
+        model.addAttribute(
+                "employeeSerialNumber",
+                serialNumber
+        );
+    }
+
+    private void addLatestSerialNumbers(
+            Model model,
+            Iterable<Employee> employees
+    ) {
+        Map<Long, EmployeeSerialNumber> serialNumbersByEmployeeId =
+                new LinkedHashMap<>();
+
+        for (Employee employee : employees) {
+            EmployeeSerialNumber serialNumber =
+                    employeeSerialNumberService
+                            .findLatestByEmployeeId(
+                                    employee.getId()
+                            )
+                            .orElse(null);
+
+            serialNumbersByEmployeeId.put(
+                    employee.getId(),
+                    serialNumber
+            );
+        }
+
+        model.addAttribute(
+                "serialNumbersByEmployeeId",
+                serialNumbersByEmployeeId
+        );
+    }
+
+    /*
+     * Shared page preparation methods
+     */
+
+    private void prepareRejectedRequestPage(
+            Model model,
+            EmployeeRequest request,
+            Employee employee
+    ) {
+        model.addAttribute(
+                "request",
+                request
+        );
+
+        model.addAttribute(
+                "employee",
+                employee
+        );
+
+        if (employee != null) {
+            addLatestSerialNumber(
+                    model,
+                    employee.getId()
+            );
+        } else {
+            model.addAttribute(
+                    "employeeSerialNumber",
+                    null
+            );
+        }
+    }
 
     private void addReferenceData(Model model) {
         model.addAttribute(
@@ -747,8 +953,8 @@ public class PdController {
 
     private void requireOriginalRequester(
             EmployeeRequest request,
-            String username) {
-
+            String username
+    ) {
         if (request.getRequestedBy() == null
                 || request.getRequestedBy().getUsername() == null
                 || !request.getRequestedBy()
@@ -763,8 +969,8 @@ public class PdController {
 
     private void preserveFilePaths(
             EmployeeRequest updated,
-            EmployeeRequest existing) {
-
+            EmployeeRequest existing
+    ) {
         if (updated.getPhotoPath() == null
                 || updated.getPhotoPath().isBlank()) {
 

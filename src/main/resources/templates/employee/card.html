@@ -1,66 +1,254 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
+
 <head th:replace="~{fragments/head :: head('Employee Card')}"></head>
+
 <body>
+
 <header th:replace="~{fragments/navbar :: navbar(${currentRole})}"></header>
+
 <aside th:replace="~{fragments/sidebar :: sidebar(${currentRole},'directory')}"></aside>
+
 <main class="app-main">
 
     <div class="content-wrap">
+
         <div class="page-header">
-            <div><span class="page-eyebrow">Verified Employee</span>
-                <h1 class="page-title">Official employee profile</h1>
-                <p class="page-subtitle">GM-approved information and specimen signature.</p></div>
-            <div class="d-flex gap-2"><a class="btn btn-soft" th:href="${backUrl}"><i
-                    class="bi bi-arrow-left me-2"></i>Back</a></div>
+
+            <div>
+
+                <span class="page-eyebrow">
+                    Verified Employee
+                </span>
+
+                <h1 class="page-title">
+                    Official employee profile
+                </h1>
+
+                <p class="page-subtitle">
+                    GM-approved information and specimen signature.
+                </p>
+
+            </div>
+
+            <div class="d-flex gap-2">
+
+                <a class="btn btn-soft"
+                   th:href="${backUrl}">
+
+                    <i class="bi bi-arrow-left me-2"></i>
+                    Back
+
+                </a>
+
+            </div>
+
         </div>
+
         <article class="employee-id-card">
+
             <header class="id-card-header">
-                <div class="id-bank-brand"><img th:src="@{/css/images/uttara-bank-limited-seeklogo.png}"
-                                                alt="Uttara Bank Limited"></div>
-                <span class="id-card-mark"><i class="bi bi-patch-check-fill me-1"></i>Verified profile</span></header>
+
+                <div class="id-bank-brand">
+
+                    <img th:src="@{/css/images/uttara-bank-limited-seeklogo.png}"
+                         alt="Uttara Bank Limited">
+
+                </div>
+
+                <span class="id-card-mark">
+
+                    <i class="bi bi-patch-check-fill me-1"></i>
+                    Verified profile
+
+                </span>
+
+            </header>
+
             <div class="id-card-body">
-                <div class="employee-photo-wrap" th:if="${employee.photoPath != null}"><img class="employee-photo"
-                                                      th:src="@{'/media/'+${employee.photoPath}}"
-                                                      alt="Employee photo"></div>
-                <section><h2 class="employee-name" th:text="${employee.fullName}"></h2>
-                    <div class="employee-designation" th:text="${employee.designation.designationName}"></div>
+
+                <div class="employee-photo-wrap"
+                     th:if="${employee.photoPath != null}">
+
+                    <img class="employee-photo"
+                         th:src="@{'/media/' + ${employee.photoPath}}"
+                         alt="Employee photo">
+
+                </div>
+
+                <section>
+
+                    <h2 class="employee-name"
+                        th:text="${employee.fullName}">
+                    </h2>
+
+                    <div class="employee-designation"
+                         th:text="${employee.designation.designationName}">
+                    </div>
+
                     <table class="id-details">
+
                         <tr>
+
                             <th>Employee code</th>
-                            <td th:text="${employee.employeeNumber}"></td>
+
+                            <td th:text="${employee.employeeNumber}">
+                            </td>
+
                         </tr>
+
                         <tr>
+
                             <th>Department</th>
-                            <td th:text="${employee.department.departmentName}"></td>
+
+                            <td th:text="${employee.department.departmentName}">
+                            </td>
+
                         </tr>
+
                         <tr>
+
                             <th>Branch</th>
-                            <td th:text="${employee.branch.branchName}"></td>
+
+                            <td th:text="${employee.branch.branchName}">
+                            </td>
+
                         </tr>
+
+                        <!-- New Local Signature Serial -->
                         <tr>
+
+                            <th>New local signature serial</th>
+
+                            <td th:text="${employeeSerialNumber != null
+                                    and employeeSerialNumber.newLocalSerial != null
+                                    ? employeeSerialNumber.newLocalSerial
+                                    : 0}">
+                                0
+                            </td>
+
+                        </tr>
+
+                        <!-- Old Local Signature Serial -->
+                        <tr>
+
+                            <th>Old local signature serial</th>
+
+                            <td th:text="${employeeSerialNumber != null
+                                    and employeeSerialNumber.oldLocalSerial != null
+                                    ? employeeSerialNumber.oldLocalSerial
+                                    : 0}">
+                                0
+                            </td>
+
+                        </tr>
+
+                        <!-- New Foreign Signature Serial -->
+                        <tr>
+
+                            <th>New foreign signature serial</th>
+
+                            <td th:text="${employeeSerialNumber != null
+                                    and employeeSerialNumber.newForeignSerial != null
+                                    ? employeeSerialNumber.newForeignSerial
+                                    : 0}">
+                                0
+                            </td>
+
+                        </tr>
+
+                        <!-- Old Foreign Signature Serial -->
+                        <tr>
+
+                            <th>Old foreign signature serial</th>
+
+                            <td th:text="${employeeSerialNumber != null
+                                    and employeeSerialNumber.oldForeignSerial != null
+                                    ? employeeSerialNumber.oldForeignSerial
+                                    : 0}">
+                                0
+                            </td>
+
+                        </tr>
+
+                        <tr>
+
                             <th>Signature valid from</th>
-                            <td th:text="${#temporals.format(employee.signatureValidFrom, 'dd-MMM-yyyy')}"></td>
+
+                            <td th:text="${#temporals.format(
+                                    employee.signatureValidFrom,
+                                    'dd-MMM-yyyy'
+                                )}">
+                            </td>
+
                         </tr>
+
                         <tr>
+
                             <th>Signature valid until</th>
-                            <td th:text="${#temporals.format(employee.signatureValidUntil, 'dd-MMM-yyyy')}"></td>
+
+                            <td th:text="${#temporals.format(
+                                    employee.signatureValidUntil,
+                                    'dd-MMM-yyyy'
+                                )}">
+                            </td>
+
                         </tr>
 
                     </table>
-                    <div class="signature-panel" th:if="${canViewLocal and employee.signaturePath != null}"><span>Approved local signature</span><img
-                            th:src="@{'/media/'+${employee.signaturePath}}" alt="Approved local signature"></div>
-                    <div class="signature-panel" th:if="${canViewForeign and employee.foreignSignaturePath != null}"><span>Approved foreign signature</span><img
-                            th:src="@{'/media/'+${employee.foreignSignaturePath}}" alt="Approved foreign signature"></div>
+
+                    <div class="signature-panel"
+                         th:if="${canViewLocal
+                                 and employee.signaturePath != null}">
+
+                        <span>
+                            Approved local signature
+                        </span>
+
+                        <img th:src="@{'/media/' + ${employee.signaturePath}}"
+                             alt="Approved local signature">
+
+                    </div>
+
+                    <div class="signature-panel"
+                         th:if="${canViewForeign
+                                 and employee.foreignSignaturePath != null}">
+
+                        <span>
+                            Approved foreign signature
+                        </span>
+
+                        <img th:src="@{'/media/' + ${employee.foreignSignaturePath}}"
+                             alt="Approved foreign signature">
+
+                    </div>
+
                 </section>
+
             </div>
-            <footer class="id-card-footer"><span>Employee Signature Management System</span><span>Authorized internal use only</span>
+
+            <footer class="id-card-footer">
+
+                <span>
+                    Employee Signature Management System
+                </span>
+
+                <span>
+                    Authorized internal use only
+                </span>
+
             </footer>
+
         </article>
+
     </div>
 
 </main>
+
 <footer th:replace="~{fragments/layout :: footer}"></footer>
+
 <div th:replace="~{fragments/layout :: scripts}"></div>
+
 </body>
+
 </html>

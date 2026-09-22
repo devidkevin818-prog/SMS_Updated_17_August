@@ -1,9 +1,12 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
+
 <head th:replace="~{fragments/head :: head('Create Employee')}"></head>
 
 <body>
+
 <header th:replace="~{fragments/navbar :: navbar('PD')}"></header>
+
 <aside th:replace="~{fragments/sidebar :: sidebar('PD','create')}"></aside>
 
 <main class="app-main">
@@ -12,7 +15,11 @@
         <div class="page-header">
             <div>
                 <span class="page-eyebrow">New Request</span>
-                <h1 class="page-title">Create employee request</h1>
+
+                <h1 class="page-title">
+                    Create employee request
+                </h1>
+
                 <p class="page-subtitle">
                     Employee signatures and photos are optional and may be added later.
                 </p>
@@ -20,7 +27,8 @@
 
             <a class="btn btn-soft"
                th:href="@{/pd/dashboard}">
-                <i class="bi bi-x-lg me-2"></i>Cancel
+                <i class="bi bi-x-lg me-2"></i>
+                Cancel
             </a>
         </div>
 
@@ -37,7 +45,7 @@
                 <div>
                     <strong>Please correct the form</strong>
 
-                    <div th:each="error:${#fields.allErrors()}"
+                    <div th:each="error : ${#fields.allErrors()}"
                          th:text="${error}">
                     </div>
                 </div>
@@ -46,9 +54,11 @@
             <div class="row g-4">
 
                 <section class="col-xl-8">
+
                     <div class="surface-card">
 
                         <div class="card-header">
+
                             <h2 class="h5 mb-1">
                                 <i class="bi bi-person-vcard-fill text-success me-2"></i>
                                 Employee information
@@ -57,22 +67,47 @@
                             <p class="page-subtitle mb-0">
                                 Information shown on the approved employee card
                             </p>
+
                         </div>
 
                         <div class="card-body">
 
                             <div class="row g-3">
-                                <div class="col-md-6"><label class="form-label" for="employeeCode">Employee code</label><input
-                                        class="form-control" id="employeeCode" th:field="*{employeeCode}"
-                                        placeholder="e.g. EMP001" required></div>
-                                <div class="col-md-6"><label class="form-label" for="employeeName">Employee name</label><input
-                                        class="form-control" id="employeeName" th:field="*{employeeName}"
-                                        placeholder="Full legal name" required></div>
-
-
 
                                 <div class="col-md-6">
-                                    <label class="form-label" for="designation">
+
+                                    <label class="form-label"
+                                           for="employeeCode">
+                                        Employee code
+                                    </label>
+
+                                    <input class="form-control"
+                                           id="employeeCode"
+                                           th:field="*{employeeCode}"
+                                           placeholder="e.g. 123123"
+                                           required>
+
+                                </div>
+
+                                <div class="col-md-6">
+
+                                    <label class="form-label"
+                                           for="employeeName">
+                                        Employee name
+                                    </label>
+
+                                    <input class="form-control"
+                                           id="employeeName"
+                                           th:field="*{employeeName}"
+                                           placeholder="Full legal name"
+                                           required>
+
+                                </div>
+
+                                <div class="col-md-6">
+
+                                    <label class="form-label"
+                                           for="designation">
                                         Designation
                                     </label>
 
@@ -81,7 +116,9 @@
                                             th:field="*{designation}"
                                             required>
 
-                                        <option value="">Select Designation</option>
+                                        <option value="">
+                                            Select Designation
+                                        </option>
 
                                         <option th:each="designation : ${designations}"
                                                 th:value="${designation.designationId}"
@@ -89,14 +126,189 @@
                                         </option>
 
                                     </select>
+
                                 </div>
 
-                                <div class="col-md-6"><label class="form-label" for="classification">Signature classification</label><select class="form-select" id="classification" th:field="*{classification}" required><option value="LOCAL">Local</option><option value="FOREIGN">Foreign</option><option value="BOTH">Both</option></select></div>
-                                <div class="col-md-6"><label class="form-label" for="joiningDate">Date of joining</label><input class="form-control" id="joiningDate" type="date" th:field="*{joiningDate}" required></div>
+                                <div class="col-md-6">
 
+                                    <label class="form-label"
+                                           for="classification">
+                                        Signature classification
+                                    </label>
+
+                                    <select class="form-select"
+                                            id="classification"
+                                            th:field="*{classification}"
+                                            required>
+
+                                        <option value="LOCAL">Local</option>
+                                        <option value="FOREIGN">Foreign</option>
+                                        <option value="BOTH">Both</option>
+
+                                    </select>
+
+                                </div>
+
+                                <!-- Signature Serial Numbers -->
+                                <div class="col-12">
+
+                                    <div class="border rounded-3 p-3">
+
+                                        <h3 class="h6 fw-semibold mb-1">
+                                            <i class="bi bi-hash text-success me-2"></i>
+                                            Signature serial numbers
+                                        </h3>
+
+                                        <p class="form-hint mb-3">
+                                            All serial numbers must be integers.
+                                            Enter 0 when a signature serial number is not available.
+                                        </p>
+
+                                        <div class="row g-3">
+
+                                            <!-- New Local Signature Serial -->
+                                            <div class="col-md-6">
+
+                                                <label class="form-label"
+                                                       for="localSerialNumber">
+                                                    New Local Signature Serial
+                                                </label>
+
+                                                <input class="form-control signature-serial-input"
+                                                       id="localSerialNumber"
+                                                       name="localSerialNumber"
+                                                       type="number"
+                                                       min="0"
+                                                       step="1"
+                                                       inputmode="numeric"
+                                                       th:value="*{localSerialNumber != null
+                                                               ? localSerialNumber
+                                                               : 0}"
+                                                       value="0"
+                                                       required>
+
+                                                <div class="text-danger"
+                                                     th:if="${#fields.hasErrors('localSerialNumber')}"
+                                                     th:errors="*{localSerialNumber}">
+                                                </div>
+
+                                                <small class="form-hint">
+                                                    Enter 0 if the employee has no local signature.
+                                                </small>
+
+                                            </div>
+
+                                            <!-- Old Local Signature Serial -->
+                                            <div class="col-md-6">
+
+                                                <label class="form-label"
+                                                       for="oldLocalSerial">
+                                                    Old Local Signature Serial
+                                                </label>
+
+                                                <input class="form-control"
+                                                       id="oldLocalSerial"
+                                                       name="oldLocalSerial"
+                                                       type="number"
+                                                       min="0"
+                                                       step="1"
+                                                       inputmode="numeric"
+                                                       value="0"
+                                                       readonly
+                                                       required
+                                                       aria-readonly="true">
+
+                                                <small class="form-hint">
+                                                    A new employee has no previous local signature,
+                                                    so this value is 0.
+                                                </small>
+
+                                            </div>
+
+                                            <!-- New Foreign Signature Serial -->
+                                            <div class="col-md-6">
+
+                                                <label class="form-label"
+                                                       for="foreignSerialNumber">
+                                                    New Foreign Signature Serial
+                                                </label>
+
+                                                <input class="form-control signature-serial-input"
+                                                       id="foreignSerialNumber"
+                                                       name="foreignSerialNumber"
+                                                       type="number"
+                                                       min="0"
+                                                       step="1"
+                                                       inputmode="numeric"
+                                                       th:value="*{foreignSerialNumber != null
+                                                               ? foreignSerialNumber
+                                                               : 0}"
+                                                       value="0"
+                                                       required>
+
+                                                <div class="text-danger"
+                                                     th:if="${#fields.hasErrors('foreignSerialNumber')}"
+                                                     th:errors="*{foreignSerialNumber}">
+                                                </div>
+
+                                                <small class="form-hint">
+                                                    Enter 0 if the employee has no foreign signature.
+                                                </small>
+
+                                            </div>
+
+                                            <!-- Old Foreign Signature Serial -->
+                                            <div class="col-md-6">
+
+                                                <label class="form-label"
+                                                       for="oldForeignSerial">
+                                                    Old Foreign Signature Serial
+                                                </label>
+
+                                                <input class="form-control"
+                                                       id="oldForeignSerial"
+                                                       name="oldForeignSerial"
+                                                       type="number"
+                                                       min="0"
+                                                       step="1"
+                                                       inputmode="numeric"
+                                                       value="0"
+                                                       readonly
+                                                       required
+                                                       aria-readonly="true">
+
+                                                <small class="form-hint">
+                                                    A new employee has no previous foreign signature,
+                                                    so this value is 0.
+                                                </small>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
 
                                 <div class="col-md-6">
-                                    <label class="form-label" for="department">
+
+                                    <label class="form-label"
+                                           for="joiningDate">
+                                        Date of joining
+                                    </label>
+
+                                    <input class="form-control"
+                                           id="joiningDate"
+                                           type="date"
+                                           th:field="*{joiningDate}"
+                                           required>
+
+                                </div>
+
+                                <div class="col-md-6">
+
+                                    <label class="form-label"
+                                           for="department">
                                         Department
                                     </label>
 
@@ -105,7 +317,9 @@
                                             th:field="*{department}"
                                             required>
 
-                                        <option value="">Select Department</option>
+                                        <option value="">
+                                            Select Department
+                                        </option>
 
                                         <option th:each="department : ${departments}"
                                                 th:value="${department.departmentId}"
@@ -113,18 +327,24 @@
                                         </option>
 
                                     </select>
+
                                 </div>
 
-
                                 <div class="col-md-6">
-                                    <label class="form-label" for="branch">Branch</label>
+
+                                    <label class="form-label"
+                                           for="branch">
+                                        Branch
+                                    </label>
 
                                     <select class="form-select"
                                             id="branch"
                                             th:field="*{branch}"
                                             required>
 
-                                        <option value="">Select Branch</option>
+                                        <option value="">
+                                            Select Branch
+                                        </option>
 
                                         <option th:each="branch : ${branches}"
                                                 th:value="${branch.branchId}"
@@ -132,43 +352,65 @@
                                         </option>
 
                                     </select>
+
                                 </div>
+
                                 <!-- Activity Status -->
                                 <div class="col-md-6">
+
                                     <label class="form-label"
                                            for="statusId">
                                         Activity Status
                                     </label>
+
                                     <select class="form-select"
                                             id="statusId"
                                             th:field="*{statusId}"
                                             required>
+
                                         <option th:each="status : ${employeeStatuses}"
                                                 th:value="${status.statusId}"
                                                 th:text="${status.statusName}">
                                         </option>
+
                                     </select>
+
                                     <div class="text-danger"
                                          th:if="${#fields.hasErrors('statusId')}"
                                          th:errors="*{statusId}">
                                     </div>
+
                                 </div>
 
+                                <div class="col-md-6">
 
+                                    <label class="form-label"
+                                           for="remark">
+                                        Submission remark
+                                    </label>
 
+                                    <input class="form-control"
+                                           id="remark"
+                                           th:field="*{remark}"
+                                           placeholder="Reason for this request"
+                                           required>
 
-                                <div class="col-md-6"><label class="form-label" for="remark">Submission
-                                    remark</label><input class="form-control" id="remark" th:field="*{remark}"
-                                                         placeholder="Reason for this request" required></div>
+                                </div>
+
                             </div>
+
                         </div>
+
                     </div>
+
                 </section>
 
                 <aside class="col-xl-4">
+
                     <div class="surface-card">
 
                         <div class="card-header">
+
                             <h2 class="h5 mb-1">
                                 <i class="bi bi-images text-success me-2"></i>
                                 Verification images
@@ -177,6 +419,7 @@
                             <p class="page-subtitle mb-0">
                                 JPG or PNG, maximum 5 MB each
                             </p>
+
                         </div>
 
                         <div class="card-body">
@@ -184,19 +427,21 @@
                             <!-- Employee Photo -->
                             <div class="file-upload mb-3">
 
-                                <label class="form-label" for="photo">
+                                <label class="form-label"
+                                       for="photo">
+
                                     <i class="bi bi-camera-fill me-1"></i>
                                     Employee photo
+
                                 </label>
 
-                                <input
-                                        class="form-control image-preview-input"
-                                        id="photo"
-                                        type="file"
-                                        th:field="*{photo}"
-                                        accept="image/jpeg,image/png"
-                                        data-preview-target="photoPreview"
-                                        data-error-target="photoError">
+                                <input class="form-control image-preview-input"
+                                       id="photo"
+                                       type="file"
+                                       th:field="*{photo}"
+                                       accept="image/jpeg,image/png"
+                                       data-preview-target="photoPreview"
+                                       data-error-target="photoError">
 
                                 <small class="form-hint">
                                     Use a clear, front-facing photograph.
@@ -210,7 +455,9 @@
                                 <div class="upload-preview"
                                      id="photoPreview"
                                      hidden>
+
                                     <img alt="Selected employee photo preview">
+
                                 </div>
 
                             </div>
@@ -218,19 +465,21 @@
                             <!-- Employee Signature -->
                             <div class="file-upload">
 
-                                <label class="form-label" for="signature">
+                                <label class="form-label"
+                                       for="signature">
+
                                     <i class="bi bi-pen-fill me-1"></i>
                                     Employee signature
+
                                 </label>
 
-                                <input
-                                        class="form-control image-preview-input"
-                                        id="signature"
-                                        type="file"
-                                        th:field="*{signature}"
-                                        accept="image/jpeg,image/png"
-                                        data-preview-target="signaturePreview"
-                                        data-error-target="signatureError">
+                                <input class="form-control image-preview-input"
+                                       id="signature"
+                                       type="file"
+                                       th:field="*{signature}"
+                                       accept="image/jpeg,image/png"
+                                       data-preview-target="signaturePreview"
+                                       data-error-target="signatureError">
 
                                 <small class="form-hint">
                                     Use a clean signature on a light background.
@@ -244,29 +493,37 @@
                                 <div class="upload-preview upload-preview-signature"
                                      id="signaturePreview"
                                      hidden>
+
                                     <img alt="Selected employee signature preview">
+
                                 </div>
 
                                 <!-- Optional Foreign Signature -->
                                 <div class="file-upload mt-4">
 
-                                    <label class="form-label" for="foreignSignature">
+                                    <label class="form-label"
+                                           for="foreignSignature">
+
                                         <i class="bi bi-pen me-1"></i>
                                         Foreign Signature
-                                        <span class="text-muted">(Optional)</span>
+
+                                        <span class="text-muted">
+                                            (Optional)
+                                        </span>
+
                                     </label>
 
-                                    <input
-                                            class="form-control image-preview-input"
-                                            id="foreignSignature"
-                                            type="file"
-                                            th:field="*{foreignSignature}"
-                                            accept="image/jpeg,image/png"
-                                            data-preview-target="foreignSignaturePreview"
-                                            data-error-target="foreignSignatureError">
+                                    <input class="form-control image-preview-input"
+                                           id="foreignSignature"
+                                           type="file"
+                                           th:field="*{foreignSignature}"
+                                           accept="image/jpeg,image/png"
+                                           data-preview-target="foreignSignaturePreview"
+                                           data-error-target="foreignSignatureError">
 
                                     <small class="form-hint">
-                                        Optional. Upload the foreign/alternate signature if applicable.
+                                        Optional. Upload the foreign or alternate signature
+                                        if applicable.
                                     </small>
 
                                     <small class="upload-error"
@@ -277,7 +534,9 @@
                                     <div class="upload-preview upload-preview-signature"
                                          id="foreignSignaturePreview"
                                          hidden>
+
                                         <img alt="Selected employee foreign signature preview">
+
                                     </div>
 
                                 </div>
@@ -286,36 +545,40 @@
                                 <div class="mt-4">
 
                                     <h6 class="fw-semibold mb-3">
+
                                         <i class="bi bi-calendar-check text-success me-2"></i>
                                         Signature validity period
+
                                     </h6>
 
                                     <div class="row g-3">
 
                                         <div class="col-md-6">
+
                                             <label class="form-label"
                                                    for="signatureValidFrom">
                                                 Valid from
                                             </label>
 
-                                            <input
-                                                    class="form-control"
-                                                    id="signatureValidFrom"
-                                                    type="date"
-                                                    th:field="*{signatureValidFrom}">
+                                            <input class="form-control"
+                                                   id="signatureValidFrom"
+                                                   type="date"
+                                                   th:field="*{signatureValidFrom}">
+
                                         </div>
 
                                         <div class="col-md-6">
+
                                             <label class="form-label"
                                                    for="signatureValidUntil">
                                                 Valid until
                                             </label>
 
-                                            <input
-                                                    class="form-control"
-                                                    id="signatureValidUntil"
-                                                    type="date"
-                                                    th:field="*{signatureValidUntil}">
+                                            <input class="form-control"
+                                                   id="signatureValidUntil"
+                                                   type="date"
+                                                   th:field="*{signatureValidUntil}">
+
                                         </div>
 
                                     </div>
@@ -332,9 +595,11 @@
                                 </div>
 
                             </div>
+
                         </div>
 
                     </div>
+
                 </aside>
 
             </div>
@@ -348,13 +613,16 @@
 
                 <button class="btn btn-bank"
                         type="submit">
+
                     <i class="bi bi-send-check-fill me-2"></i>
                     Submit to DGM
+
                 </button>
 
             </div>
 
         </form>
+
     </div>
 </main>
 
@@ -367,13 +635,21 @@
 
         const from = document.getElementById('signatureValidFrom');
         const until = document.getElementById('signatureValidUntil');
-        const error = document.getElementById('signatureDateError');
+        const dateError = document.getElementById('signatureDateError');
+
+        const serialInputs = document.querySelectorAll(
+            '.signature-serial-input'
+        );
 
         function validateSignaturePeriod() {
-            error.textContent = '';
+            dateError.textContent = '';
 
-            if (from.value && until.value && until.value < from.value) {
-                error.textContent =
+            if (
+                from.value &&
+                until.value &&
+                until.value < from.value
+            ) {
+                dateError.textContent =
                     'Valid until date must be on or after the valid from date.';
 
                 until.setCustomValidity(
@@ -384,8 +660,51 @@
             }
         }
 
-        from.addEventListener('change', validateSignaturePeriod);
-        until.addEventListener('change', validateSignaturePeriod);
+        function normalizeSerialNumber(input) {
+            if (
+                input.value === null ||
+                input.value.trim() === ''
+            ) {
+                input.value = '0';
+            }
+
+            const numericValue = Number(input.value);
+
+            if (
+                !Number.isInteger(numericValue) ||
+                numericValue < 0
+            ) {
+                input.setCustomValidity(
+                    'Signature serial number must be a non-negative integer.'
+                );
+            } else {
+                input.setCustomValidity('');
+            }
+        }
+
+        serialInputs.forEach(function (input) {
+
+            normalizeSerialNumber(input);
+
+            input.addEventListener('input', function () {
+                normalizeSerialNumber(input);
+            });
+
+            input.addEventListener('blur', function () {
+                normalizeSerialNumber(input);
+            });
+
+        });
+
+        from.addEventListener(
+            'change',
+            validateSignaturePeriod
+        );
+
+        until.addEventListener(
+            'change',
+            validateSignaturePeriod
+        );
 
     });
 </script>
