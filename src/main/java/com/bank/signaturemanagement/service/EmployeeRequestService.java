@@ -20,6 +20,12 @@ import java.util.List;
 @Service
 public class EmployeeRequestService {
 
+    /*
+     * Existing database status names are retained:
+     *
+     * PENDING_DGM = Pending Level 1 Checker
+     * PENDING_GM  = Pending Level 2 Checker
+     */
     public static final List<RequestStatus> PENDING_STATUSES =
             List.of(
                     RequestStatus.PENDING_DGM,
@@ -80,18 +86,33 @@ public class EmployeeRequestService {
     }
 
     /*
-     * Create a new employee request.
+     * Creates a new employee request.
      *
-     * The proposed serial numbers are stored in employee_requests.
-     * They are copied to employee_serial_number_history only after
-     * final GM approval.
+     * The request is submitted by the Maker and initially sent to the
+     * Level 1 Checker.
      */
     @Transactional
     public void createRequest(
             EmployeeRequestForm form,
             String username
     ) {
-        requirePdOrAdmin(username);
+        requireMakerOrAdmin(username);
+
+        if (form == null) {
+            throw new IllegalArgumentException(
+                    "Employee request information is required"
+            );
+        }
+
+        validateRequiredText(
+                form.getEmployeeName(),
+                "Employee name is required"
+        );
+
+        validateRequiredText(
+                form.getRemark(),
+                "Remark is required"
+        );
 
         validateOptionalSignatureDates(
                 form.getSignature(),
@@ -100,25 +121,22 @@ public class EmployeeRequestService {
                 form.getSignatureValidUntil()
         );
 
-        String code =
-                employeeNumberPolicy.normalize(
-                        form.getEmployeeCode()
-                );
+        String code = employeeNumberPolicy.normalize(
+                form.getEmployeeCode()
+        );
 
         validateEmployeeCodeAvailable(
                 code,
                 null
         );
 
-        int newLocalSerial =
-                normalizeSerialNumber(
-                        form.getLocalSerialNumber()
-                );
+        int newLocalSerial = normalizeSerialNumber(
+                form.getLocalSerialNumber()
+        );
 
-        int newForeignSerial =
-                normalizeSerialNumber(
-                        form.getForeignSerialNumber()
-                );
+        int newForeignSerial = normalizeSerialNumber(
+                form.getForeignSerialNumber()
+        );
 
         validateRequestedSerialNumbers(
                 newLocalSerial,
@@ -130,8 +148,7 @@ public class EmployeeRequestService {
         validateOptionalImage(form.getSignature());
         validateOptionalImage(form.getForeignSignature());
 
-        EmployeeRequest request =
-                new EmployeeRequest();
+        EmployeeRequest request = new EmployeeRequest();
 
         request.setRequestedBy(
                 requireUser(username)
@@ -212,13 +229,25 @@ public class EmployeeRequestService {
         );
 
         /*
-         * A newly created employee has no previous serial numbers.
+         * A newly created employee has no old serial numbers.
          */
-        request.setNewLocalSerial(newLocalSerial);
         request.setOldLocalSerial(0);
-
-        request.setNewForeignSerial(newForeignSerial);
+        request.setNewLocalSerial(newLocalSerial);
         request.setOldForeignSerial(0);
+        request.setNewForeignSerial(newForeignSerial);
+
+        /*
+         * Maker submission goes to the Level 1 Checker.
+         *
+         * PENDING_DGM is retained as the technical enum value.
+         */
+        request.setStatus(
+                RequestStatus.PENDING_DGM
+        );
+
+        request.setUpdatedAfterRejection(false);
+        request.setUpdateRequestStatus(false);
+        request.setCompletedAt(null);
 
         requestRepository.save(request);
 
@@ -230,8 +259,8 @@ public class EmployeeRequestService {
                 null,
                 "SUCCESS",
                 null,
-                code,
-                form.getRemark()
+                RequestStatus.PENDING_DGM.name(),
+                form.getRemark().trim()
         );
     }
 
@@ -250,11 +279,10 @@ public class EmployeeRequestService {
     }
 
     /*
-     * Creates an employee-details update request.
+     * Creates an employee update request.
      *
-     * EmployeeUpdateForm currently does not contain editable serial fields.
-     * Therefore, the current approved serials are copied into the request
-     * unchanged.
+     * If this request belongs to a locked-record proposal, the proposal
+     * is supplied through the proposal argument.
      */
     @Transactional
     public void createUpdateRequest(
@@ -263,20 +291,42 @@ public class EmployeeRequestService {
             String username,
             EmployeeChangeProposal proposal
     ) {
-        requirePdOrAdmin(username);
+        requireMakerOrAdmin(username);
+
+        if (employeeId == null) {
+            throw new IllegalArgumentException(
+                    "Employee ID is required"
+            );
+        }
+
+        if (form == null) {
+            throw new IllegalArgumentException(
+                    "Employee update information is required"
+            );
+        }
+
+        validateRequiredText(
+                form.getEmployeeName(),
+                "Employee name is required"
+        );
+
+        validateRequiredText(
+                form.getRemark(),
+                "Remark is required"
+        );
 
         validateDates(
                 form.getSignatureValidFrom(),
                 form.getSignatureValidUntil()
         );
 
-        Employee employee =
-                employeeRepository.findById(employeeId)
-                        .orElseThrow(() ->
-                                new IllegalArgumentException(
-                                        "Employee not found"
-                                )
-                        );
+        Employee employee = employeeRepository
+                .findById(employeeId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "Employee not found"
+                        )
+                );
 
         if (requestRepository
                 .existsByTargetEmployeeIdAndStatusIn(
@@ -289,10 +339,9 @@ public class EmployeeRequestService {
             );
         }
 
-        String code =
-                employeeNumberPolicy.normalize(
-                        form.getEmployeeCode()
-                );
+        String code = employeeNumberPolicy.normalize(
+                form.getEmployeeCode()
+        );
 
         if (!code.equals(employee.getEmployeeNumber())) {
             throw new IllegalArgumentException(
@@ -300,34 +349,39 @@ public class EmployeeRequestService {
             );
         }
 
-        validateEmployeeCodeAvailable(
-                code,
-                employeeId
-        );
+        if (employeeRepository
+                .existsByEmployeeNumberAndIdNot(
+                        code,
+                        employeeId
+                )) {
+
+            throw new IllegalArgumentException(
+                    "Employee code already exists"
+            );
+        }
 
         EmployeeSerialNumber latestSerial =
-                serialNumberRepository
-                        .findTopByEmployee_IdOrderByCreatedAtDesc(
-                                employeeId
-                        )
-                        .orElse(null);
+                findLatestSerial(employeeId);
 
         int currentLocalSerial =
-                latestSerial != null
-                        ? normalizeSerialNumber(
+                latestSerial == null
+                        ? 0
+                        : normalizeSerialNumber(
                         latestSerial.getNewLocalSerial()
-                )
-                        : 0;
+                );
 
         int currentForeignSerial =
-                latestSerial != null
-                        ? normalizeSerialNumber(
+                latestSerial == null
+                        ? 0
+                        : normalizeSerialNumber(
                         latestSerial.getNewForeignSerial()
-                )
-                        : 0;
+                );
 
-        EmployeeRequest request =
-                new EmployeeRequest();
+        validateOptionalImage(form.getPhoto());
+        validateOptionalImage(form.getSignature());
+        validateOptionalImage(form.getForeignSignature());
+
+        EmployeeRequest request = new EmployeeRequest();
 
         request.setRequestedBy(
                 requireUser(username)
@@ -410,27 +464,48 @@ public class EmployeeRequestService {
         );
 
         /*
-         * Serial numbers are preserved because this form currently
-         * updates employee details only.
+         * EmployeeUpdateForm currently does not edit serial numbers.
+         * The current approved serials are therefore preserved.
          */
         request.setOldLocalSerial(currentLocalSerial);
         request.setNewLocalSerial(currentLocalSerial);
-
         request.setOldForeignSerial(currentForeignSerial);
         request.setNewForeignSerial(currentForeignSerial);
 
+        /*
+         * Maker submission goes to Level 1 Checker.
+         */
+        request.setStatus(
+                RequestStatus.PENDING_DGM
+        );
+
+        request.setUpdatedAfterRejection(false);
+        request.setUpdateRequestStatus(false);
+        request.setCompletedAt(null);
+
         requestRepository.save(request);
+
+        /*
+         * A locked-record proposal is moved from MAKER_EDITING to
+         * PENDING_LEVEL_1_CHECKER by the main proposal service.
+         */
+        if (proposal != null) {
+            changeProposalService.markSubmitted(
+                    proposal.getId(),
+                    username
+            );
+        }
 
         auditService.record(
                 username,
                 "EMPLOYEE_UPDATE_PROPOSE",
-                "EMPLOYEE",
-                String.valueOf(employeeId),
+                "EMPLOYEE_REQUEST",
+                String.valueOf(request.getId()),
                 null,
                 "SUCCESS",
                 null,
-                null,
-                form.getRemark()
+                RequestStatus.PENDING_DGM.name(),
+                form.getRemark().trim()
         );
     }
 
@@ -439,13 +514,15 @@ public class EmployeeRequestService {
             String username,
             int page
     ) {
-        User user =
-                requireUser(username);
+        User user = requireUser(username);
 
         return requestRepository
                 .findByRequestedByIdOrderByRequestedAtDesc(
                         user.getId(),
-                        PageRequest.of(page, 20)
+                        PageRequest.of(
+                                normalizePage(page),
+                                20
+                        )
                 );
     }
 
@@ -454,16 +531,32 @@ public class EmployeeRequestService {
             RequestStatus status,
             int page
     ) {
+        if (status == null) {
+            throw new IllegalArgumentException(
+                    "Request status is required"
+            );
+        }
+
         return requestRepository
                 .findByStatusOrderByRequestedAtAsc(
                         status,
-                        PageRequest.of(page, 20)
+                        PageRequest.of(
+                                normalizePage(page),
+                                20
+                        )
                 );
     }
 
     @Transactional(readOnly = true)
     public EmployeeRequest getRequest(Long id) {
-        return requestRepository.findById(id)
+        if (id == null) {
+            throw new IllegalArgumentException(
+                    "Request ID is required"
+            );
+        }
+
+        return requestRepository
+                .findById(id)
                 .orElseThrow(() ->
                         new IllegalArgumentException(
                                 "Request not found"
@@ -471,6 +564,11 @@ public class EmployeeRequestService {
                 );
     }
 
+    /*
+     * Backward-compatible controller method.
+     *
+     * DGM is now the Level 1 Checker.
+     */
     @Transactional
     public void dgmDecision(
             Long id,
@@ -478,6 +576,27 @@ public class EmployeeRequestService {
             String remark,
             String username
     ) {
+        level1CheckerDecision(
+                id,
+                action,
+                remark,
+                username
+        );
+    }
+
+    /*
+     * Level 1 Checker decision.
+     */
+    @Transactional
+    public void level1CheckerDecision(
+            Long id,
+            String action,
+            String remark,
+            String username
+    ) {
+        /*
+         * APPROVE_DGM is retained as the existing technical permission.
+         */
         accessControl.require(
                 username,
                 "APPROVE_DGM"
@@ -485,14 +604,13 @@ public class EmployeeRequestService {
 
         requireApprovalActor(
                 username,
-                "DGM"
+                "LEVEL_1_CHECKER"
         );
 
-        EmployeeRequest request =
-                requireStatus(
-                        id,
-                        RequestStatus.PENDING_DGM
-                );
+        EmployeeRequest request = requireStatus(
+                id,
+                RequestStatus.PENDING_DGM
+        );
 
         ApprovalAction decision =
                 parseAction(action);
@@ -500,40 +618,57 @@ public class EmployeeRequestService {
         saveHistory(
                 request,
                 requireUser(username),
-                "DGM",
+                "LEVEL_1_CHECKER",
                 decision,
                 remark
         );
 
-        request.setStatus(
-                decision == ApprovalAction.APPROVED
-                        ? RequestStatus.PENDING_GM
-                        : RequestStatus.REJECTED
-        );
-
         if (decision == ApprovalAction.APPROVED) {
-            changeProposalService.markPendingGm(
+            /*
+             * PENDING_GM is the existing technical value for
+             * Pending Level 2 Checker.
+             */
+            request.setStatus(
+                    RequestStatus.PENDING_GM
+            );
+
+            request.setCompletedAt(null);
+            request.setUpdateRequestStatus(false);
+
+            /*
+             * Use the existing main proposal-service method.
+             */
+            changeProposalService.markPendingLevel2Checker(
                     request.getChangeProposal()
             );
-        }
+        } else {
+            request.setStatus(
+                    RequestStatus.REJECTED
+            );
 
-        if (decision == ApprovalAction.REJECTED) {
             markRejected(request);
         }
 
+        requestRepository.save(request);
+
         auditService.record(
                 username,
-                "EMPLOYEE_DGM_" + decision.name(),
+                "EMPLOYEE_LEVEL_1_" + decision.name(),
                 "EMPLOYEE_REQUEST",
                 String.valueOf(id),
                 null,
                 "SUCCESS",
-                null,
+                RequestStatus.PENDING_DGM.name(),
                 request.getStatus().name(),
-                remark
+                remark.trim()
         );
     }
 
+    /*
+     * Backward-compatible controller method.
+     *
+     * GM is now the Level 2 Checker.
+     */
     @Transactional
     public void gmDecision(
             Long id,
@@ -541,6 +676,27 @@ public class EmployeeRequestService {
             String remark,
             String username
     ) {
+        level2CheckerDecision(
+                id,
+                action,
+                remark,
+                username
+        );
+    }
+
+    /*
+     * Level 2 Checker decision.
+     */
+    @Transactional
+    public void level2CheckerDecision(
+            Long id,
+            String action,
+            String remark,
+            String username
+    ) {
+        /*
+         * APPROVE_GM is retained as the existing technical permission.
+         */
         accessControl.require(
                 username,
                 "APPROVE_GM"
@@ -548,14 +704,13 @@ public class EmployeeRequestService {
 
         requireApprovalActor(
                 username,
-                "GM"
+                "LEVEL_2_CHECKER"
         );
 
-        EmployeeRequest request =
-                requireStatus(
-                        id,
-                        RequestStatus.PENDING_GM
-                );
+        EmployeeRequest request = requireStatus(
+                id,
+                RequestStatus.PENDING_GM
+        );
 
         ApprovalAction decision =
                 parseAction(action);
@@ -563,7 +718,7 @@ public class EmployeeRequestService {
         saveHistory(
                 request,
                 requireUser(username),
-                "GM",
+                "LEVEL_2_CHECKER",
                 decision,
                 remark
         );
@@ -575,25 +730,30 @@ public class EmployeeRequestService {
 
             markRejected(request);
 
+            requestRepository.save(request);
+
             auditService.record(
                     username,
-                    "EMPLOYEE_GM_REJECTED",
+                    "EMPLOYEE_LEVEL_2_REJECTED",
                     "EMPLOYEE_REQUEST",
                     String.valueOf(id),
                     null,
                     "SUCCESS",
-                    null,
-                    "REJECTED",
-                    remark
+                    RequestStatus.PENDING_GM.name(),
+                    RequestStatus.REJECTED.name(),
+                    remark.trim()
             );
 
             return;
         }
 
+        Long targetEmployeeId =
+                request.getTargetEmployee() == null
+                        ? null
+                        : request.getTargetEmployee().getId();
+
         /*
-         * Validate serial availability again during final approval.
-         * This prevents a serial from being approved twice if another
-         * request received approval while this request was pending.
+         * Revalidate serial availability immediately before final approval.
          */
         validateRequestedSerialNumbers(
                 normalizeSerialNumber(
@@ -602,9 +762,7 @@ public class EmployeeRequestService {
                 normalizeSerialNumber(
                         request.getNewForeignSerial()
                 ),
-                request.getTargetEmployee() != null
-                        ? request.getTargetEmployee().getId()
-                        : null
+                targetEmployeeId
         );
 
         Employee employee =
@@ -635,7 +793,6 @@ public class EmployeeRequestService {
             }
 
             employee = new Employee();
-
         } else if (
                 employeeRepository
                         .existsByEmployeeNumberAndIdNot(
@@ -653,15 +810,12 @@ public class EmployeeRequestService {
                 request
         );
 
-        employee =
-                employeeRepository.saveAndFlush(
-                        employee
-                );
+        employee = employeeRepository.saveAndFlush(
+                employee
+        );
 
         /*
-         * Employee details remain in Employee.
-         * Approved serial values are saved separately in
-         * EmployeeSerialNumber.
+         * Approved serial numbers are written to serial-number history.
          */
         saveApprovedSerialNumbers(
                 employee,
@@ -673,24 +827,33 @@ public class EmployeeRequestService {
                 request
         );
 
-        employeeRepository.save(employee);
+        employee = employeeRepository.saveAndFlush(
+                employee
+        );
 
         saveMediaVersion(
                 employee,
                 request
         );
 
+        String versionReason =
+                request.getChangeProposal() == null
+                        ? "Approved employee request"
+                        : "Approved locked-record change: "
+                          + safeJustification(
+                        request.getChangeProposal()
+                );
+
         EmployeeVersion version =
                 employeeVersionService.append(
                         employee,
                         username,
-                        request.getChangeProposal() == null
-                                ? "Approved employee request"
-                                : "Approved locked-record change: "
-                                  + request.getChangeProposal()
-                                .getJustification()
+                        versionReason
                 );
 
+        /*
+         * Final approval makes the linked proposal effective.
+         */
         changeProposalService.markEffective(
                 request.getChangeProposal()
         );
@@ -699,22 +862,22 @@ public class EmployeeRequestService {
                 RequestStatus.APPROVED
         );
 
+        request.setUpdatedAfterRejection(false);
         request.setUpdateRequestStatus(false);
+        request.setCompletedAt(LocalDateTime.now());
 
-        request.setCompletedAt(
-                LocalDateTime.now()
-        );
+        requestRepository.save(request);
 
         auditService.record(
                 username,
-                "EMPLOYEE_GM_APPROVED",
+                "EMPLOYEE_LEVEL_2_APPROVED",
                 "EMPLOYEE",
                 String.valueOf(employee.getId()),
                 null,
                 "SUCCESS",
                 oldSnapshot,
                 version.getSnapshotJson(),
-                remark
+                remark.trim()
         );
     }
 
@@ -743,15 +906,27 @@ public class EmployeeRequestService {
             );
         }
 
-        return request.getTargetEmployee().getId();
+        if (request.getTargetEmployee() == null) {
+            throw new IllegalStateException(
+                    "Target employee is not available"
+            );
+        }
+
+        return request
+                .getTargetEmployee()
+                .getId();
     }
 
     @Transactional
     public void markUpdateRequestCompleted(
             Long requestId
     ) {
-        getRequest(requestId)
-                .setUpdateRequestStatus(false);
+        EmployeeRequest request =
+                getRequest(requestId);
+
+        request.setUpdateRequestStatus(false);
+
+        requestRepository.save(request);
     }
 
     @Transactional
@@ -769,10 +944,9 @@ public class EmployeeRequestService {
     }
 
     /*
-     * Resubmits a rejected request.
+     * Corrects and resubmits a rejected request.
      *
-     * The existing persistent request is updated selectively.
-     * Its proposed serial numbers are therefore preserved.
+     * The corrected request returns to the Level 1 Checker.
      */
     @Transactional
     public void updateRequest(
@@ -781,6 +955,14 @@ public class EmployeeRequestService {
             MultipartFile foreignSignature,
             String username
     ) {
+        requireMakerOrAdmin(username);
+
+        if (updatedRequest == null) {
+            throw new IllegalArgumentException(
+                    "Updated request information is required"
+            );
+        }
+
         EmployeeRequest request =
                 getRequest(requestId);
 
@@ -795,25 +977,51 @@ public class EmployeeRequestService {
             );
         }
 
+        validateRequiredText(
+                updatedRequest.getEmployeeName(),
+                "Employee name is required"
+        );
+
+        validateRequiredText(
+                updatedRequest.getRemark(),
+                "Remark is required"
+        );
+
         validateDates(
                 updatedRequest.getSignatureValidFrom(),
                 updatedRequest.getSignatureValidUntil()
         );
 
-        String code =
-                employeeNumberPolicy.normalize(
-                        updatedRequest.getEmployeeCode()
-                );
+        validateOptionalImage(
+                foreignSignature
+        );
+
+        String code = employeeNumberPolicy.normalize(
+                updatedRequest.getEmployeeCode()
+        );
 
         Long targetId =
                 request.getTargetEmployee() == null
                         ? null
                         : request.getTargetEmployee().getId();
 
-        validateEmployeeCodeAvailable(
-                code,
-                targetId
-        );
+        if (targetId == null) {
+            if (employeeRepository.existsByEmployeeNumber(code)) {
+                throw new IllegalArgumentException(
+                        "Employee code already exists"
+                );
+            }
+        } else if (
+                employeeRepository
+                        .existsByEmployeeNumberAndIdNot(
+                                code,
+                                targetId
+                        )
+        ) {
+            throw new IllegalArgumentException(
+                    "Employee code already exists"
+            );
+        }
 
         request.setEmployeeCode(code);
 
@@ -842,6 +1050,20 @@ public class EmployeeRequestService {
                 )
         );
 
+        if (updatedRequest.getEmployeeStatus() != null) {
+            request.setEmployeeStatus(
+                    updatedRequest.getEmployeeStatus()
+            );
+        }
+
+        request.setClassification(
+                updatedRequest.getClassification()
+        );
+
+        request.setJoiningDate(
+                updatedRequest.getJoiningDate()
+        );
+
         request.setSignatureValidFrom(
                 updatedRequest.getSignatureValidFrom()
         );
@@ -863,24 +1085,17 @@ public class EmployeeRequestService {
         );
 
         /*
-         * Do not overwrite request serials from updatedRequest.
-         * The rejected-request page does not edit these properties.
+         * Keep all serial values non-null.
          */
-        request.setNewLocalSerial(
-                normalizeSerialNumber(
-                        request.getNewLocalSerial()
-                )
-        );
-
         request.setOldLocalSerial(
                 normalizeSerialNumber(
                         request.getOldLocalSerial()
                 )
         );
 
-        request.setNewForeignSerial(
+        request.setNewLocalSerial(
                 normalizeSerialNumber(
-                        request.getNewForeignSerial()
+                        request.getNewLocalSerial()
                 )
         );
 
@@ -890,9 +1105,24 @@ public class EmployeeRequestService {
                 )
         );
 
+        request.setNewForeignSerial(
+                normalizeSerialNumber(
+                        request.getNewForeignSerial()
+                )
+        );
+
+        validateRequestedSerialNumbers(
+                request.getNewLocalSerial(),
+                request.getNewForeignSerial(),
+                targetId
+        );
+
         request.setUpdatedAfterRejection(true);
         request.setUpdateRequestStatus(false);
 
+        /*
+         * Resubmission returns to Level 1 Checker.
+         */
         request.setStatus(
                 RequestStatus.PENDING_DGM
         );
@@ -901,8 +1131,23 @@ public class EmployeeRequestService {
 
         requestRepository.save(request);
 
+        /*
+         * The main proposal service uses PENDING_LEVEL_1_CHECKER here.
+         */
         changeProposalService.markResubmitted(
                 request.getChangeProposal()
+        );
+
+        auditService.record(
+                username,
+                "EMPLOYEE_REQUEST_RESUBMITTED",
+                "EMPLOYEE_REQUEST",
+                String.valueOf(request.getId()),
+                null,
+                "SUCCESS",
+                RequestStatus.REJECTED.name(),
+                RequestStatus.PENDING_DGM.name(),
+                request.getRemark()
         );
     }
 
@@ -921,22 +1166,25 @@ public class EmployeeRequestService {
                         .findByStatusIn(PENDING_STATUSES)
                         .stream()
                         .map(EmployeeRequest::getTargetEmployee)
-                        .filter(employee ->
-                                employee != null
-                        )
+                        .filter(employee -> employee != null)
                         .map(Employee::getId)
+                        .distinct()
                         .toList();
 
-        Page<Employee> employees =
+        Page<Employee> employeePage =
                 employeeRepository
                         .findByEmployeeNumberContainingIgnoreCaseOrFullNameContainingIgnoreCase(
                                 text,
                                 text,
-                                PageRequest.of(page, 20)
+                                PageRequest.of(
+                                        normalizePage(page),
+                                        20
+                                )
                         );
 
         List<Employee> filtered =
-                employees.getContent()
+                employeePage
+                        .getContent()
                         .stream()
                         .filter(employee ->
                                 !pendingEmployeeIds.contains(
@@ -947,44 +1195,34 @@ public class EmployeeRequestService {
 
         return new PageImpl<>(
                 filtered,
-                employees.getPageable(),
+                employeePage.getPageable(),
                 filtered.size()
         );
     }
 
     /*
-     * Saves approved request serials to the final serial-history table.
-     *
-     * For a new employee, a first history row is always created,
-     * including when both serials are 0.
-     *
-     * For an existing employee, a new history row is created only
-     * when at least one serial changes.
+     * Saves final approved serial numbers.
      */
     private void saveApprovedSerialNumbers(
             Employee employee,
             EmployeeRequest request
     ) {
         EmployeeSerialNumber latestRecord =
-                serialNumberRepository
-                        .findTopByEmployee_IdOrderByCreatedAtDesc(
-                                employee.getId()
-                        )
-                        .orElse(null);
+                findLatestSerial(employee.getId());
 
         int currentLocalSerial =
-                latestRecord != null
-                        ? normalizeSerialNumber(
+                latestRecord == null
+                        ? 0
+                        : normalizeSerialNumber(
                         latestRecord.getNewLocalSerial()
-                )
-                        : 0;
+                );
 
         int currentForeignSerial =
-                latestRecord != null
-                        ? normalizeSerialNumber(
+                latestRecord == null
+                        ? 0
+                        : normalizeSerialNumber(
                         latestRecord.getNewForeignSerial()
-                )
-                        : 0;
+                );
 
         int requestedLocalSerial =
                 normalizeSerialNumber(
@@ -1023,9 +1261,7 @@ public class EmployeeRequestService {
         history.setEmployee(employee);
 
         history.setOldLocalSerial(
-                localChanged
-                        ? currentLocalSerial
-                        : 0
+                currentLocalSerial
         );
 
         history.setNewLocalSerial(
@@ -1033,9 +1269,7 @@ public class EmployeeRequestService {
         );
 
         history.setOldForeignSerial(
-                foreignChanged
-                        ? currentForeignSerial
-                        : 0
+                currentForeignSerial
         );
 
         history.setNewForeignSerial(
@@ -1043,6 +1277,20 @@ public class EmployeeRequestService {
         );
 
         serialNumberRepository.save(history);
+    }
+
+    private EmployeeSerialNumber findLatestSerial(
+            Long employeeId
+    ) {
+        if (employeeId == null) {
+            return null;
+        }
+
+        return serialNumberRepository
+                .findTopByEmployee_IdOrderByCreatedAtDesc(
+                        employeeId
+                )
+                .orElse(null);
     }
 
     private void validateEmployeeCodeAvailable(
@@ -1065,7 +1313,8 @@ public class EmployeeRequestService {
             );
         }
 
-        if (requestRepository
+        if (targetEmployeeId == null
+                && requestRepository
                 .existsByEmployeeCodeAndStatusIn(
                         code,
                         PENDING_STATUSES
@@ -1077,11 +1326,6 @@ public class EmployeeRequestService {
         }
     }
 
-    /*
-     * Validates proposed serial values against the approved history table.
-     *
-     * Serial 0 means not assigned and is not subject to uniqueness checks.
-     */
     private void validateRequestedSerialNumbers(
             int localSerial,
             int foreignSerial,
@@ -1157,45 +1401,28 @@ public class EmployeeRequestService {
             Long employeeId,
             int serialNumber
     ) {
-        if (employeeId == null) {
-            return false;
-        }
+        EmployeeSerialNumber latest =
+                findLatestSerial(employeeId);
 
-        return serialNumberRepository
-                .findTopByEmployee_IdOrderByCreatedAtDesc(
-                        employeeId
-                )
-                .map(record ->
-                        normalizeSerialNumber(
-                                record.getNewLocalSerial()
-                        ) == serialNumber
-                )
-                .orElse(false);
+        return latest != null
+                && normalizeSerialNumber(
+                latest.getNewLocalSerial()
+        ) == serialNumber;
     }
 
     private boolean isCurrentForeignSerial(
             Long employeeId,
             int serialNumber
     ) {
-        if (employeeId == null) {
-            return false;
-        }
+        EmployeeSerialNumber latest =
+                findLatestSerial(employeeId);
 
-        return serialNumberRepository
-                .findTopByEmployee_IdOrderByCreatedAtDesc(
-                        employeeId
-                )
-                .map(record ->
-                        normalizeSerialNumber(
-                                record.getNewForeignSerial()
-                        ) == serialNumber
-                )
-                .orElse(false);
+        return latest != null
+                && normalizeSerialNumber(
+                latest.getNewForeignSerial()
+        ) == serialNumber;
     }
 
-    /*
-     * Converts null to 0 and rejects negative numbers.
-     */
     private int normalizeSerialNumber(
             Integer serialNumber
     ) {
@@ -1225,12 +1452,29 @@ public class EmployeeRequestService {
         if (validUntil.isBefore(validFrom)) {
             throw new IllegalArgumentException(
                     "Signature valid-until date must be on or after "
-                            + "the valid-from date."
+                            + "the valid-from date"
             );
         }
     }
 
-    private User requireUser(String username) {
+    private void validateRequiredText(
+            String value,
+            String message
+    ) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(message);
+        }
+    }
+
+    private User requireUser(
+            String username
+    ) {
+        if (username == null || username.isBlank()) {
+            throw new IllegalArgumentException(
+                    "Username is required"
+            );
+        }
+
         return userRepository
                 .findByUsername(username)
                 .orElseThrow(() ->
@@ -1243,6 +1487,11 @@ public class EmployeeRequestService {
     private Designation requireDesignation(
             String name
     ) {
+        validateRequiredText(
+                name,
+                "Designation is required"
+        );
+
         return designationRepository
                 .findByDesignationName(name.trim())
                 .orElseThrow(() ->
@@ -1255,6 +1504,11 @@ public class EmployeeRequestService {
     private Department requireDepartment(
             String name
     ) {
+        validateRequiredText(
+                name,
+                "Department is required"
+        );
+
         return departmentRepository
                 .findByDepartmentName(name.trim())
                 .orElseThrow(() ->
@@ -1267,6 +1521,11 @@ public class EmployeeRequestService {
     private Branch requireBranch(
             String name
     ) {
+        validateRequiredText(
+                name,
+                "Branch is required"
+        );
+
         return branchRepository
                 .findByBranchName(name.trim())
                 .orElseThrow(() ->
@@ -1279,6 +1538,12 @@ public class EmployeeRequestService {
     private Designation requireDesignation(
             Long id
     ) {
+        if (id == null) {
+            throw new IllegalArgumentException(
+                    "Designation is required"
+            );
+        }
+
         return designationRepository
                 .findById(id)
                 .orElseThrow(() ->
@@ -1291,6 +1556,12 @@ public class EmployeeRequestService {
     private Department requireDepartment(
             Long id
     ) {
+        if (id == null) {
+            throw new IllegalArgumentException(
+                    "Department is required"
+            );
+        }
+
         return departmentRepository
                 .findById(id)
                 .orElseThrow(() ->
@@ -1303,6 +1574,12 @@ public class EmployeeRequestService {
     private Branch requireBranch(
             Long id
     ) {
+        if (id == null) {
+            throw new IllegalArgumentException(
+                    "Branch is required"
+            );
+        }
+
         return branchRepository
                 .findById(id)
                 .orElseThrow(() ->
@@ -1317,9 +1594,7 @@ public class EmployeeRequestService {
             String message
     ) {
         if (entity == null) {
-            throw new IllegalArgumentException(
-                    message
-            );
+            throw new IllegalArgumentException(message);
         }
 
         return entity;
@@ -1381,11 +1656,10 @@ public class EmployeeRequestService {
             ApprovalAction action,
             String remark
     ) {
-        if (remark == null || remark.isBlank()) {
-            throw new IllegalArgumentException(
-                    "Remark is required"
-            );
-        }
+        validateRequiredText(
+                remark,
+                "Remark is required"
+        );
 
         ApprovalHistory history =
                 new ApprovalHistory();
@@ -1405,34 +1679,53 @@ public class EmployeeRequestService {
         request.setUpdatedAfterRejection(false);
         request.setUpdateRequestStatus(true);
         request.setCompletedAt(LocalDateTime.now());
+
+        /*
+         * The main proposal service already provides markRejected(...).
+         */
+        changeProposalService.markRejected(
+                request.getChangeProposal()
+        );
     }
 
     private void requireOriginalRequester(
             EmployeeRequest request,
             String username
     ) {
-        if (!request.getRequestedBy()
+        if (request.getRequestedBy() == null
+                || request.getRequestedBy().getUsername() == null
+                || username == null
+                || !request.getRequestedBy()
                 .getUsername()
-                .equals(username)) {
+                .equalsIgnoreCase(username)) {
 
-            throw new IllegalArgumentException(
+            throw new AccessDeniedException(
                     "You are not authorized to update this request"
             );
         }
     }
 
     private void validateOptionalSignatureDates(
-            MultipartFile local,
-            MultipartFile foreign,
-            LocalDate from,
-            LocalDate until
+            MultipartFile localSignature,
+            MultipartFile foreignSignature,
+            LocalDate validFrom,
+            LocalDate validUntil
     ) {
         boolean hasSignature =
-                (local != null && !local.isEmpty())
-                        || (foreign != null && !foreign.isEmpty());
+                (localSignature != null
+                        && !localSignature.isEmpty())
+                        || (foreignSignature != null
+                        && !foreignSignature.isEmpty());
 
-        if (hasSignature || from != null || until != null) {
-            validateDates(from, until);
+        boolean hasAnyDate =
+                validFrom != null
+                        || validUntil != null;
+
+        if (hasSignature || hasAnyDate) {
+            validateDates(
+                    validFrom,
+                    validUntil
+            );
         }
     }
 
@@ -1444,16 +1737,16 @@ public class EmployeeRequestService {
         }
     }
 
-    private void requirePdOrAdmin(
+    private void requireMakerOrAdmin(
             String username
     ) {
         if (!accessControl.hasAnyRole(
                 username,
-                "PD",
+                "MAKER",
                 "ADMIN"
         )) {
             throw new AccessDeniedException(
-                    "Only PD or System Admin may submit employee requests"
+                    "Only Maker or System Admin may submit employee requests"
             );
         }
     }
@@ -1469,32 +1762,74 @@ public class EmployeeRequestService {
         )) {
             throw new AccessDeniedException(
                     "This approval requires the "
-                            + role
+                            + roleLabel(role)
                             + " role"
             );
         }
     }
 
+    private String roleLabel(
+            String role
+    ) {
+        return switch (role) {
+            case "MAKER" -> "Maker";
+            case "LEVEL_1_CHECKER" -> "Level 1 Checker";
+            case "LEVEL_2_CHECKER" -> "Level 2 Checker";
+            default -> role;
+        };
+    }
+
     /*
-     * Applies employee details only.
+     * Applies approved employee details.
      *
-     * Signature serial values are not stored in Employee.
+     * Serial numbers are intentionally excluded because they are stored
+     * in EmployeeSerialNumber.
      */
     private void applyApprovedRequest(
             Employee employee,
             EmployeeRequest request
     ) {
         employee.setActive(true);
-        employee.setEmployeeNumber(request.getEmployeeCode());
-        employee.setFullName(request.getEmployeeName());
-        employee.setDesignation(request.getDesignation());
-        employee.setDepartment(request.getDepartment());
-        employee.setBranch(request.getBranch());
-        employee.setEmployeeStatus(request.getEmployeeStatus());
-        employee.setClassification(request.getClassification());
-        employee.setJoiningDate(request.getJoiningDate());
-        employee.setPhotoPath(request.getPhotoPath());
-        employee.setSignaturePath(request.getSignaturePath());
+
+        employee.setEmployeeNumber(
+                request.getEmployeeCode()
+        );
+
+        employee.setFullName(
+                request.getEmployeeName()
+        );
+
+        employee.setDesignation(
+                request.getDesignation()
+        );
+
+        employee.setDepartment(
+                request.getDepartment()
+        );
+
+        employee.setBranch(
+                request.getBranch()
+        );
+
+        employee.setEmployeeStatus(
+                request.getEmployeeStatus()
+        );
+
+        employee.setClassification(
+                request.getClassification()
+        );
+
+        employee.setJoiningDate(
+                request.getJoiningDate()
+        );
+
+        employee.setPhotoPath(
+                request.getPhotoPath()
+        );
+
+        employee.setSignaturePath(
+                request.getSignaturePath()
+        );
 
         employee.setForeignSignaturePath(
                 request.getForeignSignaturePath()
@@ -1554,29 +1889,21 @@ public class EmployeeRequestService {
                         employee.getId()
                 );
 
-        String foreignSignaturePath = null;
-
-        if (request.getForeignSignaturePath() != null
-                && !request.getForeignSignaturePath().isBlank()) {
-
-            foreignSignaturePath =
-                    fileStorageService.organizeEmployeeImage(
-                            request.getForeignSignaturePath(),
-                            "foreign-signature",
-                            employee.getId()
-                    );
-        }
+        String foreignSignaturePath =
+                organizeOptional(
+                        request.getForeignSignaturePath(),
+                        "foreign-signature",
+                        employee.getId()
+                );
 
         employee.setPhotoPath(photoPath);
         employee.setSignaturePath(signaturePath);
-
         employee.setForeignSignaturePath(
                 foreignSignaturePath
         );
 
         request.setPhotoPath(photoPath);
         request.setSignaturePath(signaturePath);
-
         request.setForeignSignaturePath(
                 foreignSignaturePath
         );
@@ -1587,9 +1914,11 @@ public class EmployeeRequestService {
             String type,
             Long employeeId
     ) {
-        return path == null || path.isBlank()
-                ? null
-                : fileStorageService.organizeEmployeeImage(
+        if (path == null || path.isBlank()) {
+            return null;
+        }
+
+        return fileStorageService.organizeEmployeeImage(
                 path,
                 type,
                 employeeId
@@ -1606,11 +1935,20 @@ public class EmployeeRequestService {
         version.setEmployee(employee);
         version.setRequest(request);
 
-        version.setVersionNumber(
-                (int) mediaVersionRepository
+        long existingVersionCount =
+                mediaVersionRepository
                         .countByEmployeeId(
                                 employee.getId()
-                        ) + 1
+                        );
+
+        if (existingVersionCount >= Integer.MAX_VALUE) {
+            throw new IllegalStateException(
+                    "Maximum employee media version count reached"
+            );
+        }
+
+        version.setVersionNumber(
+                (int) existingVersionCount + 1
         );
 
         version.setPhotoPath(
@@ -1626,5 +1964,26 @@ public class EmployeeRequestService {
         );
 
         mediaVersionRepository.save(version);
+    }
+
+    private String safeJustification(
+            EmployeeChangeProposal proposal
+    ) {
+        if (proposal == null
+                || proposal.getJustification() == null
+                || proposal.getJustification().isBlank()) {
+
+            return "No justification provided";
+        }
+
+        return proposal
+                .getJustification()
+                .trim();
+    }
+
+    private int normalizePage(
+            int page
+    ) {
+        return Math.max(page, 0);
     }
 }

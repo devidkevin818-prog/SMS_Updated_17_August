@@ -14,23 +14,40 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 @Configuration
 @EnableMethodSecurity
 public class SecurityConfig {
-    @Bean
-    public PasswordEncoder passwordEncoder() { return new BCryptPasswordEncoder(); }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http,
-                                                   RoleLoginSuccessHandler successHandler,
-                                                   AuditedLoginFailureHandler failureHandler,
-                                                   AuditedLogoutSuccessHandler logoutSuccessHandler) throws Exception {
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            RoleLoginSuccessHandler successHandler,
+            AuditedLoginFailureHandler failureHandler,
+            AuditedLogoutSuccessHandler logoutSuccessHandler) throws Exception {
+
         http.authorizeHttpRequests(requests -> requests
                         .requestMatchers("/login", "/css/**", "/js/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/pd/**").hasAnyRole("PD", "ADMIN")
-                        .requestMatchers("/dgm/**").hasAnyRole("DGM", "ADMIN")
-                        .requestMatchers("/gm/**").hasAnyRole("GM", "ADMIN")
+                        .requestMatchers("/pd/**").hasAnyRole("MAKER", "ADMIN")
+                        .requestMatchers("/dgm/**").hasAnyRole("LEVEL_1_CHECKER", "ADMIN")
+                        .requestMatchers("/gm/**").hasAnyRole("LEVEL_2_CHECKER", "ADMIN")
                         .requestMatchers("/branch/**").hasAnyRole("BRANCH", "ADMIN")
-                        .requestMatchers("/audit/dashboard", "/audit/trail", "/audit/report.csv", "/audit/reports/**").hasAnyRole("AUDIT", "ADMIN")
-                        .requestMatchers("/media/**", "/books/**").hasAnyRole("ADMIN", "PD", "DGM", "GM", "BRANCH", "AUDIT")
+                        .requestMatchers(
+                                "/audit/dashboard",
+                                "/audit/trail",
+                                "/audit/report.csv",
+                                "/audit/reports/**"
+                        ).hasAnyRole("AUDIT", "ADMIN")
+                        .requestMatchers("/media/**", "/books/**").hasAnyRole(
+                                "ADMIN",
+                                "MAKER",
+                                "LEVEL_1_CHECKER",
+                                "LEVEL_2_CHECKER",
+                                "BRANCH",
+                                "AUDIT"
+                        )
                         .requestMatchers("/uploads/**").denyAll()
                         .anyRequest().authenticated())
                 .formLogin(login -> login
@@ -38,7 +55,10 @@ public class SecurityConfig {
                         .successHandler(successHandler)
                         .failureHandler(failureHandler)
                         .permitAll())
-                .logout(logout -> logout.logoutSuccessHandler(logoutSuccessHandler).permitAll());
+                .logout(logout -> logout
+                        .logoutSuccessHandler(logoutSuccessHandler)
+                        .permitAll());
+
         return http.build();
     }
 }

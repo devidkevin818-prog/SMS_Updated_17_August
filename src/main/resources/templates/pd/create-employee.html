@@ -1,13 +1,17 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org">
 
-<head th:replace="~{fragments/head :: head('Create Employee')}"></head>
+<head th:replace="~{fragments/head :: head('Create Employee')}">
+</head>
 
 <body>
 
-<header th:replace="~{fragments/navbar :: navbar('PD')}"></header>
+<header th:replace="~{fragments/navbar :: navbar('MAKER')}">
+</header>
 
-<aside th:replace="~{fragments/sidebar :: sidebar('PD','create')}"></aside>
+<aside th:replace="~{fragments/sidebar :: sidebar('MAKER', 'create')}">
+</aside>
 
 <main class="app-main">
     <div class="content-wrap">
@@ -615,7 +619,7 @@
                         type="submit">
 
                     <i class="bi bi-send-check-fill me-2"></i>
-                    Submit to DGM
+                    Submit to Level 1 Checker
 
                 </button>
 
@@ -626,9 +630,11 @@
     </div>
 </main>
 
-<footer th:replace="~{fragments/layout :: footer}"></footer>
+<footer th:replace="~{fragments/layout :: footer}">
+</footer>
 
-<div th:replace="~{fragments/layout :: scripts}"></div>
+<div th:replace="~{fragments/layout :: scripts}">
+</div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {

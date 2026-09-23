@@ -1,13 +1,17 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org">
 
-<head th:replace="~{fragments/head :: head('Update Employee')}"></head>
+<head th:replace="~{fragments/head :: head('Update Employee')}">
+</head>
 
 <body>
 
-<header th:replace="~{fragments/navbar :: navbar('PD')}"></header>
+<header th:replace="~{fragments/navbar :: navbar('MAKER')}">
+</header>
 
-<aside th:replace="~{fragments/sidebar :: sidebar('PD','update')}"></aside>
+<aside th:replace="~{fragments/sidebar :: sidebar('MAKER', 'update')}">
+</aside>
 
 <main class="app-main">
 
@@ -33,7 +37,8 @@
 
         </div>
 
-        <div th:replace="~{fragments/layout :: messages}"></div>
+        <div th:replace="~{fragments/layout :: messages}">
+        </div>
 
         <section class="search-panel">
 
@@ -173,9 +178,11 @@
 
 </main>
 
-<footer th:replace="~{fragments/layout :: footer}"></footer>
+<footer th:replace="~{fragments/layout :: footer}">
+</footer>
 
-<div th:replace="~{fragments/layout :: scripts}"></div>
+<div th:replace="~{fragments/layout :: scripts}">
+</div>
 
 </body>
 

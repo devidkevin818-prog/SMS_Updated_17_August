@@ -1,13 +1,28 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/head :: head('DGM Request Review')}"></head>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/head :: head('Level 1 Checker Request Review')}">
+</head>
+
 <body>
-<header th:replace="~{fragments/navbar :: navbar('DGM')}"></header>
-<aside th:replace="~{fragments/sidebar :: sidebar('DGM','approval')}"></aside>
+
+<header th:replace="~{fragments/navbar :: navbar('LEVEL_1_CHECKER')}">
+</header>
+
+<aside th:replace="~{fragments/sidebar :: sidebar('LEVEL_1_CHECKER', 'approval')}">
+</aside>
+
 <main class="app-main">
-    <section th:replace="~{fragments/request-review :: review(${request}, '/dgm')}"></section>
+    <section th:replace="~{fragments/request-review :: review(${request}, '/dgm')}">
+    </section>
 </main>
-<footer th:replace="~{fragments/layout :: footer}"></footer>
-<div th:replace="~{fragments/layout :: scripts}"></div>
+
+<footer th:replace="~{fragments/layout :: footer}">
+</footer>
+
+<div th:replace="~{fragments/layout :: scripts}">
+</div>
+
 </body>
 </html>

@@ -1,30 +1,31 @@
 package com.bank.signaturemanagement.service;
 
+import com.bank.signaturemanagement.dto.AdminPasswordResetForm;
 import com.bank.signaturemanagement.dto.UserForm;
 import com.bank.signaturemanagement.dto.UserUpdateForm;
-import com.bank.signaturemanagement.dto.AdminPasswordResetForm;
 import com.bank.signaturemanagement.entity.Branch;
 import com.bank.signaturemanagement.entity.Role;
 import com.bank.signaturemanagement.entity.User;
 import com.bank.signaturemanagement.repository.BranchRepository;
 import com.bank.signaturemanagement.repository.RoleRepository;
 import com.bank.signaturemanagement.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Set;
-import java.util.Map;
-import java.util.stream.Collectors;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
+
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
@@ -33,26 +34,52 @@ public class UserService {
     private final EmployeeNumberPolicyService employeeNumberPolicy;
 
     public List<Branch> getBranches() {
-        return branchRepository.findByActiveTrueOrderByBranchNameAsc();
+        return branchRepository
+                .findByActiveTrueOrderByBranchNameAsc();
     }
 
-    public UserService(UserRepository userRepository, RoleRepository roleRepository,
-                       PasswordEncoder passwordEncoder, BranchRepository branchRepository) {
-        this(userRepository, roleRepository, passwordEncoder, branchRepository,
-                new SecureTemporaryPasswordGenerator(), null);
+    public UserService(
+            UserRepository userRepository,
+            RoleRepository roleRepository,
+            PasswordEncoder passwordEncoder,
+            BranchRepository branchRepository
+    ) {
+        this(
+                userRepository,
+                roleRepository,
+                passwordEncoder,
+                branchRepository,
+                new SecureTemporaryPasswordGenerator(),
+                null
+        );
     }
 
-    public UserService(UserRepository userRepository, RoleRepository roleRepository,
-                       PasswordEncoder passwordEncoder, BranchRepository branchRepository,
-                       SecureTemporaryPasswordGenerator temporaryPasswordGenerator) {
-        this(userRepository, roleRepository, passwordEncoder, branchRepository, temporaryPasswordGenerator, null);
+    public UserService(
+            UserRepository userRepository,
+            RoleRepository roleRepository,
+            PasswordEncoder passwordEncoder,
+            BranchRepository branchRepository,
+            SecureTemporaryPasswordGenerator temporaryPasswordGenerator
+    ) {
+        this(
+                userRepository,
+                roleRepository,
+                passwordEncoder,
+                branchRepository,
+                temporaryPasswordGenerator,
+                null
+        );
     }
 
     @Autowired
-    public UserService(UserRepository userRepository, RoleRepository roleRepository,
-                       PasswordEncoder passwordEncoder, BranchRepository branchRepository,
-                       SecureTemporaryPasswordGenerator temporaryPasswordGenerator,
-                       EmployeeNumberPolicyService employeeNumberPolicy) {
+    public UserService(
+            UserRepository userRepository,
+            RoleRepository roleRepository,
+            PasswordEncoder passwordEncoder,
+            BranchRepository branchRepository,
+            SecureTemporaryPasswordGenerator temporaryPasswordGenerator,
+            EmployeeNumberPolicyService employeeNumberPolicy
+    ) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
@@ -63,66 +90,149 @@ public class UserService {
 
     @Transactional
     public void createUser(UserForm form) {
-        String username = form.getUsername().trim();
-        String email = form.getEmail().trim();
-        Long branchId = form.getBranchId();
-        String employeeNumber = normalizeEmployeeNumber(form.getEmployeeNumber());
-        if (userRepository.existsByUsername(username)) throw new IllegalArgumentException("Username already exists");
-        if (userRepository.existsByEmail(email)) throw new IllegalArgumentException("Email already exists");
-        if (userRepository.existsByEmployeeNumber(employeeNumber)) {
-            throw new IllegalArgumentException("Employee ID already belongs to another user");
+        String username =
+                form.getUsername().trim();
+
+        String email =
+                form.getEmail().trim();
+
+        Long branchId =
+                form.getBranchId();
+
+        String employeeNumber =
+                normalizeEmployeeNumber(
+                        form.getEmployeeNumber()
+                );
+
+        if (userRepository.existsByUsername(username)) {
+            throw new IllegalArgumentException(
+                    "Username already exists"
+            );
         }
-        Role role = roleRepository.findByName(form.getRoleName())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid role"));
+
+        if (userRepository.existsByEmail(email)) {
+            throw new IllegalArgumentException(
+                    "Email already exists"
+            );
+        }
+
+        if (userRepository.existsByEmployeeNumber(employeeNumber)) {
+            throw new IllegalArgumentException(
+                    "Employee ID already belongs to another user"
+            );
+        }
+
+        Role role = roleRepository
+                .findByName(form.getRoleName())
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "Invalid role"
+                        )
+                );
+
         User user = new User();
+
         user.setUsername(username);
-        user.setPasswordHash(passwordEncoder.encode(form.getPassword()));
-        user.setFullName(form.getFullName().trim());
+
+        user.setPasswordHash(
+                passwordEncoder.encode(
+                        form.getPassword()
+                )
+        );
+
+        user.setFullName(
+                form.getFullName().trim()
+        );
+
         user.setEmployeeNumber(employeeNumber);
         user.setEmail(email);
         user.setBranchId(branchId);
         user.setRole(role);
+
         try {
-            // Flush here so a database constraint error can be shown on the form
-            // instead of surfacing after this method as a white error page.
+            /*
+             * Flush here so a database constraint error can be shown
+             * on the form instead of surfacing after this method as
+             * a white error page.
+             */
             userRepository.saveAndFlush(user);
+
         } catch (DataIntegrityViolationException exception) {
-            throw new IllegalArgumentException("Username, email, or employee ID already exists, or the user data is too long", exception);
+            throw new IllegalArgumentException(
+                    "Username, email, or employee ID already exists, "
+                            + "or the user data is too long",
+                    exception
+            );
         }
     }
 
     @Transactional(readOnly = true)
-    public Page<User> getUsers(int page) { return userRepository.findAll(PageRequest.of(page, 20)); }
-
-    @Transactional(readOnly = true)
-    public Page<User> searchUsers(String query, String role, Long branchId, Boolean active, int page) {
-        int safePage = Math.max(page, 0);
-        return userRepository.search(normalizeFilter(query), normalizeFilter(role),
-                branchId, active,
-                PageRequest.of(safePage, 20));
+    public Page<User> getUsers(int page) {
+        return userRepository.findAll(
+                PageRequest.of(page, 20)
+        );
     }
 
     @Transactional(readOnly = true)
-    public long getTotalUserCount() { return userRepository.count(); }
+    public Page<User> searchUsers(
+            String query,
+            String role,
+            Long branchId,
+            Boolean active,
+            int page
+    ) {
+        int safePage =
+                Math.max(page, 0);
+
+        return userRepository.search(
+                normalizeFilter(query),
+                normalizeFilter(role),
+                branchId,
+                active,
+                PageRequest.of(safePage, 20)
+        );
+    }
 
     @Transactional(readOnly = true)
-    public long getActiveUserCount() { return userRepository.countByActiveTrue(); }
+    public long getTotalUserCount() {
+        return userRepository.count();
+    }
 
     @Transactional(readOnly = true)
-    public long getInactiveUserCount() { return userRepository.countByActiveFalse(); }
+    public long getActiveUserCount() {
+        return userRepository.countByActiveTrue();
+    }
+
+    @Transactional(readOnly = true)
+    public long getInactiveUserCount() {
+        return userRepository.countByActiveFalse();
+    }
 
     @Transactional(readOnly = true)
     public Map<String, String> getBranchNamesById() {
-        return getBranches().stream().collect(Collectors.toMap(
-                branch -> branch.getBranchId().toString(), Branch::getBranchName));
+        return getBranches()
+                .stream()
+                .collect(
+                        Collectors.toMap(
+                                branch ->
+                                        branch.getBranchId().toString(),
+                                Branch::getBranchName
+                        )
+                );
     }
 
     @Transactional(readOnly = true)
     public String getBranchName(Long branchId) {
-        if (branchId == null) return "Not assigned";
+        if (branchId == null) {
+            return "Not assigned";
+        }
+
         try {
-            return branchRepository.findById(branchId)
-                    .map(Branch::getBranchName).orElse("Not assigned");
+            return branchRepository
+                    .findById(branchId)
+                    .map(Branch::getBranchName)
+                    .orElse("Not assigned");
+
         } catch (NumberFormatException exception) {
             return "Not assigned";
         }
@@ -134,137 +244,372 @@ public class UserService {
 
     @Transactional
     public void recordSuccessfulLogin(String username) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
-        user.setLastLoginAt(LocalDateTime.now());
+        User user = userRepository
+                .findByUsername(username)
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "User not found"
+                        )
+                );
+
+        user.setLastLoginAt(
+                LocalDateTime.now()
+        );
     }
 
     @Transactional(readOnly = true)
     public Set<String> getDuplicateEmployeeNumbers() {
-        return userRepository.findDuplicateEmployeeNumbers().stream()
-                .map(String::toUpperCase).collect(Collectors.toSet());
+        return userRepository
+                .findDuplicateEmployeeNumbers()
+                .stream()
+                .map(String::toUpperCase)
+                .collect(Collectors.toSet());
     }
 
     @Transactional
     public void toggleActive(Long id) {
-        User user = userRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("User not found"));
-        user.setActive(!user.isActive());
+        User user = userRepository
+                .findById(id)
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "User not found"
+                        )
+                );
+
+        user.setActive(
+                !user.isActive()
+        );
     }
 
     @Transactional(readOnly = true)
-    public List<Role> getRoles() { return roleRepository.findAll(); }
+    public List<Role> getRoles() {
+        return roleRepository.findAll();
+    }
 
     @Transactional(readOnly = true)
     public User getUser(Long id) {
-        return userRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("User not found"));
+        return userRepository
+                .findById(id)
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "User not found"
+                        )
+                );
     }
 
     @Transactional(readOnly = true)
     public UserUpdateForm getUpdateForm(Long id) {
-        User user = getUser(id);
-        UserUpdateForm form = new UserUpdateForm();
-        form.setFullName(user.getFullName());
-        form.setEmployeeNumber(EmployeeNumberFormat.editablePart(user.getEmployeeNumber()));
-        form.setBranchId(user.getBranchId());
-        form.setEmail(user.getEmail());
-        form.setRoleName(user.getRole().getName());
-        form.setActive(user.isActive());
-        form.setSignatureScope(user.getSignatureScope());
+        User user =
+                getUser(id);
+
+        UserUpdateForm form =
+                new UserUpdateForm();
+
+        form.setFullName(
+                user.getFullName()
+        );
+
+        form.setEmployeeNumber(
+                EmployeeNumberFormat.editablePart(
+                        user.getEmployeeNumber()
+                )
+        );
+
+        form.setBranchId(
+                user.getBranchId()
+        );
+
+        form.setEmail(
+                user.getEmail()
+        );
+
+        form.setRoleName(
+                user.getRole().getName()
+        );
+
+        form.setActive(
+                user.isActive()
+        );
+
+        form.setSignatureScope(
+                user.getSignatureScope()
+        );
+
         return form;
     }
 
     @Transactional
-    public void updateUser(Long id, UserUpdateForm form) {
-        updateUser(id, form, null);
+    public void updateUser(
+            Long id,
+            UserUpdateForm form
+    ) {
+        updateUser(
+                id,
+                form,
+                null
+        );
     }
 
     @Transactional
-    public void updateUser(Long id, UserUpdateForm form, String requestingUsername) {
-        User user = userRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("User not found"));
-        String email = form.getEmail().trim();
-        String employeeNumber = normalizeOptionalEmployeeNumber(form.getEmployeeNumber());
-        if (userRepository.existsByEmailAndIdNot(email, id)) throw new IllegalArgumentException("Email already exists");
-        if (employeeNumber != null && userRepository.existsByEmployeeNumberAndIdNot(employeeNumber, id)) {
-            throw new IllegalArgumentException("Employee ID already belongs to another user");
+    public void updateUser(
+            Long id,
+            UserUpdateForm form,
+            String requestingUsername
+    ) {
+        User user = userRepository
+                .findById(id)
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "User not found"
+                        )
+                );
+
+        String email =
+                form.getEmail().trim();
+
+        String employeeNumber =
+                normalizeOptionalEmployeeNumber(
+                        form.getEmployeeNumber()
+                );
+
+        if (userRepository.existsByEmailAndIdNot(
+                email,
+                id
+        )) {
+            throw new IllegalArgumentException(
+                    "Email already exists"
+            );
         }
-        if (form.getPassword() != null && !form.getPassword().isBlank() && form.getPassword().length() < 8) {
-            throw new IllegalArgumentException("New password must contain at least 8 characters");
+
+        if (employeeNumber != null
+                && userRepository
+                .existsByEmployeeNumberAndIdNot(
+                        employeeNumber,
+                        id
+                )) {
+
+            throw new IllegalArgumentException(
+                    "Employee ID already belongs to another user"
+            );
         }
-        Role role = roleRepository.findByName(form.getRoleName())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid role"));
+
+        if (form.getPassword() != null
+                && !form.getPassword().isBlank()
+                && form.getPassword().length() < 8) {
+
+            throw new IllegalArgumentException(
+                    "New password must contain at least 8 characters"
+            );
+        }
+
+        Role role = roleRepository
+                .findByName(form.getRoleName())
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "Invalid role"
+                        )
+                );
+
         if (requestingUsername != null) {
-            User actor=userRepository.findByUsername(requestingUsername).orElseThrow(() -> new IllegalArgumentException("Requesting user not found"));
-            if (actor.getId().equals(user.getId()) && "PD".equals(actor.getRole().getName()) && !role.getName().equals(user.getRole().getName())) {
-                throw new IllegalArgumentException("PD users cannot change their own role");
+            User actor = userRepository
+                    .findByUsername(requestingUsername)
+                    .orElseThrow(() ->
+                            new IllegalArgumentException(
+                                    "Requesting user not found"
+                            )
+                    );
+
+            if (actor.getId().equals(user.getId())
+                    && "MAKER".equals(
+                    actor.getRole().getName()
+            )
+                    && !role.getName().equals(
+                    user.getRole().getName()
+            )) {
+
+                throw new IllegalArgumentException(
+                        "Maker users cannot change their own role"
+                );
             }
         }
-        if ("ADMIN".equals(user.getRole().getName()) && !"ADMIN".equals(role.getName())
-                && userRepository.countByRoleNameAndActiveTrueAndIdNot("ADMIN",id)==0) {
-            throw new IllegalArgumentException("The final active administrator cannot be downgraded");
+
+        if ("ADMIN".equals(
+                user.getRole().getName()
+        )
+                && !"ADMIN".equals(role.getName())
+                && userRepository
+                .countByRoleNameAndActiveTrueAndIdNot(
+                        "ADMIN",
+                        id
+                ) == 0) {
+
+            throw new IllegalArgumentException(
+                    "The final active administrator cannot be downgraded"
+            );
         }
-        user.setFullName(form.getFullName().trim());
-        user.setEmployeeNumber(employeeNumber);
-        user.setBranchId(form.getBranchId());
+
+        user.setFullName(
+                form.getFullName().trim()
+        );
+
+        user.setEmployeeNumber(
+                employeeNumber
+        );
+
+        user.setBranchId(
+                form.getBranchId()
+        );
+
         user.setEmail(email);
         user.setRole(role);
         user.setActive(form.isActive());
-        user.setSignatureScope(form.getSignatureScope());
-        user.setDeactivatedAt(form.isActive()?null:LocalDateTime.now());
-        if (form.getPassword() != null && !form.getPassword().isBlank()) {
-            user.setPasswordHash(passwordEncoder.encode(form.getPassword()));
+
+        user.setSignatureScope(
+                form.getSignatureScope()
+        );
+
+        user.setDeactivatedAt(
+                form.isActive()
+                        ? null
+                        : LocalDateTime.now()
+        );
+
+        if (form.getPassword() != null
+                && !form.getPassword().isBlank()) {
+
+            user.setPasswordHash(
+                    passwordEncoder.encode(
+                            form.getPassword()
+                    )
+            );
         }
     }
 
     @Transactional
-    public void resetPassword(Long id, AdminPasswordResetForm form) {
+    public void resetPassword(
+            Long id,
+            AdminPasswordResetForm form
+    ) {
         form.setResetMethod("manual");
         form.setRequirePasswordChange(true);
-        resetPasswordSecure(id, form);
+
+        resetPasswordSecure(
+                id,
+                form
+        );
     }
 
     @Transactional
-    public String resetPasswordSecure(Long id, AdminPasswordResetForm form) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+    public String resetPasswordSecure(
+            Long id,
+            AdminPasswordResetForm form
+    ) {
+        User user = userRepository
+                .findById(id)
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "User not found"
+                        )
+                );
+
         String password;
+
         if ("generate".equals(form.getResetMethod())) {
-            password = form.getGeneratedPassword();
-            if (password == null || password.isBlank()) password = temporaryPasswordGenerator.generate();
+            password =
+                    form.getGeneratedPassword();
+
+            if (password == null || password.isBlank()) {
+                password =
+                        temporaryPasswordGenerator.generate();
+            }
+
         } else if ("manual".equals(form.getResetMethod())) {
-            password = form.getNewPassword();
+            password =
+                    form.getNewPassword();
+
             if (password == null || password.length() < 8) {
-                throw new IllegalArgumentException("Password must contain at least 8 characters");
+                throw new IllegalArgumentException(
+                        "Password must contain at least 8 characters"
+                );
             }
-            if (!password.equals(form.getConfirmPassword())) {
-                throw new IllegalArgumentException("Temporary password and confirmation do not match");
+
+            if (!password.equals(
+                    form.getConfirmPassword()
+            )) {
+                throw new IllegalArgumentException(
+                        "Temporary password and confirmation do not match"
+                );
             }
+
         } else {
-            throw new IllegalArgumentException("Select a valid reset method");
+            throw new IllegalArgumentException(
+                    "Select a valid reset method"
+            );
         }
-        if (password.length() < 8) throw new IllegalArgumentException("Password must contain at least 8 characters");
-        if (passwordEncoder.matches(password, user.getPasswordHash())) {
-            throw new IllegalArgumentException("Temporary password must be different from the current password");
+
+        if (password.length() < 8) {
+            throw new IllegalArgumentException(
+                    "Password must contain at least 8 characters"
+            );
         }
-        user.setPasswordHash(passwordEncoder.encode(password));
-        user.setMustChangePassword(form.isRequirePasswordChange());
+
+        if (passwordEncoder.matches(
+                password,
+                user.getPasswordHash()
+        )) {
+            throw new IllegalArgumentException(
+                    "Temporary password must be different "
+                            + "from the current password"
+            );
+        }
+
+        user.setPasswordHash(
+                passwordEncoder.encode(password)
+        );
+
+        user.setMustChangePassword(
+                form.isRequirePasswordChange()
+        );
+
         return password;
     }
 
-    private String normalizeEmployeeNumber(String employeeNumber) {
-        if (employeeNumber == null || employeeNumber.isBlank()) {
-            throw new IllegalArgumentException("Employee ID is required");
+    private String normalizeEmployeeNumber(
+            String employeeNumber
+    ) {
+        if (employeeNumber == null
+                || employeeNumber.isBlank()) {
+
+            throw new IllegalArgumentException(
+                    "Employee ID is required"
+            );
         }
+
         return employeeNumberPolicy == null
-                ? EmployeeNumberFormat.normalize(employeeNumber)
-                : employeeNumberPolicy.normalize(employeeNumber);
+                ? EmployeeNumberFormat.normalize(
+                employeeNumber
+        )
+                : employeeNumberPolicy.normalize(
+                employeeNumber
+        );
     }
 
-    private String normalizeOptionalEmployeeNumber(String employeeNumber) {
-        return employeeNumber == null || employeeNumber.isBlank()
-                ? null : normalizeEmployeeNumber(employeeNumber);
+    private String normalizeOptionalEmployeeNumber(
+            String employeeNumber
+    ) {
+        return employeeNumber == null
+                || employeeNumber.isBlank()
+                ? null
+                : normalizeEmployeeNumber(
+                employeeNumber
+        );
     }
 
-    private String normalizeFilter(String value) {
-        return value == null ? "" : value.trim();
+    private String normalizeFilter(
+            String value
+    ) {
+        return value == null
+                ? ""
+                : value.trim();
     }
 }

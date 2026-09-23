@@ -85,7 +85,7 @@ public class DgmController {
                 "dashboard",
                 dashboardService.getDashboardData(
                         authentication.getName(),
-                        "DGM"
+                        "LEVEL_1_CHECKER"
                 )
         );
 
@@ -99,22 +99,22 @@ public class DgmController {
 
         model.addAttribute(
                 "userRequests",
-                userApprovalService.pending("DGM")
+                userApprovalService.pending("LEVEL_1_CHECKER")
         );
 
         model.addAttribute(
                 "batchRequests",
-                batchImportService.pending("DGM")
+                batchImportService.pending("LEVEL_1_CHECKER")
         );
 
         model.addAttribute(
                 "signatureRequests",
-                signatureWorkflowService.pending("DGM")
+                signatureWorkflowService.pending("LEVEL_1_CHECKER")
         );
 
         model.addAttribute(
                 "mediaRequests",
-                mediaRequestService.pending("DGM")
+                mediaRequestService.pending("LEVEL_1_CHECKER")
         );
 
         return "dgm/dashboard";
@@ -131,7 +131,7 @@ public class DgmController {
         try {
             batchImportService.decide(
                     id,
-                    "DGM",
+                    "LEVEL_1_CHECKER",
                     action,
                     comment,
                     authentication.getName()
@@ -173,7 +173,7 @@ public class DgmController {
 
         model.addAttribute(
                 "pageRole",
-                "DGM"
+                "LEVEL_1_CHECKER"
         );
 
         model.addAttribute(
@@ -195,7 +195,7 @@ public class DgmController {
         try {
             userApprovalService.decide(
                     id,
-                    "DGM",
+                    "LEVEL_1_CHECKER",
                     action,
                     comment,
                     authentication.getName()
@@ -269,7 +269,7 @@ public class DgmController {
 
             redirectAttributes.addFlashAttribute(
                     "success",
-                    "DGM decision saved"
+                    "Level 1 Checker decision saved"
             );
 
             return "redirect:/dgm/dashboard";
@@ -293,7 +293,7 @@ public class DgmController {
                 "approvals",
                 approvalHistoryService.getDecisions(
                         authentication.getName(),
-                        "DGM",
+                        "LEVEL_1_CHECKER",
                         page
                 )
         );
