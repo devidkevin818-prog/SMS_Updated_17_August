@@ -131,7 +131,7 @@ public class PdController {
 
             redirectAttributes.addFlashAttribute(
                     "success",
-                    "User request submitted for DGM approval"
+                    "User request submitted for Level 1 Checker approval"
             );
 
             return "redirect:/pd/dashboard";
@@ -166,7 +166,7 @@ public class PdController {
 
         model.addAttribute(
                 "creatorRole",
-                "PD"
+                "MAKER"
         );
 
         model.addAttribute(
@@ -193,7 +193,7 @@ public class PdController {
                 "dashboard",
                 dashboardService.getDashboardData(
                         authentication.getName(),
-                        "PD"
+                        "MAKER"
                 )
         );
 
@@ -318,7 +318,7 @@ public class PdController {
 
             redirectAttributes.addFlashAttribute(
                     "success",
-                    "Employee request submitted to DGM"
+                    "Employee request submitted to Level 1 Checker"
             );
 
             return "redirect:/pd/requests";
@@ -477,11 +477,12 @@ public class PdController {
     ) {
         /*
          * Enable this requirement if edits must always originate from
-         * a DGM or GM change proposal.
+         * a Level 1 Checker or Level 2 Checker change proposal.
          *
          * if (proposalId == null) {
          *     throw new IllegalStateException(
-         *             "DGM or GM must initiate this employee update first"
+         *             "Level 1 Checker or Level 2 Checker must initiate "
+         *                     + "this employee update first"
          *     );
          * }
          *
@@ -629,7 +630,7 @@ public class PdController {
 
             redirectAttributes.addFlashAttribute(
                     "success",
-                    "Employee update submitted to DGM for approval"
+                    "Employee update submitted to Level 1 Checker for approval"
             );
 
             return "redirect:/pd/requests";
@@ -787,7 +788,7 @@ public class PdController {
 
             redirectAttributes.addFlashAttribute(
                     "success",
-                    "Rejected request updated and resubmitted to DGM"
+                    "Rejected request updated and resubmitted to Level 1 Checker"
             );
 
             return "redirect:/pd/requests";

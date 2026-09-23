@@ -4,7 +4,6 @@ import com.bank.signaturemanagement.entity.Role;
 import com.bank.signaturemanagement.entity.User;
 import com.bank.signaturemanagement.repository.RoleRepository;
 import com.bank.signaturemanagement.repository.UserRepository;
-import jakarta.validation.constraints.Null;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
@@ -15,40 +14,67 @@ import java.util.Map;
 
 @Configuration
 public class InitialDataConfig {
+
     @Bean
-    CommandLineRunner initializeRolesAndAdmin(RoleRepository roleRepository, UserRepository userRepository,
-                                               PasswordEncoder encoder,
-                                               @Value("${app.initial-admin-password}") String adminPassword,
-                                               @Value("${app.initial-audit-password:123456789}") String auditPassword) {
+    CommandLineRunner initializeRolesAndAdmin(
+            RoleRepository roleRepository,
+            UserRepository userRepository,
+            PasswordEncoder encoder,
+            @Value("${app.initial-admin-password}") String adminPassword,
+            @Value("${app.initial-audit-password:123456789}") String auditPassword) {
+
         return args -> {
+
             Map<String, String> roles = Map.of(
-                    "ADMIN", "Manages users", "PD", "Creates employee requests",
-                    "DGM", "Level 1 approver", "GM", "Level 2 approver",
+                    "ADMIN", "Manages users",
+                    "MAKER", "Creates employee requests",
+                    "LEVEL_1_CHECKER", "Level 1 checker",
+                    "LEVEL_2_CHECKER", "Level 2 checker",
                     "BRANCH", "Views approved employees",
-                    "AUDIT", "Read-only access to the complete audit ledger");
-            roles.forEach((name, description) -> roleRepository.findByName(name)
-                    .orElseGet(() -> roleRepository.save(new Role(name, description))));
+                    "AUDIT", "Read-only access to the complete audit ledger"
+            );
+
+            roles.forEach((name, description) ->
+                    roleRepository.findByName(name)
+                            .orElseGet(() ->
+                                    roleRepository.save(
+                                            new Role(name, description)
+                                    )
+                            )
+            );
+
             if (!userRepository.existsByUsername("admin")) {
                 User admin = new User();
+
                 admin.setUsername("admin");
                 admin.setPasswordHash(encoder.encode(adminPassword));
                 admin.setFullName("System Administrator");
                 admin.setEmail("admin@bank.local");
                 admin.setBranchId(1L);
-                admin.setRole(roleRepository.findByName("ADMIN").orElseThrow());
+                admin.setRole(
+                        roleRepository.findByName("ADMIN")
+                                .orElseThrow()
+                );
+
                 userRepository.save(admin);
             }
+
             if (!userRepository.existsByUsername("audit")) {
                 User audit = new User();
+
                 audit.setUsername("audit");
                 audit.setPasswordHash(encoder.encode(auditPassword));
                 audit.setFullName("Audit User");
                 audit.setEmail("audit@bank.local");
                 audit.setBranchId(1L);
-                audit.setRole(roleRepository.findByName("AUDIT").orElseThrow());
+                audit.setRole(
+                        roleRepository.findByName("AUDIT")
+                                .orElseThrow()
+                );
                 audit.setSignatureScope("BOTH");
                 audit.setApprovalStatus("APPROVED");
                 audit.setMustChangePassword(false);
+
                 userRepository.save(audit);
             }
         };

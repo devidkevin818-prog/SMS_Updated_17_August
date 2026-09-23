@@ -1,19 +1,21 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org">
 
-<head th:replace="~{fragments/head :: head('Approved Signatures')}"></head>
+<head th:replace="~{fragments/head :: head('Approved Signatures')}">
+</head>
 
 <body>
 
-<header th:replace="~{fragments/navbar :: navbar('PD')}"></header>
+<header th:replace="~{fragments/navbar :: navbar('MAKER')}">
+</header>
 
-<aside th:replace="~{fragments/sidebar :: sidebar('PD','approved-signatures')}"></aside>
-
+<aside th:replace="~{fragments/sidebar :: sidebar('MAKER', 'approved-signatures')}">
+</aside>
 
 <main class="app-main">
 
     <div class="content-wrap">
-
 
         <!-- ========================================================= -->
         <!-- PAGE HEADER -->
@@ -32,11 +34,11 @@
                 </h1>
 
                 <p class="page-subtitle">
-                    Only GM-approved employee photos and specimen signatures are shown here.
+                    Only Level 2 Checker-approved employee photos and specimen
+                    signatures are shown here.
                 </p>
 
             </div>
-
 
             <div>
 
@@ -52,7 +54,6 @@
             </div>
 
         </div>
-
 
         <!-- ========================================================= -->
         <!-- SEARCH -->
@@ -73,7 +74,6 @@
 
                 </div>
 
-
                 <div class="col-auto">
 
                     <button class="btn btn-bank"
@@ -91,7 +91,6 @@
 
         </section>
 
-
         <!-- ========================================================= -->
         <!-- EMPLOYEE TABLE -->
         <!-- ========================================================= -->
@@ -101,7 +100,6 @@
             <div class="table-responsive">
 
                 <table class="table app-table align-middle">
-
 
                     <thead>
 
@@ -123,12 +121,9 @@
 
                     </thead>
 
-
                     <tbody>
 
-
                     <tr th:each="employee : ${employees.content}">
-
 
                         <!-- ================================================= -->
                         <!-- EMPLOYEE -->
@@ -146,18 +141,49 @@
                             </div>
 
                         </td>
-                        <td><img th:if="${employee.photoPath != null}" class="approved-photo-thumbnail" th:src="@{'/media/'+${employee.photoPath}}"
-                                 alt="Approved employee photo"></td>
-                        <td><img th:if="${canViewLocal and employee.signaturePath != null}" class="approved-signature-thumbnail" th:src="@{'/media/'+${employee.signaturePath}}"
-                                 alt="Approved local signature"><span th:unless="${canViewLocal}">Restricted</span></td>
-                        <td><img th:if="${canViewForeign and employee.foreignSignaturePath != null}" class="approved-signature-thumbnail" th:src="@{'/media/'+${employee.foreignSignaturePath}}"
-                                 alt="Approved foreign signature"><span th:unless="${canViewForeign}">Restricted</span></td>
-                        <td th:text="${employee.branch.branchName}"></td>
-                        <td class="text-end"><a class="btn btn-sm btn-soft"
-                                                th:href="@{/pd/approved-signatures/{id}(id=${employee.id})}">View
-                            Versions</a></td>
-                    </tr>
 
+                        <td>
+                            <img th:if="${employee.photoPath != null}"
+                                 class="approved-photo-thumbnail"
+                                 th:src="@{'/media/' + ${employee.photoPath}}"
+                                 alt="Approved employee photo">
+                        </td>
+
+                        <td>
+                            <img th:if="${canViewLocal
+                                    and employee.signaturePath != null}"
+                                 class="approved-signature-thumbnail"
+                                 th:src="@{'/media/' + ${employee.signaturePath}}"
+                                 alt="Approved local signature">
+
+                            <span th:unless="${canViewLocal}">
+                                Restricted
+                            </span>
+                        </td>
+
+                        <td>
+                            <img th:if="${canViewForeign
+                                    and employee.foreignSignaturePath != null}"
+                                 class="approved-signature-thumbnail"
+                                 th:src="@{'/media/' + ${employee.foreignSignaturePath}}"
+                                 alt="Approved foreign signature">
+
+                            <span th:unless="${canViewForeign}">
+                                Restricted
+                            </span>
+                        </td>
+
+                        <td th:text="${employee.branch.branchName}">
+                        </td>
+
+                        <td class="text-end">
+                            <a class="btn btn-sm btn-soft"
+                               th:href="@{/pd/approved-signatures/{id}(id=${employee.id})}">
+                                View Versions
+                            </a>
+                        </td>
+
+                    </tr>
 
                     <!-- ===================================================== -->
                     <!-- EMPTY -->
@@ -176,7 +202,6 @@
 
                     </tr>
 
-
                     </tbody>
 
                 </table>
@@ -189,11 +214,11 @@
 
 </main>
 
+<footer th:replace="~{fragments/layout :: footer}">
+</footer>
 
-<footer th:replace="~{fragments/layout :: footer}"></footer>
-
-<div th:replace="~{fragments/layout :: scripts}"></div>
-
+<div th:replace="~{fragments/layout :: scripts}">
+</div>
 
 </body>
 </html>

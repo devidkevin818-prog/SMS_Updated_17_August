@@ -1,16 +1,26 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/head :: head('Signature Versions')}"></head>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/head :: head('Signature Versions')}">
+</head>
+
 <body>
-<header th:replace="~{fragments/navbar :: navbar('PD')}"></header>
-<aside th:replace="~{fragments/sidebar :: sidebar('PD','approved-signatures')}"></aside>
+
+<header th:replace="~{fragments/navbar :: navbar('MAKER')}">
+</header>
+
+<aside th:replace="~{fragments/sidebar :: sidebar('MAKER', 'approved-signatures')}">
+</aside>
 
 <main class="app-main">
     <div class="content-wrap">
 
         <div class="page-header">
             <div>
-                <span class="page-eyebrow">Approved Version History</span>
+                <span class="page-eyebrow">
+                    Approved Version History
+                </span>
 
                 <h1 class="page-title"
                     th:text="${employee.fullName}">
@@ -18,13 +28,15 @@
                 </h1>
 
                 <p class="page-subtitle">
-                    <span th:text="${employee.employeeNumber}"></span>
-                    · Every GM-approved photo and signature version.
+                    <span th:text="${employee.employeeNumber}">
+                    </span>
+                    · Every Level 2 Checker-approved photo and signature version.
                 </p>
             </div>
 
             <a class="btn btn-soft"
                th:href="@{/pd/approved-signatures}">
+
                 <i class="bi bi-arrow-left me-2"></i>
                 Back
             </a>
@@ -34,7 +46,10 @@
         <section class="surface-card mb-4">
             <div class="card-header">
                 <div>
-                    <h2 class="h5 mb-1">Serial Numbers</h2>
+                    <h2 class="h5 mb-1">
+                        Serial Numbers
+                    </h2>
+
                     <p class="page-subtitle mb-0">
                         Current serial numbers assigned to this employee.
                     </p>
@@ -108,7 +123,9 @@
                         <div class="review-media">
 
                             <div>
-                                <p class="form-label">Profile photo</p>
+                                <p class="form-label">
+                                    Profile photo
+                                </p>
 
                                 <div class="media-panel">
                                     <img class="review-image"
@@ -120,19 +137,23 @@
                             <div th:if="${canViewLocal
                                     and version.signaturePath != null}">
 
-                                <p class="form-label">Local signature</p>
+                                <p class="form-label">
+                                    Local signature
+                                </p>
 
                                 <div class="media-panel">
                                     <img class="signature-image"
                                          th:src="@{'/media/' + ${version.signaturePath}}"
-                                         alt="Approved signature">
+                                         alt="Approved local signature">
                                 </div>
                             </div>
 
                             <div th:if="${canViewForeign
                                     and version.foreignSignaturePath != null}">
 
-                                <p class="form-label">Foreign signature</p>
+                                <p class="form-label">
+                                    Foreign signature
+                                </p>
 
                                 <div class="media-panel">
                                     <img class="signature-image"
@@ -160,7 +181,11 @@
     </div>
 </main>
 
-<footer th:replace="~{fragments/layout :: footer}"></footer>
-<div th:replace="~{fragments/layout :: scripts}"></div>
+<footer th:replace="~{fragments/layout :: footer}">
+</footer>
+
+<div th:replace="~{fragments/layout :: scripts}">
+</div>
+
 </body>
 </html>

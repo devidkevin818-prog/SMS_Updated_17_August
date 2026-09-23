@@ -1,1 +1,143 @@
-<!DOCTYPE html><html lang="en" xmlns:th="http://www.thymeleaf.org"><head th:replace="~{fragments/head :: head('Signature Approvals')}"></head><body><header th:replace="~{fragments/navbar :: navbar(${level})}"></header><main class="app-main" style="margin-left:0"><div class="content-wrap"><h1 class="page-title">Signature approval inbox</h1><table class="table"><thead><tr><th>Employee</th><th>Type</th><th>Version</th><th>Decision</th></tr></thead><tbody><tr th:each="row:${requests}"><td th:text="${row.employeeNumber}"></td><td th:text="${row.signatureType}"></td><td th:text="${row.versionNumber}"></td><td><form method="post" th:action="@{/{level}/signature-requests/{id}/decision(level=${level.toLowerCase()},id=${row.id})}"><input class="form-control mb-1" name="remarks" placeholder="Remarks (required for rejection)"><button class="btn btn-sm btn-success" name="action" value="APPROVE">Approve</button><button class="btn btn-sm btn-danger" name="action" value="REJECT">Reject</button></form></td></tr></tbody></table></div></main></body></html>
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/head :: head('Signature Approvals')}">
+</head>
+
+<body th:with="
+        checkerRole=${level == 'DGM'
+            or level == 'LEVEL_1_CHECKER'
+            or level == 'Level 1 Checker'
+            ? 'LEVEL_1_CHECKER'
+            : 'LEVEL_2_CHECKER'},
+        checkerRoute=${level == 'DGM'
+            or level == 'LEVEL_1_CHECKER'
+            or level == 'Level 1 Checker'
+            ? 'dgm'
+            : 'gm'},
+        checkerLabel=${level == 'DGM'
+            or level == 'LEVEL_1_CHECKER'
+            or level == 'Level 1 Checker'
+            ? 'Level 1 Checker'
+            : 'Level 2 Checker'}">
+
+<header th:replace="~{fragments/navbar :: navbar(${checkerRole})}">
+</header>
+
+<main class="app-main"
+      style="margin-left: 0">
+
+    <div class="content-wrap">
+
+        <div class="page-header">
+
+            <div>
+                <span class="page-eyebrow"
+                      th:text="${checkerLabel}">
+                    Checker
+                </span>
+
+                <h1 class="page-title">
+                    Signature approval inbox
+                </h1>
+
+                <p class="page-subtitle"
+                   th:text="${'Signature requests awaiting '
+                       + checkerLabel
+                       + ' review'}">
+                    Signature requests awaiting review
+                </p>
+            </div>
+
+        </div>
+
+        <section class="surface-card table-card">
+
+            <div class="table-responsive">
+
+                <table class="table app-table align-middle">
+
+                    <thead>
+                    <tr>
+                        <th>Employee</th>
+                        <th>Type</th>
+                        <th>Version</th>
+                        <th>Decision</th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+
+                    <tr th:each="row : ${requests}">
+
+                        <td th:text="${row.employeeNumber}">
+                        </td>
+
+                        <td th:text="${row.signatureType}">
+                        </td>
+
+                        <td th:text="${row.versionNumber}">
+                        </td>
+
+                        <td>
+
+                            <form method="post"
+                                  th:action="@{/{level}/signature-requests/{id}/decision(
+                                      level=${checkerRoute},
+                                      id=${row.id}
+                                  )}">
+
+                                <input class="form-control mb-1"
+                                       name="remarks"
+                                       placeholder="Remarks (required for rejection)">
+
+                                <button class="btn btn-sm btn-success"
+                                        name="action"
+                                        value="APPROVE">
+                                    Approve
+                                </button>
+
+                                <button class="btn btn-sm btn-danger"
+                                        name="action"
+                                        value="REJECT">
+                                    Reject
+                                </button>
+
+                            </form>
+
+                        </td>
+
+                    </tr>
+
+                    <tr th:if="${#lists.isEmpty(requests)}">
+
+                        <td colspan="4"
+                            class="empty-state">
+
+                            <i class="bi bi-check2-circle"></i>
+
+                            <span th:text="${'No signature requests are awaiting '
+                                + checkerLabel
+                                + ' approval.'}">
+                                No signature requests are awaiting approval.
+                            </span>
+
+                        </td>
+
+                    </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+    </div>
+
+</main>
+
+</body>
+</html>

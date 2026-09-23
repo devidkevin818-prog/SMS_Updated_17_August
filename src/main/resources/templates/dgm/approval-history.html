@@ -1,13 +1,28 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/head :: head('My Decisions')}"></head>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/head :: head('My Decisions')}">
+</head>
+
 <body>
-<header th:replace="~{fragments/navbar :: navbar('DGM')}"></header>
-<aside th:replace="~{fragments/sidebar :: sidebar('DGM','history')}"></aside>
+
+<header th:replace="~{fragments/navbar :: navbar('LEVEL_1_CHECKER')}">
+</header>
+
+<aside th:replace="~{fragments/sidebar :: sidebar('LEVEL_1_CHECKER', 'history')}">
+</aside>
+
 <main class="app-main">
-    <section th:replace="~{fragments/approval-history :: history(${approvals}, 'DGM')}"></section>
+    <section th:replace="~{fragments/approval-history :: history(${approvals}, 'LEVEL_1_CHECKER')}">
+    </section>
 </main>
-<footer th:replace="~{fragments/layout :: footer}"></footer>
-<div th:replace="~{fragments/layout :: scripts}"></div>
+
+<footer th:replace="~{fragments/layout :: footer}">
+</footer>
+
+<div th:replace="~{fragments/layout :: scripts}">
+</div>
+
 </body>
 </html>

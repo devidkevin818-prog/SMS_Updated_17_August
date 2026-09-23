@@ -1,82 +1,671 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/head :: head('DGM Approval')}"></head>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/head :: head('Level 1 Checker Approval')}">
+</head>
+
 <body>
-<header th:replace="~{fragments/navbar :: navbar('DGM')}">
-<!--    <div><span class="page-eyebrow">Dashboard overview</span><h1>Dashboard</h1>-->
-<!--        <p>Welcome back, <strong th:text="${dashboard.username}">User</strong></p></div>-->
-<!--    <div class="dashboard-context"><span th:text="${'Role: ' + dashboard.role}">Role</span><time th:text="${#temporals.format(#temporals.createToday(),'dd MMMM yyyy')}">Date</time></div>-->
+
+<header th:replace="~{fragments/navbar :: navbar('LEVEL_1_CHECKER')}">
+    <!--
+    <div>
+        <span class="page-eyebrow">Dashboard overview</span>
+        <h1>Dashboard</h1>
+        <p>
+            Welcome back,
+            <strong th:text="${dashboard.username}">User</strong>
+        </p>
+    </div>
+
+    <div class="dashboard-context">
+        <span th:text="${'Role: ' + dashboard.role}">Role</span>
+        <time th:text="${#temporals.format(#temporals.createToday(), 'dd MMMM yyyy')}">
+            Date
+        </time>
+    </div>
+    -->
 </header>
-<aside th:replace="~{fragments/sidebar :: sidebar('DGM','approval')}"></aside>
+
+<aside th:replace="~{fragments/sidebar :: sidebar('LEVEL_1_CHECKER', 'approval')}">
+</aside>
+
 <main class="app-main">
     <div class="content-wrap">
-        <div th:replace="~{fragments/dashboard-analytics :: analytics}"></div>
-        <div class="dashboard-toolbar">
-<!--            <a class="btn btn-bank" th:href="@{/pd/employees/new}"><i class="bi bi-person-plus-fill me-2"></i>Create-->
-<!--                employee</a>
-</div>-->
+
+        <div th:replace="~{fragments/dashboard-analytics :: analytics}">
         </div>
-        <section class="dashboard-kpi-grid" aria-label="Dashboard summary">
-            <a class="dashboard-kpi-card" th:href="@{/employees}"><span class="dashboard-kpi-icon"><i class="bi bi-people-fill"></i></span><span><small>Total employees</small><strong th:text="${dashboard.totalEmployees}">0</strong><em th:text="${dashboard.newEmployeesThisMonth + ' added this month'}">0 added this month</em></span></a>
-            <a class="dashboard-kpi-card" th:href="@{/books}"><span class="dashboard-kpi-icon"><i class="bi bi-pen-fill"></i></span><span><small>Active signatures</small><strong th:text="${dashboard.activeSignatures}">0</strong><em th:text="${dashboard.signatureCoverage + '% signature coverage'}">0% coverage</em></span></a>
-            <div class="dashboard-kpi-card"><span class="dashboard-kpi-icon dashboard-kpi-warning"><i class="bi bi-hourglass-split"></i></span><span><small th:text="${dashboard.role == 'PD' ? 'My pending requests' : 'Pending approvals'}">Pending approvals</small><strong th:text="${dashboard.pendingActions}">0</strong><em>Requires attention</em></span></div>
-            <div class="dashboard-kpi-card"><span class="dashboard-kpi-icon"><i class="bi bi-person-plus-fill"></i></span><span><small>New employees</small><strong th:text="${dashboard.newEmployeesThisMonth}">0</strong><em>This month</em></span></div>
-        </section>
-        <div th:replace="~{fragments/dashboard-analytics :: analytics}"></div>
+
         <div class="dashboard-toolbar">
-	            <span class="status-badge status-pending"><i class="bi bi-hourglass-split me-1"></i><span
-	                    th:text="${requests.totalElements + #lists.size(userRequests) + #lists.size(batchRequests) + #lists.size(signatureRequests) + #lists.size(mediaRequests)} + ' total pending'">0 pending</span></span></div>
-        <div th:replace="~{fragments/layout :: messages}"></div>
-	        <section class="metric-grid queue-menu-grid" aria-label="Approval queue menu">
-	            <a href="#" class="metric-card text-decoration-none dashboard-counter" data-section-title="Pending requests"><span class="metric-icon"><i class="bi bi-person-plus-fill"></i></span><strong class="metric-value" th:text="${requests.totalElements}">0</strong><span class="metric-label">Employee requests</span></a>
-	            <a href="#" class="metric-card text-decoration-none dashboard-counter" data-section-title="Combined profile/signature approvals"><span class="metric-icon"><i class="bi bi-images"></i></span><strong class="metric-value" th:text="${#lists.size(mediaRequests)}">0</strong><span class="metric-label">Profile &amp; media</span></a>
-	            <a href="#" class="metric-card text-decoration-none dashboard-counter" data-section-title="Pending signature approvals"><span class="metric-icon"><i class="bi bi-pen-fill"></i></span><strong class="metric-value" th:text="${#lists.size(signatureRequests)}">0</strong><span class="metric-label">Signature requests</span></a>
-	            <a href="#" class="metric-card text-decoration-none dashboard-counter" data-section-title="Pending user creation requests"><span class="metric-icon"><i class="bi bi-person-lock"></i></span><strong class="metric-value" th:text="${#lists.size(userRequests)}">0</strong><span class="metric-label">User requests</span></a>
-	            <a href="#" class="metric-card text-decoration-none dashboard-counter" data-section-title="Pending import batches"><span class="metric-icon"><i class="bi bi-file-earmark-spreadsheet"></i></span><strong class="metric-value" th:text="${#lists.size(batchRequests)}">0</strong><span class="metric-label">Import batches</span></a>
-	        </section>
+            <!--
+            <a class="btn btn-bank"
+               th:href="@{/pd/employees/new}">
+                <i class="bi bi-person-plus-fill me-2"></i>
+                Create employee
+            </a>
+            -->
+        </div>
+
+        <section class="dashboard-kpi-grid"
+                 aria-label="Dashboard summary">
+
+            <a class="dashboard-kpi-card"
+               th:href="@{/employees}">
+
+                <span class="dashboard-kpi-icon">
+                    <i class="bi bi-people-fill"></i>
+                </span>
+
+                <span>
+                    <small>Total employees</small>
+
+                    <strong th:text="${dashboard.totalEmployees}">
+                        0
+                    </strong>
+
+                    <em th:text="${dashboard.newEmployeesThisMonth + ' added this month'}">
+                        0 added this month
+                    </em>
+                </span>
+            </a>
+
+            <a class="dashboard-kpi-card"
+               th:href="@{/books}">
+
+                <span class="dashboard-kpi-icon">
+                    <i class="bi bi-pen-fill"></i>
+                </span>
+
+                <span>
+                    <small>Active signatures</small>
+
+                    <strong th:text="${dashboard.activeSignatures}">
+                        0
+                    </strong>
+
+                    <em th:text="${dashboard.signatureCoverage + '% signature coverage'}">
+                        0% coverage
+                    </em>
+                </span>
+            </a>
+
+            <div class="dashboard-kpi-card">
+
+                <span class="dashboard-kpi-icon dashboard-kpi-warning">
+                    <i class="bi bi-hourglass-split"></i>
+                </span>
+
+                <span>
+                    <small th:text="${dashboard.role == 'MAKER'
+                            ? 'My pending requests'
+                            : 'Pending approvals'}">
+                        Pending approvals
+                    </small>
+
+                    <strong th:text="${dashboard.pendingActions}">
+                        0
+                    </strong>
+
+                    <em>Requires attention</em>
+                </span>
+            </div>
+
+            <div class="dashboard-kpi-card">
+
+                <span class="dashboard-kpi-icon">
+                    <i class="bi bi-person-plus-fill"></i>
+                </span>
+
+                <span>
+                    <small>New employees</small>
+
+                    <strong th:text="${dashboard.newEmployeesThisMonth}">
+                        0
+                    </strong>
+
+                    <em>This month</em>
+                </span>
+            </div>
+
+        </section>
+
+        <div th:replace="~{fragments/dashboard-analytics :: analytics}">
+        </div>
+
+        <div class="dashboard-toolbar">
+            <span class="status-badge status-pending">
+
+                <i class="bi bi-hourglass-split me-1"></i>
+
+                <span th:text="${requests.totalElements
+                        + #lists.size(userRequests)
+                        + #lists.size(batchRequests)
+                        + #lists.size(signatureRequests)
+                        + #lists.size(mediaRequests)}
+                        + ' total pending'">
+                    0 pending
+                </span>
+            </span>
+        </div>
+
+        <div th:replace="~{fragments/layout :: messages}">
+        </div>
+
+        <section class="metric-grid queue-menu-grid"
+                 aria-label="Approval queue menu">
+
+            #
+
+            <span class="metric-icon">
+                    <i class="bi bi-person-plus-fill"></i>
+                </span>
+
+            <strong class="metric-value"
+                    th:text="${requests.totalElements}">
+                0
+            </strong>
+
+            <span class="metric-label">
+                    Employee requests
+                </span>
+            </a>
+
+            #
+
+            <span class="metric-icon">
+                    <i class="bi bi-images"></i>
+                </span>
+
+            <strong class="metric-value"
+                    th:text="${#lists.size(mediaRequests)}">
+                0
+            </strong>
+
+            <span class="metric-label">
+                    Profile &amp; media
+                </span>
+            </a>
+
+            #
+
+            <span class="metric-icon">
+                    <i class="bi bi-pen-fill"></i>
+                </span>
+
+            <strong class="metric-value"
+                    th:text="${#lists.size(signatureRequests)}">
+                0
+            </strong>
+
+            <span class="metric-label">
+                    Signature requests
+                </span>
+            </a>
+
+            #
+
+            <span class="metric-icon">
+                    <i class="bi bi-person-lock"></i>
+                </span>
+
+            <strong class="metric-value"
+                    th:text="${#lists.size(userRequests)}">
+                0
+            </strong>
+
+            <span class="metric-label">
+                    User requests
+                </span>
+            </a>
+
+            #
+
+            <span class="metric-icon">
+                    <i class="bi bi-file-earmark-spreadsheet"></i>
+                </span>
+
+            <strong class="metric-value"
+                    th:text="${#lists.size(batchRequests)}">
+                0
+            </strong>
+
+            <span class="metric-label">
+                    Import batches
+                </span>
+            </a>
+
+        </section>
+
+        <!-- Pending employee requests -->
         <section class="surface-card table-card">
-            <div class="card-header"><h2 class="h5 mb-1">Pending requests</h2>
-                <p class="page-subtitle mb-0">Oldest submissions appear first</p></div>
+
+            <div class="card-header">
+                <h2 class="h5 mb-1">
+                    Pending requests
+                </h2>
+
+                <p class="page-subtitle mb-0">
+                    Oldest submissions appear first
+                </p>
+            </div>
+
             <div class="table-responsive">
                 <table class="table app-table table-hover">
+
                     <thead>
                     <tr>
                         <th>Employee code</th>
                         <th>Employee name</th>
-                        <th>PD user</th>
+                        <th>Maker user</th>
                         <th>Submitted</th>
                         <th class="text-end">Action</th>
                     </tr>
                     </thead>
+
                     <tbody>
-                    <tr th:each="request:${requests.content}">
-                        <td><strong th:text="${request.employeeCode}"></strong></td>
-                        <td th:text="${request.employeeName}"></td>
-                        <td><i class="bi bi-person-circle me-1 text-secondary"></i><span
-                                th:text="${request.requestedBy.username}"></span></td>
-                        <td th:text="${#temporals.format(request.requestedAt,'dd MMM yyyy, HH:mm')}"></td>
-                        <td class="text-end"><a class="btn btn-sm btn-primary"
-                                                th:href="@{/dgm/requests/{id}(id=${request.id})}"><i
-                                class="bi bi-eye-fill me-1"></i>Review</a></td>
-                    </tr>
-                    <tr th:if="${requests.empty}">
-                        <td class="empty-state" colspan="5"><i class="bi bi-check2-circle"></i>No requests are waiting
-                            for DGM approval.
+
+                    <tr th:each="request : ${requests.content}">
+                        <td>
+                            <strong th:text="${request.employeeCode}">
+                            </strong>
+                        </td>
+
+                        <td th:text="${request.employeeName}">
+                        </td>
+
+                        <td>
+                            <i class="bi bi-person-circle me-1 text-secondary"></i>
+
+                            <span th:text="${request.requestedBy.username}">
+                            </span>
+                        </td>
+
+                        <td th:text="${#temporals.format(
+                                request.requestedAt,
+                                'dd MMM yyyy, HH:mm'
+                        )}">
+                        </td>
+
+                        <td class="text-end">
+                            <a class="btn btn-sm btn-primary"
+                               th:href="@{/dgm/requests/{id}(id=${request.id})}">
+
+                                <i class="bi bi-eye-fill me-1"></i>
+                                Review
+                            </a>
                         </td>
                     </tr>
+
+                    <tr th:if="${requests.empty}">
+                        <td class="empty-state"
+                            colspan="5">
+
+                            <i class="bi bi-check2-circle"></i>
+                            No requests are waiting for Level 1 Checker approval.
+                        </td>
+                    </tr>
+
                     </tbody>
                 </table>
             </div>
         </section>
-        <section class="surface-card table-card mt-4"><div class="card-header"><h2 class="h5 mb-1">Pending user creation requests</h2></div><div class="table-responsive"><table class="table app-table"><thead><tr><th>Employee ID</th><th>Name</th><th>Role</th><th>Requested by</th><th>Decision</th></tr></thead><tbody>
-        <tr th:each="item:${userRequests}"><td th:text="${item.proposedEmployeeNumber}"></td><td th:text="${item.proposedFullName}"></td><td th:text="${item.proposedRole.name}"></td><td th:text="${item.proposedBy.username}"></td><td><form method="post" th:action="@{/dgm/user-requests/{id}/decision(id=${item.id})}" class="d-flex gap-1"><input class="form-control form-control-sm" name="comment" placeholder="Comment / rejection reason"><button class="btn btn-sm btn-success" name="action" value="APPROVE">Approve</button><button class="btn btn-sm btn-danger" name="action" value="REJECT">Reject</button></form></td></tr>
-        <tr th:if="${#lists.isEmpty(userRequests)}"><td colspan="5" class="empty-state">No user requests awaiting DGM approval.</td></tr></tbody></table></div></section>
-        <section class="surface-card table-card mt-4"><div class="card-header"><h2 class="h5">Pending import batches</h2></div><div class="table-responsive"><table class="table app-table"><tbody><tr th:each="batch:${batchRequests}"><td th:text="${batch.batchNumber}"></td><td th:text="${batch.totalRows+' rows; '+batch.failedRows+' invalid'}"></td><td><a class="btn btn-sm btn-soft mb-1" th:href="@{/dgm/batch-requests/{id}(id=${batch.id})}">View</a><form method="post" th:action="@{/dgm/batch-requests/{id}/decision(id=${batch.id})}" class="d-flex gap-1"><input class="form-control form-control-sm" name="comment" placeholder="Comment / rejection reason"><button class="btn btn-sm btn-success" name="action" value="APPROVE">Approve</button><button class="btn btn-sm btn-danger" name="action" value="REJECT">Reject</button></form></td></tr><tr th:if="${#lists.isEmpty(batchRequests)}"><td>No batch requests awaiting DGM.</td></tr></tbody></table></div></section>
-        <section class="surface-card table-card mt-4"><div class="card-header"><h2 class="h5 mb-1">Pending signature approvals</h2><p class="page-subtitle mb-0">LOCAL and FOREIGN signatures are approved independently.</p></div><div class="table-responsive"><table class="table app-table align-middle"><thead><tr><th>Employee</th><th>Type</th><th>Version</th><th>Signature</th><th>Submitted by</th><th>Decision</th></tr></thead><tbody><tr th:each="item:${signatureRequests}"><td><strong th:text="${item.employeeNumber}"></strong><br><span th:text="${item.employee.fullName}"></span></td><td th:text="${item.signatureType}"></td><td th:text="${item.versionNumber}"></td><td><img class="approved-signature-thumbnail" th:src="@{'/media/'+${item.filePath}}" th:alt="${item.signatureType+' signature'}"></td><td th:text="${item.submittedBy.username}"></td><td><form method="post" th:action="@{/dgm/signature-requests/{id}/decision(id=${item.id})}" class="d-flex gap-1"><input class="form-control form-control-sm" name="remarks" maxlength="500" placeholder="Remarks required for rejection"><button class="btn btn-sm btn-success" name="action" value="APPROVE">Approve</button><button class="btn btn-sm btn-danger" name="action" value="REJECT">Reject</button></form></td></tr><tr th:if="${#lists.isEmpty(signatureRequests)}"><td colspan="6" class="empty-state">No signature requests awaiting DGM approval.</td></tr></tbody></table></div></section>
-        <section class="surface-card table-card mt-4"><div class="card-header"><h2 class="h5">Combined profile/signature approvals</h2><p class="page-subtitle mb-0">Empty slots mean PD did not include that image in this submission.</p></div><div class="table-responsive"><table class="table app-table align-middle"><thead><tr><th>Employee</th><th>Profile</th><th>Local</th><th>Foreign</th><th>Decision</th></tr></thead><tbody><tr th:each="item:${mediaRequests}"><td><strong th:text="${item.employee.employeeNumber}"></strong><br><span th:text="${item.employee.fullName}"></span><br><a class="btn btn-sm btn-soft mt-1" th:href="@{/employees/{id}(id=${item.employee.id})}">View full card</a></td><td><img th:if="${item.photoPath != null}" class="approved-photo-thumbnail" th:src="@{'/media/'+${item.photoPath}}" alt="Pending profile"><span th:if="${item.photoPath == null}" class="text-muted">Not uploaded</span></td><td><img th:if="${item.localSignaturePath != null}" class="approved-signature-thumbnail" th:src="@{'/media/'+${item.localSignaturePath}}" alt="Pending local"><span th:if="${item.localSignaturePath == null}" class="text-muted">Not uploaded</span></td><td><img th:if="${item.foreignSignaturePath != null}" class="approved-signature-thumbnail" th:src="@{'/media/'+${item.foreignSignaturePath}}" alt="Pending foreign"><span th:if="${item.foreignSignaturePath == null}" class="text-muted">Not uploaded</span></td><td><form method="post" th:action="@{/dgm/media-requests/{id}/decision(id=${item.id})}" class="d-flex gap-1"><input class="form-control form-control-sm" name="remarks" placeholder="Remarks required for rejection"><button class="btn btn-sm btn-success" name="action" value="APPROVE">Approve</button><button class="btn btn-sm btn-danger" name="action" value="REJECT">Reject</button></form></td></tr><tr th:if="${#lists.isEmpty(mediaRequests)}"><td colspan="5" class="empty-state">No combined media requests awaiting DGM.</td></tr></tbody></table></div></section>
+
+        <!-- Pending user creation requests -->
+        <section class="surface-card table-card mt-4">
+
+            <div class="card-header">
+                <h2 class="h5 mb-1">
+                    Pending user creation requests
+                </h2>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table app-table">
+
+                    <thead>
+                    <tr>
+                        <th>Employee ID</th>
+                        <th>Name</th>
+                        <th>Role</th>
+                        <th>Requested by</th>
+                        <th>Decision</th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+
+                    <tr th:each="item : ${userRequests}">
+                        <td th:text="${item.proposedEmployeeNumber}">
+                        </td>
+
+                        <td th:text="${item.proposedFullName}">
+                        </td>
+
+                        <td th:text="${item.proposedRole.name}">
+                        </td>
+
+                        <td th:text="${item.proposedBy.username}">
+                        </td>
+
+                        <td>
+                            <form method="post"
+                                  th:action="@{/dgm/user-requests/{id}/decision(id=${item.id})}"
+                                  class="d-flex gap-1">
+
+                                <input class="form-control form-control-sm"
+                                       name="comment"
+                                       placeholder="Comment / rejection reason">
+
+                                <button class="btn btn-sm btn-success"
+                                        name="action"
+                                        value="APPROVE">
+                                    Approve
+                                </button>
+
+                                <button class="btn btn-sm btn-danger"
+                                        name="action"
+                                        value="REJECT">
+                                    Reject
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+
+                    <tr th:if="${#lists.isEmpty(userRequests)}">
+                        <td colspan="5"
+                            class="empty-state">
+                            No user requests are awaiting Level 1 Checker approval.
+                        </td>
+                    </tr>
+
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Pending import batches -->
+        <section class="surface-card table-card mt-4">
+
+            <div class="card-header">
+                <h2 class="h5">
+                    Pending import batches
+                </h2>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table app-table">
+
+                    <tbody>
+
+                    <tr th:each="batch : ${batchRequests}">
+                        <td th:text="${batch.batchNumber}">
+                        </td>
+
+                        <td th:text="${batch.totalRows
+                                + ' rows; '
+                                + batch.failedRows
+                                + ' invalid'}">
+                        </td>
+
+                        <td>
+                            <a class="btn btn-sm btn-soft mb-1"
+                               th:href="@{/dgm/batch-requests/{id}(id=${batch.id})}">
+                                View
+                            </a>
+
+                            <form method="post"
+                                  th:action="@{/dgm/batch-requests/{id}/decision(id=${batch.id})}"
+                                  class="d-flex gap-1">
+
+                                <input class="form-control form-control-sm"
+                                       name="comment"
+                                       placeholder="Comment / rejection reason">
+
+                                <button class="btn btn-sm btn-success"
+                                        name="action"
+                                        value="APPROVE">
+                                    Approve
+                                </button>
+
+                                <button class="btn btn-sm btn-danger"
+                                        name="action"
+                                        value="REJECT">
+                                    Reject
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+
+                    <tr th:if="${#lists.isEmpty(batchRequests)}">
+                        <td>
+                            No batch requests are awaiting Level 1 Checker approval.
+                        </td>
+                    </tr>
+
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Pending signature requests -->
+        <section class="surface-card table-card mt-4">
+
+            <div class="card-header">
+                <h2 class="h5 mb-1">
+                    Pending signature approvals
+                </h2>
+
+                <p class="page-subtitle mb-0">
+                    LOCAL and FOREIGN signatures are approved independently.
+                </p>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table app-table align-middle">
+
+                    <thead>
+                    <tr>
+                        <th>Employee</th>
+                        <th>Type</th>
+                        <th>Version</th>
+                        <th>Signature</th>
+                        <th>Submitted by</th>
+                        <th>Decision</th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+
+                    <tr th:each="item : ${signatureRequests}">
+                        <td>
+                            <strong th:text="${item.employeeNumber}">
+                            </strong>
+
+                            <br>
+
+                            <span th:text="${item.employee.fullName}">
+                            </span>
+                        </td>
+
+                        <td th:text="${item.signatureType}">
+                        </td>
+
+                        <td th:text="${item.versionNumber}">
+                        </td>
+
+                        <td>
+                            <img class="approved-signature-thumbnail"
+                                 th:src="@{'/media/' + ${item.filePath}}"
+                                 th:alt="${item.signatureType + ' signature'}">
+                        </td>
+
+                        <td th:text="${item.submittedBy.username}">
+                        </td>
+
+                        <td>
+                            <form method="post"
+                                  th:action="@{/dgm/signature-requests/{id}/decision(id=${item.id})}"
+                                  class="d-flex gap-1">
+
+                                <input class="form-control form-control-sm"
+                                       name="remarks"
+                                       maxlength="500"
+                                       placeholder="Remarks required for rejection">
+
+                                <button class="btn btn-sm btn-success"
+                                        name="action"
+                                        value="APPROVE">
+                                    Approve
+                                </button>
+
+                                <button class="btn btn-sm btn-danger"
+                                        name="action"
+                                        value="REJECT">
+                                    Reject
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+
+                    <tr th:if="${#lists.isEmpty(signatureRequests)}">
+                        <td colspan="6"
+                            class="empty-state">
+                            No signature requests are awaiting Level 1 Checker approval.
+                        </td>
+                    </tr>
+
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Pending combined media requests -->
+        <section class="surface-card table-card mt-4">
+
+            <div class="card-header">
+                <h2 class="h5">
+                    Combined profile/signature approvals
+                </h2>
+
+                <p class="page-subtitle mb-0">
+                    Empty slots mean the Maker did not include that image
+                    in this submission.
+                </p>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table app-table align-middle">
+
+                    <thead>
+                    <tr>
+                        <th>Employee</th>
+                        <th>Profile</th>
+                        <th>Local</th>
+                        <th>Foreign</th>
+                        <th>Decision</th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+
+                    <tr th:each="item : ${mediaRequests}">
+                        <td>
+                            <strong th:text="${item.employee.employeeNumber}">
+                            </strong>
+
+                            <br>
+
+                            <span th:text="${item.employee.fullName}">
+                            </span>
+
+                            <br>
+
+                            <a class="btn btn-sm btn-soft mt-1"
+                               th:href="@{/employees/{id}(id=${item.employee.id})}">
+                                View full card
+                            </a>
+                        </td>
+
+                        <td>
+                            <img th:if="${item.photoPath != null}"
+                                 class="approved-photo-thumbnail"
+                                 th:src="@{'/media/' + ${item.photoPath}}"
+                                 alt="Pending profile">
+
+                            <span th:if="${item.photoPath == null}"
+                                  class="text-muted">
+                                Not uploaded
+                            </span>
+                        </td>
+
+                        <td>
+                            <img th:if="${item.localSignaturePath != null}"
+                                 class="approved-signature-thumbnail"
+                                 th:src="@{'/media/' + ${item.localSignaturePath}}"
+                                 alt="Pending local signature">
+
+                            <span th:if="${item.localSignaturePath == null}"
+                                  class="text-muted">
+                                Not uploaded
+                            </span>
+                        </td>
+
+                        <td>
+                            <img th:if="${item.foreignSignaturePath != null}"
+                                 class="approved-signature-thumbnail"
+                                 th:src="@{'/media/' + ${item.foreignSignaturePath}}"
+                                 alt="Pending foreign signature">
+
+                            <span th:if="${item.foreignSignaturePath == null}"
+                                  class="text-muted">
+                                Not uploaded
+                            </span>
+                        </td>
+
+                        <td>
+                            <form method="post"
+                                  th:action="@{/dgm/media-requests/{id}/decision(id=${item.id})}"
+                                  class="d-flex gap-1">
+
+                                <input class="form-control form-control-sm"
+                                       name="remarks"
+                                       placeholder="Remarks required for rejection">
+
+                                <button class="btn btn-sm btn-success"
+                                        name="action"
+                                        value="APPROVE">
+                                    Approve
+                                </button>
+
+                                <button class="btn btn-sm btn-danger"
+                                        name="action"
+                                        value="REJECT">
+                                    Reject
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+
+                    <tr th:if="${#lists.isEmpty(mediaRequests)}">
+                        <td colspan="5"
+                            class="empty-state">
+                            No combined media requests are awaiting Level 1 Checker approval.
+                        </td>
+                    </tr>
+
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
     </div>
 </main>
-<footer th:replace="~{fragments/layout :: footer}"></footer>
-<div th:replace="~{fragments/layout :: scripts}"></div>
+
+<footer th:replace="~{fragments/layout :: footer}">
+</footer>
+
+<div th:replace="~{fragments/layout :: scripts}">
+</div>
+
 </body>
 </html>

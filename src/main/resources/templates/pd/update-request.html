@@ -1,13 +1,17 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org">
 
-<head th:replace="~{fragments/head :: head('Update Rejected Request')}"></head>
+<head th:replace="~{fragments/head :: head('Update Rejected Request')}">
+</head>
 
 <body>
 
-<header th:replace="~{fragments/navbar :: navbar('PD')}"></header>
+<header th:replace="~{fragments/navbar :: navbar('MAKER')}">
+</header>
 
-<aside th:replace="~{fragments/sidebar :: sidebar('PD','update')}"></aside>
+<aside th:replace="~{fragments/sidebar :: sidebar('MAKER', 'update')}">
+</aside>
 
 <main class="app-main">
 
@@ -28,23 +32,20 @@
                 <p class="page-subtitle">
                     This request was rejected by the approval process.
                     Update the employee information and submit it again
-                    for DGM approval.
+                    for Level 1 Checker approval.
                 </p>
             </div>
 
             <a class="btn btn-soft"
                th:href="@{/pd/requests}">
+
                 <i class="bi bi-arrow-left me-2"></i>
                 Back to Requests
             </a>
 
         </div>
 
-
-        <!-- ========================================================= -->
-        <!-- UPDATE FORM - ONLY SHOW WHEN updateRequestStatus = TRUE -->
-        <!-- ========================================================= -->
-
+        <!-- Update form shown only when updateRequestStatus is true -->
         <div th:if="${request.updateRequestStatus}">
 
             <form th:action="@{/pd/requests/{id}/update(id=${request.id})}"
@@ -80,7 +81,6 @@
 
                             </div>
 
-
                             <!-- Employee Code -->
                             <div class="col-md-4">
 
@@ -90,7 +90,10 @@
                                 </label>
 
                                 <div class="input-group">
-                                    <span class="input-group-text">UB_PLC</span>
+
+                                    <span class="input-group-text">
+                                        UB_PLC
+                                    </span>
 
                                     <input type="text"
                                            id="employeeCode"
@@ -103,6 +106,7 @@
                                            placeholder="000001"
                                            title="Enter exactly 6 digits"
                                            required>
+
                                 </div>
 
                                 <div class="text-danger small"
@@ -111,7 +115,6 @@
                                 </div>
 
                             </div>
-
 
                             <!-- Status -->
                             <div class="col-md-4">
@@ -129,11 +132,7 @@
 
                             </div>
 
-
-                            <!-- ================================================= -->
-                            <!-- CURRENT SERIAL NUMBERS -->
-                            <!-- ================================================= -->
-
+                            <!-- Current Serial Numbers -->
                             <div class="col-12">
 
                                 <div class="border rounded-3 p-3">
@@ -169,7 +168,6 @@
 
                                         </div>
 
-
                                         <!-- Foreign Serial Number -->
                                         <div class="col-md-6">
 
@@ -199,7 +197,6 @@
 
                             </div>
 
-
                             <!-- Employee Name -->
                             <div class="col-md-6">
 
@@ -220,7 +217,6 @@
                                 </div>
 
                             </div>
-
 
                             <!-- Designation -->
                             <div class="col-md-6">
@@ -243,7 +239,6 @@
 
                             </div>
 
-
                             <!-- Department -->
                             <div class="col-md-6">
 
@@ -265,7 +260,6 @@
 
                             </div>
 
-
                             <!-- Branch -->
                             <div class="col-md-6">
 
@@ -286,7 +280,6 @@
                                 </div>
 
                             </div>
-
 
                             <!-- Signature Valid From -->
                             <div class="col-md-6">
@@ -315,7 +308,6 @@
 
                             </div>
 
-
                             <!-- Signature Valid Until -->
                             <div class="col-md-6">
 
@@ -342,7 +334,6 @@
                                 </div>
 
                             </div>
-
 
                             <!-- Employee Photo -->
                             <div class="col-md-6">
@@ -371,7 +362,6 @@
 
                             </div>
 
-
                             <!-- Employee Signature -->
                             <div class="col-md-6">
 
@@ -398,7 +388,6 @@
                                 </small>
 
                             </div>
-
 
                             <!-- Foreign Signature -->
                             <div class="col-md-6">
@@ -482,7 +471,6 @@
 
                             </div>
 
-
                             <!-- New Remark -->
                             <div class="col-12">
 
@@ -514,7 +502,6 @@
 
                 </div>
 
-
                 <!-- Submit Section -->
                 <div class="surface-card">
 
@@ -531,7 +518,7 @@
 
                         <p class="text-muted mb-4">
                             After submission, this rejected request will be
-                            sent back to DGM for approval.
+                            sent back to Level 1 Checker for approval.
                         </p>
 
                         <div class="d-flex justify-content-end gap-2">
@@ -541,7 +528,6 @@
 
                                 <i class="bi bi-x-lg me-2"></i>
                                 Cancel
-
                             </a>
 
                             <button type="submit"
@@ -549,7 +535,6 @@
 
                                 <i class="bi bi-check-lg me-2"></i>
                                 Submit Update
-
                             </button>
 
                         </div>
@@ -562,11 +547,7 @@
 
         </div>
 
-
-        <!-- ========================================================= -->
-        <!-- MESSAGE - ONLY SHOW WHEN updateRequestStatus = FALSE -->
-        <!-- ========================================================= -->
-
+        <!-- Message shown only when updateRequestStatus is false -->
         <div th:unless="${request.updateRequestStatus}"
              class="surface-card">
 
@@ -594,7 +575,6 @@
 
                     <i class="bi bi-arrow-left me-2"></i>
                     Back to Requests
-
                 </a>
 
             </div>
@@ -605,9 +585,11 @@
 
 </main>
 
-<footer th:replace="~{fragments/layout :: footer}"></footer>
+<footer th:replace="~{fragments/layout :: footer}">
+</footer>
 
-<div th:replace="~{fragments/layout :: scripts}"></div>
+<div th:replace="~{fragments/layout :: scripts}">
+</div>
 
 </body>
 

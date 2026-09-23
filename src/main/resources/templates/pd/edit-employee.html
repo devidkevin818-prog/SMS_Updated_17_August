@@ -6,9 +6,9 @@
 
 <body>
 
-<header th:replace="~{fragments/navbar :: navbar('PD')}"></header>
+<header th:replace="~{fragments/navbar :: navbar('MAKER')}"></header>
 
-<aside th:replace="~{fragments/sidebar :: sidebar('PD','update')}"></aside>
+<aside th:replace="~{fragments/sidebar :: sidebar('MAKER', 'update')}"></aside>
 
 <main class="app-main">
 
@@ -28,9 +28,10 @@
                 </h1>
 
                 <p class="page-subtitle">
-                    Changes are saved as a request and applied after DGM and GM approval.
-                    Leave image fields empty to keep the existing images.
-                    New signature validity dates must be entered for this request.
+                    Changes are saved as a request and applied after Level 1 Checker
+                    and Level 2 Checker approval. Leave image fields empty to keep
+                    the existing images. New signature validity dates must be entered
+                    for this request.
                 </p>
 
             </div>
@@ -55,7 +56,7 @@
               method="post"
               enctype="multipart/form-data">
 
-            <!-- ==================== VALIDATION SUMMARY ==================== -->
+            <!-- Validation Summary -->
 
             <div class="alert alert-danger app-alert"
                  role="alert"
@@ -79,8 +80,6 @@
                 </div>
 
             </div>
-
-            <!-- ==================== MAIN CONTENT ==================== -->
 
             <div class="row g-4">
 
@@ -175,7 +174,7 @@
 
                                 </div>
 
-                                <!-- ==================== SERIAL NUMBERS ==================== -->
+                                <!-- Signature Serial Numbers -->
 
                                 <div class="col-12">
 
@@ -506,14 +505,6 @@
                                         <span class="text-danger">*</span>
                                     </label>
 
-                                    <!--
-                                        Intentionally not bound using th:field.
-
-                                        This prevents the existing database date from
-                                        appearing in the input. The submitted name still
-                                        binds to EmployeeUpdateForm.signatureValidFrom.
-                                    -->
-
                                     <input class="form-control"
                                            th:classappend="${#fields.hasErrors('signatureValidFrom')}
                                                ? ' is-invalid'
@@ -546,14 +537,6 @@
                                         Signature Valid Until
                                         <span class="text-danger">*</span>
                                     </label>
-
-                                    <!--
-                                        Intentionally not bound using th:field.
-
-                                        This prevents the existing database date from
-                                        appearing in the input. The submitted name still
-                                        binds to EmployeeUpdateForm.signatureValidUntil.
-                                    -->
 
                                     <input class="form-control"
                                            th:classappend="${#fields.hasErrors('signatureValidUntil')}
