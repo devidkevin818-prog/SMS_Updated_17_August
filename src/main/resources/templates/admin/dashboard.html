@@ -8,7 +8,7 @@
     <div class="content-wrap">
         <div th:replace="~{fragments/dashboard-analytics :: analytics}"></div>
         <div class="dashboard-toolbar">
-            <a class="btn btn-bank" th:href="@{/admin/users}"><i class="bi bi-person-plus-fill me-2"></i>Create user</a>
+            <a class="btn btn-bank" th:href="@{/admin/users/new}"><i class="bi bi-person-plus-fill me-2"></i>Create user</a>
         </div>
         <section class="metric-grid queue-menu-grid" aria-label="User management menu">
             <a class="metric-card text-decoration-none" th:href="@{/admin/users}"><span class="metric-icon"><i class="bi bi-people-fill"></i></span><strong class="metric-value" th:text="${totalUsers}">0</strong><span class="metric-label">All users</span></a>

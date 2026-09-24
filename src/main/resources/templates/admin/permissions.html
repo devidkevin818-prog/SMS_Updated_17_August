@@ -1,122 +1,559 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org">
+
 <head th:replace="~{fragments/head :: head('Permissions')}"></head>
+
 <body>
+
 <header th:replace="~{fragments/navbar :: navbar('ADMIN')}"></header>
-<aside th:replace="~{fragments/sidebar :: sidebar('ADMIN','permissions')}"></aside>
+
+<aside th:replace="~{fragments/sidebar :: sidebar('ADMIN', 'permissions')}"></aside>
+
 <main class="app-main">
+
     <div class="content-wrap">
+
+        <!-- Page Header -->
         <div class="page-header">
-            <div><span class="page-eyebrow">Access control</span>
-                <h1 class="page-title">Roles and permissions</h1>
-                <p class="page-subtitle">Central control for module access and hierarchy ordering.</p></div>
+
+            <div>
+
+                <span class="page-eyebrow">
+                    Access control
+                </span>
+
+                <h1 class="page-title">
+                    Roles and permissions
+                </h1>
+
+                <p class="page-subtitle">
+                    Central control for module access and hierarchy ordering.
+                </p>
+
+            </div>
+
         </div>
+
+        <!-- Success / Error Messages -->
         <div th:replace="~{fragments/layout :: messages}"></div>
-        <div class="row g-4">
-            <div class="col-lg-4">
-                <section class="surface-card">
-                    <div class="card-header"><h2 class="h5">Role hierarchy</h2></div>
-                    <div class="card-body">
-                        <div th:each="role:${roles}" class="border-bottom py-2">
-                            <form method="post" th:action="@{/admin/permissions/roles/{id}/hierarchy(id=${role.id})}"
-                                  class="d-flex align-items-center gap-2"><strong class="flex-grow-1"
-                                                                                  th:text="${role.name}"></strong><input
-                                    class="form-control form-control-sm" style="width:80px" type="number" min="1"
-                                    name="hierarchyOrder" th:value="${role.hierarchyOrder}">
-                                <button class="btn btn-sm btn-soft">Save</button>
-                            </form>
-                        </div>
-                    </div>
-                </section>
-            </div>
-            <div class="col-lg-8">
-                <section class="surface-card">
-                    <div class="card-header d-flex justify-content-between"><h2 class="h5">Permission grants</h2>
-                        <form method="get"><select class="form-select" name="roleId" onchange="this.form.submit()">
-                            <option th:each="role:${roles}" th:value="${role.id}"
-                                    th:selected="${role.id==selectedRoleId}" th:text="${role.name}"></option>
-                        </select></form>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table align-middle">
-                                <thead>
-                                <tr>
-                                    <th>Permission</th>
-                                    <th>Description</th>
-                                    <th>Granted</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <tr th:each="permission:${permissions}">
-                                    <td><code th:text="${permission.key}"></code></td>
-                                    <td th:text="${permission.description}"></td>
-                                    <td>
-                                        <form method="post" th:action="@{/admin/permissions/grant}"><input type="hidden"
-                                                                                                           name="roleId"
-                                                                                                           th:value="${selectedRoleId}"><input
-                                                type="hidden" name="permissionId" th:value="${permission.id}"><input
-                                                type="hidden" name="granted" th:value="${!permission.granted}">
-                                            <button class="btn btn-sm"
-                                                    th:classappend="${permission.granted}?' btn-success':' btn-outline-secondary'"
-                                                    th:text="${permission.granted}?'Granted':'Not granted'"></button>
-                                        </form>
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </section>
-            </div>
+
+        <!-- No Roles Warning -->
+        <div class="alert alert-warning"
+             role="alert"
+             th:if="${roles == null or #lists.isEmpty(roles)}">
+
+            No roles are available. Create or initialize roles before managing
+            permissions.
+
         </div>
-        <section class="surface-card mt-4">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <div><h2 class="h5 mb-1">Per-user overrides</h2>
-                    <p class="page-subtitle mb-0">Inherit uses the selected user's role. Allow or deny takes
-                        precedence.</p></div>
-                <form method="get"><input type="hidden" name="roleId" th:value="${selectedRoleId}"><select
-                        class="form-select" name="userId" onchange="this.form.submit()">
-                    <option th:each="u:${users}" th:value="${u.id}" th:selected="${u.id==selectedUserId}"
-                            th:text="${u.username+' ('+u.roleName+')'+(u.active?'':' - inactive')}"></option>
-                </select></form>
-            </div>
-            <div class="table-responsive">
-                <table class="table align-middle">
-                    <thead>
-                    <tr>
-                        <th>Permission</th>
-                        <th>Description</th>
-                        <th>Override</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr th:each="permission:${userPermissions}">
-                        <td><code th:text="${permission.key}"></code></td>
-                        <td th:text="${permission.description}"></td>
-                        <td>
+
+        <!-- No Users Warning -->
+        <div class="alert alert-warning"
+             role="alert"
+             th:if="${users == null or #lists.isEmpty(users)}">
+
+            No users are available for individual permission overrides.
+
+        </div>
+
+        <div class="row g-4"
+             th:if="${roles != null and not #lists.isEmpty(roles)}">
+
+            <!-- =====================================================
+                 ROLE HIERARCHY
+            ====================================================== -->
+
+            <div class="col-lg-4">
+
+                <section class="surface-card">
+
+                    <div class="card-header">
+
+                        <h2 class="h5 mb-0">
+                            Role hierarchy
+                        </h2>
+
+                    </div>
+
+                    <div class="card-body">
+
+                        <div th:each="role : ${roles}"
+                             class="border-bottom py-2">
+
                             <form method="post"
-                                  th:action="@{/admin/permissions/users/{id}/override(id=${selectedUserId})}"
-                                  class="d-flex gap-2"><input type="hidden" name="permissionId"
-                                                              th:value="${permission.id}"><select
-                                    class="form-select form-select-sm" name="mode">
-                                <option value="INHERIT" th:selected="${permission.overrideMode=='INHERIT'}">Inherit
-                                    role
-                                </option>
-                                <option value="ALLOW" th:selected="${permission.overrideMode=='ALLOW'}">Allow</option>
-                                <option value="DENY" th:selected="${permission.overrideMode=='DENY'}">Deny</option>
-                            </select>
-                                <button class="btn btn-sm btn-soft">Save</button>
+                                  th:action="@{/admin/permissions/roles/{id}/hierarchy(id=${role.id})}"
+                                  class="d-flex align-items-center gap-2">
+
+                                <!-- Preserve current selections -->
+                                <input type="hidden"
+                                       name="roleId"
+                                       th:value="${selectedRoleId}">
+
+                                <input type="hidden"
+                                       name="userId"
+                                       th:value="${selectedUserId}">
+
+                                <!-- Role display mapping only -->
+                                <strong class="flex-grow-1"
+                                        th:text="${
+                                            role.name == 'PD'
+                                            or role.name == 'MAKER'
+                                            ? 'MAKER'
+                                            : (
+                                                role.name == 'DGM'
+                                                or role.name == 'LEVEL_1_CHECKER'
+                                                or role.name == 'CHECKER_LEVEL_1'
+                                                ? 'CHECKER LEVEL 1'
+                                                : (
+                                                    role.name == 'GM'
+                                                    or role.name == 'LEVEL_2_CHECKER'
+                                                    or role.name == 'CHECKER_LEVEL_2'
+                                                    ? 'CHECKER LEVEL 2'
+                                                    : role.name
+                                                )
+                                            )
+                                        }">
+                                    ROLE
+                                </strong>
+
+                                <input class="form-control form-control-sm"
+                                       style="width: 80px"
+                                       type="number"
+                                       min="1"
+                                       name="hierarchyOrder"
+                                       aria-label="Hierarchy order"
+                                       th:value="${role.hierarchyOrder}"
+                                       required>
+
+                                <button class="btn btn-sm btn-soft"
+                                        type="submit">
+                                    Save
+                                </button>
+
                             </form>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
             </div>
+
+            <!-- =====================================================
+                 PERMISSION GRANTS
+            ====================================================== -->
+
+            <div class="col-lg-8">
+
+                <section class="surface-card">
+
+                    <div class="card-header d-flex justify-content-between align-items-center gap-3">
+
+                        <h2 class="h5 mb-0">
+                            Permission grants
+                        </h2>
+
+                        <form method="get"
+                              th:action="@{/admin/permissions}">
+
+                            <!-- Preserve selected user -->
+                            <input type="hidden"
+                                   name="userId"
+                                   th:value="${selectedUserId}">
+
+                            <select class="form-select"
+                                    name="roleId"
+                                    aria-label="Select role"
+                                    onchange="this.form.submit()">
+
+                                <option th:each="role : ${roles}"
+                                        th:value="${role.id}"
+                                        th:selected="${role.id == selectedRoleId}"
+                                        th:text="${
+                                            role.name == 'PD'
+                                            or role.name == 'MAKER'
+                                            ? 'MAKER'
+                                            : (
+                                                role.name == 'DGM'
+                                                or role.name == 'LEVEL_1_CHECKER'
+                                                or role.name == 'CHECKER_LEVEL_1'
+                                                ? 'CHECKER LEVEL 1'
+                                                : (
+                                                    role.name == 'GM'
+                                                    or role.name == 'LEVEL_2_CHECKER'
+                                                    or role.name == 'CHECKER_LEVEL_2'
+                                                    ? 'CHECKER LEVEL 2'
+                                                    : role.name
+                                                )
+                                            )
+                                        }">
+                                    ROLE
+                                </option>
+
+                            </select>
+
+                        </form>
+
+                    </div>
+
+                    <div class="card-body">
+
+                        <div class="alert alert-info mb-0"
+                             role="alert"
+                             th:if="${permissions == null or #lists.isEmpty(permissions)}">
+
+                            No permissions are available for the selected role.
+
+                        </div>
+
+                        <div class="table-responsive"
+                             th:if="${permissions != null and not #lists.isEmpty(permissions)}">
+
+                            <table class="table align-middle">
+
+                                <thead>
+
+                                <tr>
+
+                                    <th scope="col">
+                                        Permission
+                                    </th>
+
+                                    <th scope="col">
+                                        Description
+                                    </th>
+
+                                    <th scope="col">
+                                        Granted
+                                    </th>
+
+                                </tr>
+
+                                </thead>
+
+                                <tbody>
+
+                                <tr th:each="permission : ${permissions}">
+
+                                    <!--
+                                        Keep the actual database permission key
+                                        unchanged. Only modify the displayed label.
+                                    -->
+
+                                    <td>
+
+                                        <code th:text="${
+                                            permission.key == 'APPROVE_DGM'
+                                            ? 'APPROVE_LEVEL_1_CHECKER'
+                                            : (
+                                                permission.key == 'APPROVE_GM'
+                                                ? 'APPROVE_LEVEL_2_CHECKER'
+                                                : (
+                                                    permission.key == 'APPROVE_PD'
+                                                    ? 'APPROVE_MAKER'
+                                                    : permission.key
+                                                )
+                                            )
+                                        }">
+                                            PERMISSION_KEY
+                                        </code>
+
+                                    </td>
+
+                                    <!-- Permission description display mapping -->
+                                    <td th:text="${
+                                        permission.key == 'APPROVE_DGM'
+                                        ? 'Checker Level 1 approval'
+                                        : (
+                                            permission.key == 'APPROVE_GM'
+                                            ? 'Checker Level 2 approval'
+                                            : (
+                                                permission.key == 'APPROVE_PD'
+                                                ? 'Maker approval'
+                                                : permission.description
+                                            )
+                                        )
+                                    }">
+                                        Permission description
+                                    </td>
+
+                                    <td>
+
+                                        <form method="post"
+                                              th:action="@{/admin/permissions/grant}">
+
+                                            <input type="hidden"
+                                                   name="roleId"
+                                                   th:value="${selectedRoleId}">
+
+                                            <input type="hidden"
+                                                   name="userId"
+                                                   th:value="${selectedUserId}">
+
+                                            <input type="hidden"
+                                                   name="permissionId"
+                                                   th:value="${permission.id}">
+
+                                            <!--
+                                                Submit the opposite value so the
+                                                button works as a grant/revoke toggle.
+                                            -->
+                                            <input type="hidden"
+                                                   name="granted"
+                                                   th:value="${!permission.granted}">
+
+                                            <button class="btn btn-sm"
+                                                    type="submit"
+                                                    th:classappend="${permission.granted}
+                                                        ? ' btn-success'
+                                                        : ' btn-outline-secondary'"
+                                                    th:text="${permission.granted}
+                                                        ? 'Granted'
+                                                        : 'Not granted'"
+                                                    th:title="${permission.granted}
+                                                        ? 'Click to revoke this permission'
+                                                        : 'Click to grant this permission'">
+                                                Permission state
+                                            </button>
+
+                                        </form>
+
+                                    </td>
+
+                                </tr>
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+            </div>
+
+        </div>
+
+        <!-- =====================================================
+             PER-USER OVERRIDES
+        ====================================================== -->
+
+        <section class="surface-card mt-4"
+                 th:if="${users != null and not #lists.isEmpty(users)}">
+
+            <div class="card-header d-flex justify-content-between align-items-center gap-3">
+
+                <div>
+
+                    <h2 class="h5 mb-1">
+                        Per-user overrides
+                    </h2>
+
+                    <p class="page-subtitle mb-0">
+                        Inherit uses the selected user's role.
+                        Allow or deny takes precedence.
+                    </p>
+
+                </div>
+
+                <form method="get"
+                      th:action="@{/admin/permissions}">
+
+                    <!-- Preserve selected role -->
+                    <input type="hidden"
+                           name="roleId"
+                           th:value="${selectedRoleId}">
+
+                    <select class="form-select"
+                            name="userId"
+                            aria-label="Select user"
+                            onchange="this.form.submit()">
+
+                        <option th:each="u : ${users}"
+                                th:value="${u.id}"
+                                th:selected="${u.id == selectedUserId}"
+                                th:text="${
+                                    u.username
+                                    + ' ('
+                                    + (
+                                        u.roleName == 'PD'
+                                        or u.roleName == 'MAKER'
+                                        ? 'MAKER'
+                                        : (
+                                            u.roleName == 'DGM'
+                                            or u.roleName == 'LEVEL_1_CHECKER'
+                                            or u.roleName == 'CHECKER_LEVEL_1'
+                                            ? 'CHECKER LEVEL 1'
+                                            : (
+                                                u.roleName == 'GM'
+                                                or u.roleName == 'LEVEL_2_CHECKER'
+                                                or u.roleName == 'CHECKER_LEVEL_2'
+                                                ? 'CHECKER LEVEL 2'
+                                                : u.roleName
+                                            )
+                                        )
+                                    )
+                                    + ')'
+                                    + (u.active ? '' : ' - inactive')
+                                }">
+                            USER
+                        </option>
+
+                    </select>
+
+                </form>
+
+            </div>
+
+            <div class="card-body p-0">
+
+                <div class="alert alert-info m-3"
+                     role="alert"
+                     th:if="${userPermissions == null or #lists.isEmpty(userPermissions)}">
+
+                    No permissions are available for the selected user.
+
+                </div>
+
+                <div class="table-responsive"
+                     th:if="${userPermissions != null and not #lists.isEmpty(userPermissions)}">
+
+                    <table class="table align-middle mb-0">
+
+                        <thead>
+
+                        <tr>
+
+                            <th scope="col">
+                                Permission
+                            </th>
+
+                            <th scope="col">
+                                Description
+                            </th>
+
+                            <th scope="col">
+                                Override
+                            </th>
+
+                        </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                        <tr th:each="permission : ${userPermissions}">
+
+                            <!-- Permission display label -->
+                            <td>
+
+                                <code th:text="${
+                                    permission.key == 'APPROVE_DGM'
+                                    ? 'APPROVE_LEVEL_1_CHECKER'
+                                    : (
+                                        permission.key == 'APPROVE_GM'
+                                        ? 'APPROVE_LEVEL_2_CHECKER'
+                                        : (
+                                            permission.key == 'APPROVE_PD'
+                                            ? 'APPROVE_MAKER'
+                                            : permission.key
+                                        )
+                                    )
+                                }">
+                                    PERMISSION_KEY
+                                </code>
+
+                            </td>
+
+                            <!-- Permission description display mapping -->
+                            <td th:text="${
+                                permission.key == 'APPROVE_DGM'
+                                ? 'Checker Level 1 approval'
+                                : (
+                                    permission.key == 'APPROVE_GM'
+                                    ? 'Checker Level 2 approval'
+                                    : (
+                                        permission.key == 'APPROVE_PD'
+                                        ? 'Maker approval'
+                                        : permission.description
+                                    )
+                                )
+                            }">
+                                Permission description
+                            </td>
+
+                            <td>
+
+                                <form method="post"
+                                      th:action="@{/admin/permissions/users/{id}/override(id=${selectedUserId})}"
+                                      class="d-flex gap-2 align-items-center">
+
+                                    <!-- Preserve selected role -->
+                                    <input type="hidden"
+                                           name="roleId"
+                                           th:value="${selectedRoleId}">
+
+                                    <!-- Real permission ID -->
+                                    <input type="hidden"
+                                           name="permissionId"
+                                           th:value="${permission.id}">
+
+                                    <select class="form-select form-select-sm"
+                                            name="mode"
+                                            aria-label="Select permission override">
+
+                                        <option value="INHERIT"
+                                                th:selected="${permission.overrideMode == null
+                                                or permission.overrideMode == 'INHERIT'}">
+                                            Inherit role
+                                        </option>
+
+                                        <option value="ALLOW"
+                                                th:selected="${permission.overrideMode == 'ALLOW'}">
+                                            Allow
+                                        </option>
+
+                                        <option value="DENY"
+                                                th:selected="${permission.overrideMode == 'DENY'}">
+                                            Deny
+                                        </option>
+
+                                    </select>
+
+                                    <button class="btn btn-sm btn-soft"
+                                            type="submit">
+                                        Save
+                                    </button>
+
+                                </form>
+
+                            </td>
+
+                        </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
         </section>
+
     </div>
+
 </main>
+
+<!-- Footer -->
 <footer th:replace="~{fragments/layout :: footer}"></footer>
+
+<!-- Scripts -->
 <div th:replace="~{fragments/layout :: scripts}"></div>
+
 </body>
 </html>
