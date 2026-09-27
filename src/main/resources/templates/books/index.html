@@ -1,3 +1,199 @@
-<!DOCTYPE html><html lang="en" xmlns:th="http://www.thymeleaf.org"><head th:replace="~{fragments/head :: head('Signature Books')}"></head><body><header th:replace="~{fragments/navbar :: navbar(${role})}"></header><aside th:replace="~{fragments/sidebar :: sidebar(${role},'books')}"></aside><main class="app-main"><div class="content-wrap"><div class="page-header"><div><span class="page-eyebrow">PDF archive</span><h1 class="page-title">Signature books</h1><p class="page-subtitle">Stored, versioned, and access-controlled.</p></div></div><div th:replace="~{fragments/layout :: messages}"></div>
-<section class="surface-card mb-4" th:if="${canGenerate}"><div class="card-body"><form method="post" th:action="@{/books/generate}" class="row g-2 align-items-end"><div class="col-md-4"><label class="form-label">Year</label><input class="form-control" type="number" name="year" min="1900" th:value="${currentYear}" required></div><div class="col-md-4"><label class="form-label">Signature type</label><select class="form-select" name="type"><option>LOCAL</option><option>FOREIGN</option><option>BOTH</option></select></div><div class="col-md-4"><button class="btn btn-bank">Generate version</button></div></form></div></section>
-<section class="surface-card"><div class="table-responsive"><table class="table app-table"><thead><tr><th>Book</th><th>Year</th><th>Type</th><th>Version</th><th>Generated</th><th></th></tr></thead><tbody><tr th:each="book:${books}"><td th:text="${book.bookNumber}"></td><td th:text="${book.bookYear}"></td><td th:text="${book.signatureType}"></td><td th:text="${book.versionNo}"></td><td th:text="${book.generatedAt}"></td><td><a class="btn btn-sm btn-bank" th:href="@{/books/{id}(id=${book.id})}">Open</a></td></tr></tbody></table></div></section></div></main><footer th:replace="~{fragments/layout :: footer}"></footer><div th:replace="~{fragments/layout :: scripts}"></div></body></html>
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/head :: head('Signature Books')}"></head>
+
+<body>
+
+<header th:replace="~{fragments/navbar :: navbar(${role})}"></header>
+
+<aside th:replace="~{fragments/sidebar :: sidebar(${role}, 'books')}"></aside>
+
+<main class="app-main">
+
+    <div class="content-wrap">
+
+        <div class="page-header">
+            <div>
+                <span class="page-eyebrow">
+                    PDF archive
+                </span>
+
+                <h1 class="page-title">
+                    Signature books
+                </h1>
+
+                <p class="page-subtitle">
+                    Stored, versioned, and access-controlled.
+                </p>
+            </div>
+        </div>
+
+        <div th:replace="~{fragments/layout :: messages}"></div>
+
+        <!-- Generate signature book -->
+        <section class="surface-card mb-4"
+                 th:if="${canGenerate}">
+
+            <div class="card-body">
+
+                <form method="post"
+                      th:action="@{/books/generate}"
+                      class="row g-2 align-items-end">
+
+                    <!-- CSRF token required by Spring Security -->
+                    <input type="hidden"
+                           th:if="${_csrf != null}"
+                           th:name="${_csrf.parameterName}"
+                           th:value="${_csrf.token}">
+
+                    <div class="col-md-4">
+
+                        <label for="bookYear"
+                               class="form-label">
+                            Year
+                        </label>
+
+                        <input id="bookYear"
+                               class="form-control"
+                               type="number"
+                               name="year"
+                               min="1900"
+                               th:value="${currentYear}"
+                               required>
+
+                    </div>
+
+                    <div class="col-md-4">
+
+                        <label for="signatureType"
+                               class="form-label">
+                            Signature type
+                        </label>
+
+                        <select id="signatureType"
+                                class="form-select"
+                                name="type"
+                                required>
+
+                            <option value="LOCAL">
+                                LOCAL
+                            </option>
+
+                            <option value="FOREIGN">
+                                FOREIGN
+                            </option>
+
+                            <option value="BOTH">
+                                BOTH
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-4">
+
+                        <button type="submit"
+                                class="btn btn-bank">
+                            Generate version
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </section>
+
+        <!-- Signature book list -->
+        <section class="surface-card">
+
+            <div class="table-responsive">
+
+                <table class="table app-table">
+
+                    <thead>
+                    <tr>
+                        <th>Book</th>
+                        <th>Year</th>
+                        <th>Type</th>
+                        <th>Version</th>
+                        <th>Generated</th>
+                        <th>Action</th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+
+                    <tr th:each="book : ${books}">
+
+                        <td th:text="${book.bookNumber}">
+                            Book number
+                        </td>
+
+                        <td th:text="${book.bookYear}">
+                            Year
+                        </td>
+
+                        <td th:text="${book.signatureType}">
+                            Type
+                        </td>
+
+                        <td th:text="${book.versionNo}">
+                            Version
+                        </td>
+
+                        <td th:text="${book.generatedAt}">
+                            Generated time
+                        </td>
+
+                        <td>
+
+                            <!--
+                                The version number is added as a query parameter
+                                so each generated version has a distinct URL.
+                            -->
+                            <a class="btn btn-sm btn-bank"
+                               target="_blank"
+                               rel="noopener noreferrer"
+                               th:href="@{/books/{id}(
+                                    id=${book.id},
+                                    version=${book.versionNo}
+                               )}">
+                                Open
+                            </a>
+
+                        </td>
+
+                    </tr>
+
+                    <tr th:if="${books == null or #lists.isEmpty(books)}">
+
+                        <td colspan="6"
+                            class="text-center text-muted py-4">
+                            No signature books have been generated.
+                        </td>
+
+                    </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+    </div>
+
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+
+<div th:replace="~{fragments/layout :: scripts}"></div>
+
+</body>
+</html>

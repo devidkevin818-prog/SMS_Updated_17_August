@@ -6,17 +6,28 @@ import com.bank.signaturemanagement.entity.EmployeeRequest;
 import com.bank.signaturemanagement.entity.EmployeeSerialNumber;
 import com.bank.signaturemanagement.entity.RequestStatus;
 import com.bank.signaturemanagement.service.ApprovalHistoryService;
+import com.bank.signaturemanagement.service.BatchImportService;
+import com.bank.signaturemanagement.service.DashboardService;
+import com.bank.signaturemanagement.service.EmployeeChangeProposalService;
+import com.bank.signaturemanagement.service.EmployeeMediaRequestService;
 import com.bank.signaturemanagement.service.EmployeeRequestService;
 import com.bank.signaturemanagement.service.EmployeeSerialNumberService;
 import com.bank.signaturemanagement.service.EmployeeService;
+import com.bank.signaturemanagement.service.SignatureWorkflowService;
 import com.bank.signaturemanagement.service.UserApprovalService;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -24,26 +35,18 @@ import java.util.Map;
 @RequestMapping("/dgm")
 public class DgmController {
 
+    private static final String LEVEL_1_CHECKER =
+            "LEVEL_1_CHECKER";
+
     private final EmployeeRequestService requestService;
     private final ApprovalHistoryService approvalHistoryService;
     private final EmployeeService employeeService;
     private final UserApprovalService userApprovalService;
-
-    private final com.bank.signaturemanagement.service.EmployeeChangeProposalService
-            changeProposalService;
-
-    private final com.bank.signaturemanagement.service.BatchImportService
-            batchImportService;
-
-    private final com.bank.signaturemanagement.service.SignatureWorkflowService
-            signatureWorkflowService;
-
-    private final com.bank.signaturemanagement.service.EmployeeMediaRequestService
-            mediaRequestService;
-
-    private final com.bank.signaturemanagement.service.DashboardService
-            dashboardService;
-
+    private final BatchImportService batchImportService;
+    private final EmployeeChangeProposalService changeProposalService;
+    private final SignatureWorkflowService signatureWorkflowService;
+    private final EmployeeMediaRequestService mediaRequestService;
+    private final DashboardService dashboardService;
     private final EmployeeSerialNumberService employeeSerialNumberService;
 
     public DgmController(
@@ -51,44 +54,56 @@ public class DgmController {
             ApprovalHistoryService approvalHistoryService,
             EmployeeService employeeService,
             UserApprovalService userApprovalService,
-            com.bank.signaturemanagement.service.EmployeeChangeProposalService
-                    changeProposalService,
-            com.bank.signaturemanagement.service.BatchImportService
-                    batchImportService,
-            com.bank.signaturemanagement.service.SignatureWorkflowService
-                    signatureWorkflowService,
-            com.bank.signaturemanagement.service.EmployeeMediaRequestService
-                    mediaRequestService,
-            com.bank.signaturemanagement.service.DashboardService
-                    dashboardService,
+            BatchImportService batchImportService,
+            EmployeeChangeProposalService changeProposalService,
+            SignatureWorkflowService signatureWorkflowService,
+            EmployeeMediaRequestService mediaRequestService,
+            DashboardService dashboardService,
             EmployeeSerialNumberService employeeSerialNumberService
     ) {
         this.requestService = requestService;
         this.approvalHistoryService = approvalHistoryService;
         this.employeeService = employeeService;
         this.userApprovalService = userApprovalService;
-        this.changeProposalService = changeProposalService;
         this.batchImportService = batchImportService;
+        this.changeProposalService = changeProposalService;
         this.signatureWorkflowService = signatureWorkflowService;
         this.mediaRequestService = mediaRequestService;
         this.dashboardService = dashboardService;
         this.employeeSerialNumberService = employeeSerialNumberService;
     }
 
+    /*
+     * ============================================================
+     * LEVEL 1 CHECKER DASHBOARD
+     * ============================================================
+     */
+
     @GetMapping("/dashboard")
     public String dashboard(
-            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(
+                    name = "page",
+                    defaultValue = "0"
+            ) int page,
             Authentication authentication,
             Model model
     ) {
+        String username = authentication.getName();
+
+        /*
+         * Dashboard summary and analytics.
+         */
         model.addAttribute(
                 "dashboard",
                 dashboardService.getDashboardData(
-                        authentication.getName(),
-                        "LEVEL_1_CHECKER"
+                        username,
+                        LEVEL_1_CHECKER
                 )
         );
 
+        /*
+         * Pending employee creation or update requests.
+         */
         model.addAttribute(
                 "requests",
                 requestService.getPendingRequests(
@@ -97,116 +112,176 @@ public class DgmController {
                 )
         );
 
+        /*
+         * Load Level 1 Checker approval queues.
+         */
+        var userRequests =
+                userApprovalService.pending(
+                        LEVEL_1_CHECKER
+                );
+
+        var batchRequests =
+                batchImportService.findPendingForLevel1Checker();
+
+        var signatureRequests =
+                signatureWorkflowService.pending(
+                        LEVEL_1_CHECKER
+                );
+
+        var mediaRequests =
+                mediaRequestService.pending(
+                        LEVEL_1_CHECKER
+                );
+
         model.addAttribute(
                 "userRequests",
-                userApprovalService.pending("LEVEL_1_CHECKER")
+                userRequests == null
+                        ? Collections.emptyList()
+                        : userRequests
         );
 
         model.addAttribute(
                 "batchRequests",
-                batchImportService.pending("LEVEL_1_CHECKER")
+                batchRequests == null
+                        ? Collections.emptyList()
+                        : batchRequests
         );
 
         model.addAttribute(
                 "signatureRequests",
-                signatureWorkflowService.pending("LEVEL_1_CHECKER")
+                signatureRequests == null
+                        ? Collections.emptyList()
+                        : signatureRequests
         );
 
         model.addAttribute(
                 "mediaRequests",
-                mediaRequestService.pending("LEVEL_1_CHECKER")
+                mediaRequests == null
+                        ? Collections.emptyList()
+                        : mediaRequests
         );
+
+        /*
+         * Temporary diagnostics.
+         * Remove after confirming that batch requests appear.
+         */
+        int batchRequestCount =
+                batchRequests == null
+                        ? 0
+                        : batchRequests.size();
+
+        System.out.println(
+                "LEVEL_1_CHECKER batch request count = "
+                        + batchRequestCount
+        );
+
+        if (batchRequests != null) {
+            batchRequests.forEach(batch ->
+                    System.out.println(
+                            "Visible batch: id="
+                                    + batch.getId()
+                                    + ", batchNumber="
+                                    + batch.getBatchNumber()
+                                    + ", status="
+                                    + batch.getStatus()
+                                    + ", active="
+                                    + batch.isActive()
+                    )
+            );
+        }
 
         return "dgm/dashboard";
     }
 
-    @PostMapping("/batch-requests/{id}/decision")
-    public String batchDecision(
-            @PathVariable Long id,
-            @RequestParam String action,
-            @RequestParam(required = false) String comment,
-            Authentication authentication,
-            RedirectAttributes redirect
-    ) {
-        try {
-            batchImportService.decide(
-                    id,
-                    "LEVEL_1_CHECKER",
-                    action,
-                    comment,
-                    authentication.getName()
-            );
+    /*
+     * ============================================================
+     * IMPORT BATCH APPROVAL
+     * ============================================================
+     *
+     * The GET endpoint for viewing a batch is intentionally not
+     * declared here.
+     *
+     * BatchController already owns:
+     *
+     * GET /dgm/batch-requests/{id}
+     *
+     * Declaring the same route here causes an ambiguous mapping
+     * and prevents the application from starting.
+     * ============================================================
+     */
 
-            redirect.addFlashAttribute(
-                    "success",
-                    "Batch decision saved"
-            );
-        } catch (IllegalArgumentException exception) {
-            redirect.addFlashAttribute(
-                    "error",
-                    exception.getMessage()
-            );
-        }
+//    @PostMapping("/batch-requests/{id}/decision")
+//    public String batchDecision(
+//            @PathVariable("id") Long id,
+//            @RequestParam("action") String action,
+//            @RequestParam(
+//                    value = "comment",
+//                    required = false
+//            ) String comment,
+//            RedirectAttributes redirectAttributes
+//    ) {
+//        try {
+//            batchImportService.makeLevel1Decision(
+//                    id,
+//                    action,
+//                    comment
+//            );
+//
+//            String successMessage =
+//                    "APPROVE".equalsIgnoreCase(action)
+//                            ? "Batch approved and sent to the Level 2 Checker."
+//                            : "Batch rejected successfully.";
+//
+//            redirectAttributes.addFlashAttribute(
+//                    "success",
+//                    successMessage
+//            );
+//        } catch (IllegalArgumentException
+//                 | IllegalStateException exception) {
+//
+//            redirectAttributes.addFlashAttribute(
+//                    "error",
+//                    exception.getMessage()
+//            );
+//        }
+//
+//        return "redirect:/dgm/dashboard#batch-requests";
+//    }
 
-        return "redirect:/dgm/dashboard";
-    }
-
-    @GetMapping("/batch-requests/{id}")
-    public String batchView(
-            @PathVariable Long id,
-            Model model
-    ) {
-        model.addAttribute(
-                "batch",
-                batchImportService.get(id)
-        );
-
-        model.addAttribute(
-                "items",
-                batchImportService.itemViews(id)
-        );
-
-        model.addAttribute(
-                "batchBase",
-                "/dgm/dashboard"
-        );
-
-        model.addAttribute(
-                "pageRole",
-                "LEVEL_1_CHECKER"
-        );
-
-        model.addAttribute(
-                "batchReadOnly",
-                true
-        );
-
-        return "batches/detail";
-    }
+    /*
+     * ============================================================
+     * USER CREATION APPROVAL
+     * ============================================================
+     */
 
     @PostMapping("/user-requests/{id}/decision")
     public String userDecision(
-            @PathVariable Long id,
-            @RequestParam String action,
-            @RequestParam(required = false) String comment,
+            @PathVariable("id") Long id,
+            @RequestParam("action") String action,
+            @RequestParam(
+                    value = "comment",
+                    required = false
+            ) String comment,
             Authentication authentication,
-            RedirectAttributes redirect
+            RedirectAttributes redirectAttributes
     ) {
         try {
             userApprovalService.decide(
                     id,
-                    "LEVEL_1_CHECKER",
+                    LEVEL_1_CHECKER,
                     action,
                     comment,
                     authentication.getName()
             );
 
-            redirect.addFlashAttribute(
+            redirectAttributes.addFlashAttribute(
                     "success",
-                    "User request decision saved"
+                    "User request decision saved."
             );
-        } catch (IllegalArgumentException exception) {
-            redirect.addFlashAttribute(
+        } catch (IllegalArgumentException
+                 | IllegalStateException exception) {
+
+            redirectAttributes.addFlashAttribute(
                     "error",
                     exception.getMessage()
             );
@@ -215,9 +290,15 @@ public class DgmController {
         return "redirect:/dgm/dashboard";
     }
 
+    /*
+     * ============================================================
+     * EMPLOYEE REQUEST APPROVAL
+     * ============================================================
+     */
+
     @GetMapping("/requests/{id}")
     public String review(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             Model model
     ) {
         EmployeeRequest request =
@@ -253,8 +334,8 @@ public class DgmController {
 
     @PostMapping("/requests/{id}/decision")
     public String decide(
-            @PathVariable Long id,
-            @RequestParam String action,
+            @PathVariable("id") Long id,
+            @RequestParam("action") String action,
             @ModelAttribute ApprovalForm approvalForm,
             Authentication authentication,
             RedirectAttributes redirectAttributes
@@ -269,11 +350,13 @@ public class DgmController {
 
             redirectAttributes.addFlashAttribute(
                     "success",
-                    "Level 1 Checker decision saved"
+                    "Level 1 Checker decision saved."
             );
 
             return "redirect:/dgm/dashboard";
-        } catch (IllegalArgumentException exception) {
+        } catch (IllegalArgumentException
+                 | IllegalStateException exception) {
+
             redirectAttributes.addFlashAttribute(
                     "error",
                     exception.getMessage()
@@ -283,9 +366,18 @@ public class DgmController {
         }
     }
 
+    /*
+     * ============================================================
+     * APPROVAL HISTORY
+     * ============================================================
+     */
+
     @GetMapping("/approvals")
     public String approvals(
-            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(
+                    name = "page",
+                    defaultValue = "0"
+            ) int page,
             Authentication authentication,
             Model model
     ) {
@@ -293,7 +385,7 @@ public class DgmController {
                 "approvals",
                 approvalHistoryService.getDecisions(
                         authentication.getName(),
-                        "LEVEL_1_CHECKER",
+                        LEVEL_1_CHECKER,
                         page
                 )
         );
@@ -301,10 +393,22 @@ public class DgmController {
         return "dgm/approval-history";
     }
 
+    /*
+     * ============================================================
+     * EMPLOYEE LIST
+     * ============================================================
+     */
+
     @GetMapping("/employees")
     public String employees(
-            @RequestParam(defaultValue = "") String query,
-            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(
+                    name = "query",
+                    defaultValue = ""
+            ) String query,
+            @RequestParam(
+                    name = "page",
+                    defaultValue = "0"
+            ) int page,
             Model model
     ) {
         var employeePage =
@@ -331,10 +435,16 @@ public class DgmController {
         return "dgm/employee-list";
     }
 
+    /*
+     * ============================================================
+     * EMPLOYEE UPDATE REQUEST
+     * ============================================================
+     */
+
     @PostMapping("/employees/{id}/update-request")
     public String requestEmployeeUpdate(
-            @PathVariable Long id,
-            @RequestParam String justification,
+            @PathVariable("id") Long id,
+            @RequestParam("justification") String justification,
             Authentication authentication,
             RedirectAttributes redirectAttributes
     ) {
@@ -347,9 +457,11 @@ public class DgmController {
 
             redirectAttributes.addFlashAttribute(
                     "success",
-                    "Update request submitted successfully"
+                    "Update request submitted successfully."
             );
-        } catch (IllegalArgumentException exception) {
+        } catch (IllegalArgumentException
+                 | IllegalStateException exception) {
+
             redirectAttributes.addFlashAttribute(
                     "error",
                     exception.getMessage()
@@ -360,8 +472,13 @@ public class DgmController {
     }
 
     /*
-     * Adds the latest serial-number history record
-     * for a single employee.
+     * ============================================================
+     * SERIAL NUMBER HELPERS
+     * ============================================================
+     */
+
+    /**
+     * Adds the latest serial-number history record for one employee.
      */
     private void addLatestSerialNumber(
             Model model,
@@ -378,9 +495,8 @@ public class DgmController {
         );
     }
 
-    /*
-     * Adds the latest serial-number history records
-     * for a collection of employees.
+    /**
+     * Adds the latest serial-number history record for each employee.
      */
     private void addLatestSerialNumbers(
             Model model,
@@ -390,6 +506,11 @@ public class DgmController {
                 new LinkedHashMap<>();
 
         for (Employee employee : employees) {
+            if (employee == null
+                    || employee.getId() == null) {
+                continue;
+            }
+
             EmployeeSerialNumber serialNumber =
                     employeeSerialNumberService
                             .findLatestByEmployeeId(
