@@ -1,71 +1,111 @@
 package com.bank.signaturemanagement.controller;
 
+import com.bank.signaturemanagement.entity.ImportBatch;
 import com.bank.signaturemanagement.service.BatchImportService;
-import org.springframework.security.core.Authentication;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
-@RequestMapping({"/pd/batches", "/admin/batches"})
-@org.springframework.security.access.prepost.PreAuthorize("@accessControl.has(authentication.name,'BATCH_UPLOAD')")
+@RequestMapping("/dgm/batch-requests")
 public class BatchController {
-    private final BatchImportService service;
 
-    public BatchController(BatchImportService service) {
-        this.service = service;
+    private final BatchImportService batchImportService;
+
+    public BatchController(
+            BatchImportService batchImportService
+    ) {
+        this.batchImportService = batchImportService;
     }
 
-    @GetMapping
-    public String index(Model model, jakarta.servlet.http.HttpServletRequest request) {
-        boolean admin = request.getRequestURI().startsWith("/admin");
-        model.addAttribute("batches", service.all());
-        model.addAttribute("batchBase", admin ? "/admin/batches" : "/pd/batches");
-        model.addAttribute("pageRole", admin ? "ADMIN" : "PD");
-        return "batches/index";
-    }
-
-    @PostMapping
-    public String upload(@RequestParam MultipartFile file, @RequestParam(required = false) Long retryOfId, Authentication auth, RedirectAttributes redirect, jakarta.servlet.http.HttpServletRequest request) {
-        try {
-            var b = service.upload(file, retryOfId, auth.getName());
-            redirect.addFlashAttribute("success", "Batch " + b.getBatchNumber() + " uploaded. Review and correct the rows before submission.");
-            return "redirect:" + (request.getRequestURI().startsWith("/admin") ? "/admin/batches/" : "/pd/batches/") + b.getId();
-        } catch (IllegalArgumentException | IllegalStateException e) {
-            redirect.addFlashAttribute("error", e.getMessage());
-        }
-        return "redirect:" + (request.getRequestURI().startsWith("/admin") ? "/admin/batches" : "/pd/batches");
-    }
-
+    /**
+     * Displays one import batch and its imported rows.
+     */
     @GetMapping("/{id}")
-    public String detail(@PathVariable Long id, Model model, jakarta.servlet.http.HttpServletRequest request) {
-        boolean admin = request.getRequestURI().startsWith("/admin");
-        model.addAttribute("batch", service.get(id));
-        model.addAttribute("items", service.itemViews(id));
-        model.addAttribute("batchBase", admin ? "/admin/batches" : "/pd/batches");
-        model.addAttribute("pageRole", admin ? "ADMIN" : "PD");
-        model.addAttribute("batchReadOnly", false);
-        return "batches/detail";
+    public String viewBatchRequest(
+            @PathVariable("id") Long id,
+            Model model,
+            RedirectAttributes redirectAttributes
+    ) {
+        try {
+            model.addAttribute(
+                    "batch",
+                    batchImportService.getActiveBatch(id)
+            );
+
+            model.addAttribute(
+                    "items",
+                    batchImportService.getBatchItems(id)
+            );
+
+            return "dgm/batch-request-details";
+
+        } catch (EntityNotFoundException
+                 | IllegalArgumentException exception) {
+
+            redirectAttributes.addFlashAttribute(
+                    "errorMessage",
+                    exception.getMessage()
+            );
+
+            return "redirect:/dgm/dashboard#batch-requests";
+        }
     }
 
-    @PostMapping("/{batchId}/rows/{itemId}")
-    public String updateRow(@PathVariable Long batchId,@PathVariable Long itemId,@RequestParam String employeeId,@RequestParam String name,@RequestParam String designation,@RequestParam String department,@RequestParam String branch,@RequestParam String status,@RequestParam String classification,@RequestParam String joiningDate,Authentication auth,RedirectAttributes redirect,jakarta.servlet.http.HttpServletRequest request){
-        String base=request.getRequestURI().startsWith("/admin")?"/admin/batches":"/pd/batches";
-        try{service.updateRow(batchId,itemId,new BatchImportService.BatchRow(employeeId,name,designation,department,branch,status,classification,joiningDate),auth.getName());redirect.addFlashAttribute("success","Row updated and revalidated");}
-        catch(IllegalArgumentException|IllegalStateException e){redirect.addFlashAttribute("error",e.getMessage());}
-        return "redirect:"+base+"/"+batchId;
-    }
+    /**
+     * Handles the Level 1 Checker batch decision.
+     */
+    @PostMapping("/{id}/decision")
+    public String decideBatchRequest(
+            @PathVariable("id") Long id,
+            @RequestParam("action") String action,
+            @RequestParam(
+                    value = "comment",
+                    required = false
+            ) String comment,
+            RedirectAttributes redirectAttributes
+    ) {
+        try {
+            ImportBatch updatedBatch =
+                    batchImportService.makeLevel1Decision(
+                            id,
+                            action,
+                            comment
+                    );
 
-    @PostMapping("/{id}/submit")
-    public String submit(@PathVariable Long id,Authentication auth,RedirectAttributes redirect,jakarta.servlet.http.HttpServletRequest request){
-        String base=request.getRequestURI().startsWith("/admin")?"/admin/batches":"/pd/batches";
-        try{service.submit(id,auth.getName());redirect.addFlashAttribute("success","Batch submitted for DGM approval");}
-        catch(IllegalArgumentException|IllegalStateException e){redirect.addFlashAttribute("error",e.getMessage());}
-        return "redirect:"+base+"/"+id;
-    }
+            if ("APPROVE".equalsIgnoreCase(action)) {
+                redirectAttributes.addFlashAttribute(
+                        "successMessage",
+                        "Batch "
+                                + updatedBatch.getBatchNumber()
+                                + " was approved and sent to "
+                                + "Level 2 Checker."
+                );
+            } else {
+                redirectAttributes.addFlashAttribute(
+                        "successMessage",
+                        "Batch "
+                                + updatedBatch.getBatchNumber()
+                                + " was rejected."
+                );
+            }
 
-    @PostMapping("/{id}/cancel")
-    public String cancel(@PathVariable Long id,Authentication auth,RedirectAttributes redirect,jakarta.servlet.http.HttpServletRequest request){String base=request.getRequestURI().startsWith("/admin")?"/admin/batches":"/pd/batches";try{service.cancel(id,auth.getName());redirect.addFlashAttribute("success","Batch cancelled and retained for audit");}catch(IllegalArgumentException|IllegalStateException e){redirect.addFlashAttribute("error",e.getMessage());}return "redirect:"+base;}
+        } catch (EntityNotFoundException
+                 | IllegalArgumentException
+                 | IllegalStateException exception) {
+
+            redirectAttributes.addFlashAttribute(
+                    "errorMessage",
+                    exception.getMessage()
+            );
+        }
+
+        return "redirect:/dgm/dashboard#batch-requests";
+    }
 }

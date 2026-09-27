@@ -88,7 +88,7 @@ public class GmController {
 
         model.addAttribute(
                 "batchRequests",
-                batchImportService.pending("LEVEL_2_CHECKER")
+                batchImportService.findPendingForLevel1Checker()
         );
 
         model.addAttribute(
@@ -115,10 +115,9 @@ public class GmController {
         try {
             batchImportService.decide(
                     id,
-                    "LEVEL_2_CHECKER",
                     action,
-                    comment,
-                    authentication.getName()
+                    comment
+
             );
 
             redirect.addFlashAttribute(
@@ -142,12 +141,12 @@ public class GmController {
     ) {
         model.addAttribute(
                 "batch",
-                batchImportService.get(id)
+                batchImportService.getActiveBatch(id)
         );
 
         model.addAttribute(
                 "items",
-                batchImportService.itemViews(id)
+                batchImportService.getBatchItems(id)
         );
 
         model.addAttribute(
